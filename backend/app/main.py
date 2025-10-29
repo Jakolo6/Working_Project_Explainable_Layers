@@ -15,11 +15,13 @@ app = FastAPI(
 origins = [
     os.getenv("FRONTEND_URL", "http://localhost:3000"),
     "https://*.netlify.app",
+    "http://localhost:3000",
+    "*"  # Allow all origins for Railway deployment
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Permissive CORS for initial deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
