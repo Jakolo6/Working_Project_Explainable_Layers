@@ -17,8 +17,8 @@ boto3==1.29.7
 
 # Utilities
 python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.8.0
+pydantic-settings>=2.3.0
 kaggle==1.5.16
 
 # HTTP client (compatible with supabase)
