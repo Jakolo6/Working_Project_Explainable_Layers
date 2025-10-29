@@ -21,5 +21,5 @@ pydantic==2.5.0
 pydantic-settings==2.1.0
 kaggle==1.5.16
 
-# HTTP client
-httpx==0.25.2
+# HTTP client (compatible with supabase)
+httpx>=0.24.0,<0.25.0
