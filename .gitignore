@@ -28,11 +28,14 @@ dist/
 *.swo
 .DS_Store
 
-# Data and models (stored in R2)
+# Data and ML model files (stored in R2)
 data/
-models/
 *.pkl
 *.csv
+*.joblib
+*.h5
+*.pt
+*.pth
 
 # Logs
 *.log
