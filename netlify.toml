@@ -1,15 +1,7 @@
 [build]
   base = "frontend"
   command = "npm run build"
-  publish = ".next"
-
-[build.environment]
-  NEXT_USE_NETLIFY_EDGE = "false"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+  publish = "frontend/.next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
