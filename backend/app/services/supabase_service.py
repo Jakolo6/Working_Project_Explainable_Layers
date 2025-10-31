@@ -15,20 +15,14 @@ class SupabaseService:
             config.supabase_key
         )
     
-    def create_session(self, application_data: Dict) -> str:
-        """Create a new experiment session"""
-        session_id = str(uuid.uuid4())
-        
-        session_data = {
-            'session_id': session_id,
-            'created_at': datetime.utcnow().isoformat(),
-            'application_data': application_data
-        }
-        
-        # Insert into sessions table (will be created in Supabase)
-        response = self.client.table('sessions').insert(session_data).execute()
-        
-        return session_id
+    def create_session(self, session_record: Dict) -> bool:
+        """Create a new experiment session with participant information"""
+        try:
+            response = self.client.table('sessions').insert(session_record).execute()
+            return True
+        except Exception as e:
+            print(f"Error creating session: {e}")
+            return False
     
     def store_prediction(self, session_id: str, prediction_data: Dict) -> bool:
         """Store prediction results for a session"""
@@ -68,4 +62,57 @@ class SupabaseService:
             return data['id']
         except Exception as e:
             print(f"Error storing participant response: {e}")
+            return None
+    
+    # ============================================================================
+    # NEW EXPERIMENTAL FLOW METHODS
+    # ============================================================================
+    
+    def store_pre_experiment_response(self, response_data: Dict) -> bool:
+        """Store pre-experiment questionnaire responses"""
+        try:
+            self.client.table('pre_experiment_responses').insert(response_data).execute()
+            return True
+        except Exception as e:
+            print(f"Error storing pre-experiment response: {e}")
+            return False
+    
+    def store_post_experiment_response(self, response_data: Dict) -> bool:
+        """Store post-experiment questionnaire responses"""
+        try:
+            self.client.table('post_experiment_responses').insert(response_data).execute()
+            return True
+        except Exception as e:
+            print(f"Error storing post-experiment response: {e}")
+            return False
+    
+    def store_layer_feedback(self, feedback_data: Dict) -> bool:
+        """Store layer-specific feedback"""
+        try:
+            self.client.table('layer_feedback').insert(feedback_data).execute()
+            return True
+        except Exception as e:
+            print(f"Error storing layer feedback: {e}")
+            return False
+    
+    def mark_session_complete(self, session_id: str) -> bool:
+        """Mark a session as completed"""
+        try:
+            self.client.table('sessions').update({
+                'completed': True
+            }).eq('session_id', session_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error marking session complete: {e}")
+            return False
+    
+    def get_session(self, session_id: str) -> Optional[Dict]:
+        """Retrieve session data"""
+        try:
+            response = self.client.table('sessions').select('*').eq('session_id', session_id).execute()
+            if response.data and len(response.data) > 0:
+                return response.data[0]
+            return None
+        except Exception as e:
+            print(f"Error retrieving session: {e}")
             return None

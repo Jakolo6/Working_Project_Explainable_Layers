@@ -47,3 +47,55 @@ class ResponseSubmissionResult(BaseModel):
     success: bool
     message: str
     response_id: Optional[str] = None
+
+# ============================================================================
+# NEW EXPERIMENTAL FLOW SCHEMAS
+# ============================================================================
+
+class SessionCreate(BaseModel):
+    """Schema for creating a new participant session"""
+    participant_name: str = Field(..., min_length=2, description="Participant's full name")
+    participant_age: Optional[int] = Field(None, ge=18, le=100, description="Participant's age")
+    participant_profession: str = Field(..., min_length=2, description="Participant's profession")
+    finance_experience: str = Field(..., description="Experience level with finance")
+    ai_familiarity: int = Field(..., ge=1, le=5, description="AI familiarity rating (1-5)")
+
+class SessionResponse(BaseModel):
+    """Response after creating a session"""
+    session_id: str
+    success: bool
+    message: str
+
+class PreExperimentResponse(BaseModel):
+    """Pre-experiment questionnaire responses"""
+    session_id: str
+    expectation_ai_decision: str = Field(..., min_length=10, description="What participant expects AI to show")
+    expectation_fair_explanation: str = Field(..., min_length=10, description="What would make explanation feel fair")
+    expectation_role_explanations: str = Field(..., min_length=10, description="Role of explanations in AI banking")
+
+class PostExperimentResponse(BaseModel):
+    """Post-experiment questionnaire responses"""
+    session_id: str
+    best_format: str = Field(..., min_length=10, description="Which format helped understanding best")
+    most_credible: str = Field(..., min_length=10, description="Which format felt most credible")
+    most_useful: str = Field(..., min_length=10, description="Which format would be most useful")
+    impact_on_perception: str = Field(..., min_length=10, description="Impact on AI perception")
+    future_recommendations: str = Field(..., min_length=10, description="Recommendations for future systems")
+
+class LayerFeedbackRequest(BaseModel):
+    """Feedback for a specific explanation layer"""
+    session_id: str
+    persona_id: str = Field(..., description="Persona identifier (1, 2, or 3)")
+    layer_id: int = Field(..., ge=1, le=4, description="Layer number (1-4)")
+    layer_name: str = Field(..., description="Layer name (e.g., 'Basic SHAP', 'Textual')")
+    understanding_gained: str = Field(..., min_length=10, description="What was understood")
+    unclear_aspects: str = Field(..., min_length=10, description="What remained unclear")
+    customer_confidence: str = Field(..., min_length=10, description="Confidence explaining to customer")
+    interpretation_effort: int = Field(..., ge=1, le=7, description="Effort to interpret (1-7)")
+    expectation_difference: str = Field(..., min_length=10, description="How it differed from expectations")
+
+class LayerFeedbackResponse(BaseModel):
+    """Response after submitting layer feedback"""
+    success: bool
+    message: str
+    feedback_id: str

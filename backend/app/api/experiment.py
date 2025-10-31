@@ -6,7 +6,13 @@ from app.models.schemas import (
     PredictionResponse, 
     ParticipantResponse,
     ResponseSubmissionResult,
-    ExplanationData
+    ExplanationData,
+    SessionCreate,
+    SessionResponse,
+    PreExperimentResponse,
+    PostExperimentResponse,
+    LayerFeedbackRequest,
+    LayerFeedbackResponse
 )
 from app.services.xgboost_model import CreditModel
 from app.services.shap_service import SHAPExplainer
@@ -14,6 +20,7 @@ from app.services.supabase_service import SupabaseService
 from app.config import get_settings
 import pandas as pd
 import uuid
+from datetime import datetime
 
 router = APIRouter()
 
@@ -128,4 +135,191 @@ async def submit_participant_response(response: ParticipantResponse):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to submit response: {str(e)}"
+        )
+
+# ============================================================================
+# NEW EXPERIMENTAL FLOW ENDPOINTS
+# ============================================================================
+
+@router.post("/create_session", response_model=SessionResponse)
+async def create_session(session_data: SessionCreate):
+    """
+    Create a new participant session with demographic information
+    """
+    try:
+        _, _, db = get_services()
+        
+        session_id = str(uuid.uuid4())
+        
+        session_record = {
+            'session_id': session_id,
+            'participant_name': session_data.participant_name,
+            'participant_age': session_data.participant_age,
+            'participant_profession': session_data.participant_profession,
+            'finance_experience': session_data.finance_experience,
+            'ai_familiarity': session_data.ai_familiarity,
+            'created_at': datetime.utcnow().isoformat(),
+            'completed': False
+        }
+        
+        result = db.create_session(session_record)
+        
+        if result:
+            return SessionResponse(
+                session_id=session_id,
+                success=True,
+                message="Session created successfully"
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create session"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Session creation failed: {str(e)}"
+        )
+
+@router.post("/pre_response")
+async def submit_pre_experiment_response(response: PreExperimentResponse):
+    """
+    Store pre-experiment questionnaire responses
+    """
+    try:
+        _, _, db = get_services()
+        
+        response_data = {
+            'id': str(uuid.uuid4()),
+            'session_id': response.session_id,
+            'expectation_ai_decision': response.expectation_ai_decision,
+            'expectation_fair_explanation': response.expectation_fair_explanation,
+            'expectation_role_explanations': response.expectation_role_explanations,
+            'submitted_at': datetime.utcnow().isoformat()
+        }
+        
+        result = db.store_pre_experiment_response(response_data)
+        
+        if result:
+            return {
+                "success": True,
+                "message": "Pre-experiment response stored successfully"
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store pre-experiment response"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit pre-experiment response: {str(e)}"
+        )
+
+@router.post("/post_response")
+async def submit_post_experiment_response(response: PostExperimentResponse):
+    """
+    Store post-experiment questionnaire responses and mark session as complete
+    """
+    try:
+        _, _, db = get_services()
+        
+        response_data = {
+            'id': str(uuid.uuid4()),
+            'session_id': response.session_id,
+            'best_format': response.best_format,
+            'most_credible': response.most_credible,
+            'most_useful': response.most_useful,
+            'impact_on_perception': response.impact_on_perception,
+            'future_recommendations': response.future_recommendations,
+            'submitted_at': datetime.utcnow().isoformat()
+        }
+        
+        result = db.store_post_experiment_response(response_data)
+        
+        # Mark session as completed
+        if result:
+            db.mark_session_complete(response.session_id)
+            return {
+                "success": True,
+                "message": "Post-experiment response stored successfully"
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store post-experiment response"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit post-experiment response: {str(e)}"
+        )
+
+@router.post("/layer_feedback", response_model=LayerFeedbackResponse)
+async def submit_layer_feedback(feedback: LayerFeedbackRequest):
+    """
+    Store participant feedback for a specific explanation layer
+    """
+    try:
+        _, _, db = get_services()
+        
+        feedback_data = {
+            'id': str(uuid.uuid4()),
+            'session_id': feedback.session_id,
+            'persona_id': feedback.persona_id,
+            'layer_id': feedback.layer_id,
+            'layer_name': feedback.layer_name,
+            'understanding_gained': feedback.understanding_gained,
+            'unclear_aspects': feedback.unclear_aspects,
+            'customer_confidence': feedback.customer_confidence,
+            'interpretation_effort': feedback.interpretation_effort,
+            'expectation_difference': feedback.expectation_difference,
+            'submitted_at': datetime.utcnow().isoformat()
+        }
+        
+        result = db.store_layer_feedback(feedback_data)
+        
+        if result:
+            return LayerFeedbackResponse(
+                success=True,
+                message="Layer feedback stored successfully",
+                feedback_id=feedback_data['id']
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store layer feedback"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit layer feedback: {str(e)}"
+        )
+
+@router.get("/session/{session_id}")
+async def get_session(session_id: str):
+    """
+    Retrieve session data and progress
+    """
+    try:
+        _, _, db = get_services()
+        
+        session = db.get_session(session_id)
+        
+        if session:
+            return session
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve session: {str(e)}"
         )
