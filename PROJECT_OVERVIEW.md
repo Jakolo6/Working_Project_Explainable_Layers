@@ -62,7 +62,8 @@
 - ✅ Database schema deployed to Supabase (all 6 tables exist)
 - ✅ Backend code complete and pushed to Git
 - ✅ Frontend informational pages complete (landing, dataset, model, about)
-- ⏳ Netlify deployment in progress (fixing routing issues)
+- ✅ Netlify configuration fixed (netlify.toml: base=none, publish=frontend/out)
+- ⏳ Netlify deployment in progress (waiting for build)
 - ⏳ Railway backend deployment pending
 
 ### Immediate Actions
