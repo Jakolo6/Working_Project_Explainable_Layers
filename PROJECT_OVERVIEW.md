@@ -58,45 +58,32 @@
 
 ## 3. Next Steps / Tasks
 
-### Immediate (Backend Deployment)
-- [ ] Run SQL schema in Supabase dashboard
-- [ ] Configure all environment variables in Railway:
-  - [ ] SUPABASE_URL and SUPABASE_KEY
-  - [ ] R2 credentials (ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY)
-  - [ ] KAGGLE credentials
-  - [ ] FRONTEND_URL (Netlify URL)
-- [ ] Test backend API endpoints
-- [ ] Verify database connections
+### Current Status
+- ✅ Database schema deployed to Supabase (all 6 tables exist)
+- ✅ Backend code complete and pushed to Git
+- ✅ Frontend informational pages complete (landing, dataset, model, about)
+- ⏳ Netlify deployment in progress (fixing routing issues)
+- ⏳ Railway backend deployment pending
 
-### Frontend Development
-- [ ] Create `/experiment/start` - Registration page
-  - [ ] Demographic form (name, age, profession, finance experience, AI familiarity)
-  - [ ] Call `POST /api/v1/experiment/create_session`
-  - [ ] Store session_id in localStorage
-- [ ] Create `/experiment/pre` - Pre-experiment questionnaire
-  - [ ] 3 open-text questions about AI expectations
-  - [ ] Call `POST /api/v1/experiment/pre_response`
-- [ ] Create `/experiment/persona/[id]` - Persona input pages
-  - [ ] Display persona description
-  - [ ] Credit application form
-  - [ ] Call `POST /api/v1/experiment/predict`
-- [ ] Create `/experiment/persona/[id]/layer/[layerId]` - Layer explanation pages
-  - [ ] Display explanation for current layer
-  - [ ] 5 reflection questions per layer
-  - [ ] Call `POST /api/v1/experiment/layer_feedback`
-  - [ ] Navigate through layers 1-4
-- [ ] Create `/experiment/post` - Post-experiment questionnaire
-  - [ ] 5 open-text questions about overall experience
-  - [ ] Call `POST /api/v1/experiment/post_response`
-- [ ] Create `/experiment/complete` - Thank you page
-- [ ] Implement session state management (localStorage)
-- [ ] Add progress indicator UI
-- [ ] Add validation for all forms
+### Immediate Actions
+- [ ] Verify Netlify deployment successful (wait for rebuild)
+- [ ] Deploy backend to Railway with environment variables
+- [ ] Test API endpoints at Railway URL
+- [ ] Download dataset: `python3 backend/scripts/download_dataset.py`
+- [ ] Train model: `python3 backend/scripts/train_model.py`
 
-### Testing & Deployment
+### Frontend Development (Next Phase)
+- [ ] Registration page (`/experiment/start`)
+- [ ] Pre-experiment questionnaire (`/experiment/pre`)
+- [ ] Persona input pages (3 personas)
+- [ ] Layer explanation pages (4 layers × 3 personas)
+- [ ] Post-experiment questionnaire (`/experiment/post`)
+- [ ] Thank you page (`/experiment/complete`)
+- [ ] Session state management with localStorage
+- [ ] Progress indicator UI
+
+### Testing & Launch
 - [ ] End-to-end test: complete experimental flow
-- [ ] Test all 3 personas × 4 layers = 12 feedback submissions
-- [ ] Verify all data stored correctly in Supabase
-- [ ] Deploy frontend to Netlify
-- [ ] Update CORS settings in backend for production
+- [ ] Verify all 18 data points collected per participant
+- [ ] Test with 3-5 pilot participants
 - [ ] Final integration test with production URLs
