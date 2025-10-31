@@ -13,6 +13,7 @@ export default function Navigation() {
     { href: '/dataset', label: 'Dataset' },
     { href: '/model', label: 'Model' },
     { href: '/experiment', label: 'Experiment' },
+    { href: '/results', label: 'Results' },
     { href: '/admin', label: 'Admin' },
     { href: '/about', label: 'About' },
   ]
