@@ -1,10 +1,9 @@
-// Dataset page - Real EDA visualizations and statistics from German Credit Dataset
+// Dataset page - Real EDA statistics from German Credit Dataset
 
 'use client'
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 
 interface DatasetStats {
   dataset_info?: {
@@ -17,14 +16,21 @@ interface DatasetStats {
     bias_features_excluded: string[]
   }
   target_distribution?: {
-    good_credit: { count: number; percentage: number }
-    bad_credit: { count: number; percentage: number }
+    good_credit: { count: number; percentage: number; label: string }
+    bad_credit: { count: number; percentage: number; label: string }
     imbalance_ratio: number
+    cost_matrix_note: string
   }
   feature_insights?: {
     age?: { youngest: number; oldest: number; average: number }
     credit_amount?: { smallest_dm: number; largest_dm: number; average_dm: number; median_dm: number }
     duration?: { shortest_months: number; longest_months: number; average_months: number }
+  }
+  numerical_summary?: Record<string, any>
+  categorical_summary?: Record<string, any>
+  data_quality?: {
+    missing_values: string | Record<string, any>
+    duplicates: number
   }
 }
 
@@ -34,19 +40,20 @@ export default function DatasetPage() {
   const [error, setError] = useState<string | null>(null)
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  const r2BaseUrl = 'https://pub-0c0b7d8c5e6e4c5f8f5e4c5f8f5e4c5f.r2.dev' // Will be replaced with actual R2 public URL
 
   useEffect(() => {
-    // Fetch statistics from R2
     fetch(`${apiUrl}/api/v1/admin/eda-stats`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch')
+        return res.json()
+      })
       .then(data => {
         setStats(data)
         setLoading(false)
       })
       .catch(err => {
         console.error('Failed to load EDA stats:', err)
-        setError('EDA data not yet generated. Please run the EDA generation from the admin panel.')
+        setError('EDA data not yet generated')
         setLoading(false)
       })
   }, [apiUrl])
@@ -54,7 +61,6 @@ export default function DatasetPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
         <div className="mb-8">
           <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
             ← Back to Home
@@ -67,146 +73,175 @@ export default function DatasetPage() {
           </p>
         </div>
 
-        {/* Data Source */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Data Source</h2>
+        {loading && (
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <p className="text-gray-600">Loading dataset statistics...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
+            <p className="text-gray-700 mb-4">{error}</p>
+            <p className="text-sm text-gray-600 mb-4">
+              Please run EDA generation from the admin panel to see dataset statistics.
+            </p>
+            <Link 
+              href="/admin"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+            >
+              Go to Admin Panel →
+            </Link>
+          </div>
+        )}
+
+        {stats?.dataset_info && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dataset Overview</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-gray-700 mb-2">
+                  <strong>Name:</strong> {stats.dataset_info.name}
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Source:</strong> {stats.dataset_info.source}
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Total Records:</strong> {stats.dataset_info.total_records.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-700 mb-2">
+                  <strong>Total Attributes:</strong> {stats.dataset_info.total_attributes}
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Numerical:</strong> {stats.dataset_info.numerical_attributes} attributes
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Categorical:</strong> {stats.dataset_info.categorical_attributes} attributes
+                </p>
+              </div>
+            </div>
+            
+            {stats.dataset_info.bias_features_excluded.length > 0 && (
+              <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4">
+                <p className="text-sm font-semibold text-blue-900 mb-2">Bias Prevention</p>
+                <p className="text-sm text-blue-800">
+                  Excluded features: {stats.dataset_info.bias_features_excluded.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {stats?.target_distribution && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Target Distribution</h2>
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6">
+                <div className="text-sm text-green-700 mb-2">Good Credit ({stats.target_distribution.good_credit.label})</div>
+                <div className="text-3xl font-bold text-green-900">
+                  {stats.target_distribution.good_credit.count.toLocaleString()}
+                </div>
+                <div className="text-sm text-green-700 mt-1">
+                  {stats.target_distribution.good_credit.percentage.toFixed(1)}% of total
+                </div>
+              </div>
+              <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
+                <div className="text-sm text-red-700 mb-2">Bad Credit ({stats.target_distribution.bad_credit.label})</div>
+                <div className="text-3xl font-bold text-red-900">
+                  {stats.target_distribution.bad_credit.count.toLocaleString()}
+                </div>
+                <div className="text-sm text-red-700 mt-1">
+                  {stats.target_distribution.bad_credit.percentage.toFixed(1)}% of total
+                </div>
+              </div>
+            </div>
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Imbalance Ratio:</strong> {stats.target_distribution.imbalance_ratio.toFixed(2)}:1
+              </p>
+              <p className="text-sm text-yellow-800 mt-2">
+                {stats.target_distribution.cost_matrix_note}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {stats?.feature_insights && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Feature Insights</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              {stats.feature_insights.age && (
+                <div className="border-l-4 border-blue-600 pl-4">
+                  <h3 className="font-semibold text-lg mb-3">Age Distribution</h3>
+                  <p className="text-gray-700 text-sm mb-1">
+                    <strong>Range:</strong> {stats.feature_insights.age.youngest} - {stats.feature_insights.age.oldest} years
+                  </p>
+                  <p className="text-gray-700 text-sm">
+                    <strong>Average:</strong> {stats.feature_insights.age.average.toFixed(1)} years
+                  </p>
+                </div>
+              )}
+              
+              {stats.feature_insights.credit_amount && (
+                <div className="border-l-4 border-green-600 pl-4">
+                  <h3 className="font-semibold text-lg mb-3">Credit Amount</h3>
+                  <p className="text-gray-700 text-sm mb-1">
+                    <strong>Range:</strong> {stats.feature_insights.credit_amount.smallest_dm.toLocaleString()} - {stats.feature_insights.credit_amount.largest_dm.toLocaleString()} DM
+                  </p>
+                  <p className="text-gray-700 text-sm mb-1">
+                    <strong>Average:</strong> {stats.feature_insights.credit_amount.average_dm.toLocaleString()} DM
+                  </p>
+                  <p className="text-gray-700 text-sm">
+                    <strong>Median:</strong> {stats.feature_insights.credit_amount.median_dm.toLocaleString()} DM
+                  </p>
+                </div>
+              )}
+              
+              {stats.feature_insights.duration && (
+                <div className="border-l-4 border-purple-600 pl-4">
+                  <h3 className="font-semibold text-lg mb-3">Loan Duration</h3>
+                  <p className="text-gray-700 text-sm mb-1">
+                    <strong>Range:</strong> {stats.feature_insights.duration.shortest_months} - {stats.feature_insights.duration.longest_months} months
+                  </p>
+                  <p className="text-gray-700 text-sm">
+                    <strong>Average:</strong> {stats.feature_insights.duration.average_months.toFixed(1)} months
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {stats?.data_quality && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Data Quality</h2>
+            <div className="space-y-3">
+              <p className="text-gray-700">
+                <strong>Missing Values:</strong> {typeof stats.data_quality.missing_values === 'string' 
+                  ? stats.data_quality.missing_values 
+                  : 'Some missing values detected'}
+              </p>
+              <p className="text-gray-700">
+                <strong>Duplicate Records:</strong> {stats.data_quality.duplicates}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-blue-50 rounded-xl p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Dataset</h2>
           <p className="text-gray-700 mb-4">
-            This study uses the <strong>German Credit Risk Dataset</strong> from Kaggle, a widely-used 
-            benchmark dataset in financial machine learning research. The dataset contains 1,000 credit 
-            applications with 20 attributes describing applicants' financial and personal characteristics.
+            The German Credit Risk Dataset is a widely-used benchmark in financial machine learning research. 
+            Originally compiled by Professor Hans Hofmann at the University of Hamburg, it contains 1,000 
+            credit applications with 20 attributes describing applicants' financial and personal characteristics.
           </p>
           <p className="text-gray-700">
-            Originally compiled by Professor Hans Hofmann at the University of Hamburg, this dataset has 
-            been used in hundreds of academic studies on credit risk assessment and fair lending practices.
+            To ensure fairness, we excluded sensitive attributes (gender, nationality) from model training 
+            to prevent discriminatory predictions.
           </p>
         </div>
 
-        {/* Data Preparation */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Data Preparation & Ethics</h2>
-          <p className="text-gray-700 mb-4">
-            To ensure fairness and transparency, we applied rigorous data preprocessing:
-          </p>
-          <ul className="space-y-3 text-gray-700">
-            <li className="flex items-start">
-              <span className="text-green-600 mr-2 mt-1">✓</span>
-              <span><strong>Bias mitigation:</strong> Removed sensitive attributes like gender and nationality 
-              to prevent discriminatory predictions</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-green-600 mr-2 mt-1">✓</span>
-              <span><strong>Missing values:</strong> Handled missing data using median imputation for 
-              numerical features and mode imputation for categorical features</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-green-600 mr-2 mt-1">✓</span>
-              <span><strong>Feature scaling:</strong> Normalized numerical variables to ensure equal 
-              weight in model training</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-green-600 mr-2 mt-1">✓</span>
-              <span><strong>Outlier detection:</strong> Identified and capped extreme values to prevent 
-              model distortion</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Key Variables */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Key Variables Used</h2>
-          <p className="text-gray-700 mb-6">
-            The model considers the following features when making credit decisions:
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border-l-4 border-blue-600 pl-4">
-              <h3 className="font-semibold text-lg mb-2">Financial Indicators</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>• Monthly income</li>
-                <li>• Requested loan amount</li>
-                <li>• Existing credits</li>
-                <li>• Credit history</li>
-                <li>• Savings account balance</li>
-              </ul>
-            </div>
-
-            <div className="border-l-4 border-green-600 pl-4">
-              <h3 className="font-semibold text-lg mb-2">Personal Factors</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>• Age</li>
-                <li>• Employment duration</li>
-                <li>• Job type</li>
-                <li>• Housing status</li>
-                <li>• Number of dependents</li>
-              </ul>
-            </div>
-
-            <div className="border-l-4 border-purple-600 pl-4">
-              <h3 className="font-semibold text-lg mb-2">Loan Details</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>• Loan duration (months)</li>
-                <li>• Loan purpose</li>
-                <li>• Installment rate</li>
-              </ul>
-            </div>
-
-            <div className="border-l-4 border-orange-600 pl-4">
-              <h3 className="font-semibold text-lg mb-2">Risk Indicators</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>• Payment history</li>
-                <li>• Other installment plans</li>
-                <li>• Property ownership</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Data Insights */}
-        <div className="bg-blue-50 rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Key Insights from the Data</h2>
-          <div className="space-y-3 text-gray-700">
-            <p>
-              <strong>Age distribution:</strong> Applicants range from 19 to 75 years old, with a median 
-              age of 33. Older applicants tend to have more stable credit histories.
-            </p>
-            <p>
-              <strong>Income patterns:</strong> Monthly income shows a right-skewed distribution, with 
-              most applicants earning between €1,000-€4,000.
-            </p>
-            <p>
-              <strong>Loan purposes:</strong> The most common reasons for credit applications are car 
-              purchases (30%), furniture (18%), and education (15%).
-            </p>
-            <p>
-              <strong>Default rate:</strong> Approximately 30% of applications in the historical data 
-              resulted in defaults, making this a realistic representation of credit risk.
-            </p>
-          </div>
-        </div>
-
-        {/* Privacy & Ethics */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Privacy & Data Ethics</h2>
-          <p className="text-gray-700 mb-4">
-            This dataset contains no personally identifiable information (PII). All data has been:
-          </p>
-          <ul className="space-y-2 text-gray-700">
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">•</span>
-              <span>Anonymized and aggregated to protect individual privacy</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">•</span>
-              <span>Publicly available for research purposes under open data licenses</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">•</span>
-              <span>Processed in compliance with GDPR and ethical AI principles</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Navigation */}
         <div className="flex justify-between items-center">
           <Link 
             href="/"
@@ -218,7 +253,7 @@ export default function DatasetPage() {
             href="/model"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
           >
-            Next: Understand the Model →
+            Next: Model Performance →
           </Link>
         </div>
       </div>
