@@ -34,25 +34,41 @@ interface DatasetStats {
   }
 }
 
+interface EdaImage {
+  filename: string
+  key: string
+  url: string
+  size: number
+  last_modified: string
+}
+
+interface EdaImagesResponse {
+  success: boolean
+  count: number
+  images: EdaImage[]
+}
+
 export default function DatasetPage() {
   const [stats, setStats] = useState<DatasetStats | null>(null)
+  const [images, setImages] = useState<EdaImage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   useEffect(() => {
-    fetch(`${apiUrl}/api/v1/admin/eda-stats`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(data => {
-        setStats(data)
+    // Fetch both statistics and images
+    Promise.all([
+      fetch(`${apiUrl}/api/v1/admin/eda-stats`).then(res => res.ok ? res.json() : null),
+      fetch(`${apiUrl}/api/v1/admin/eda-images`).then(res => res.ok ? res.json() : null)
+    ])
+      .then(([statsData, imagesData]) => {
+        if (statsData) setStats(statsData)
+        if (imagesData?.images) setImages(imagesData.images)
         setLoading(false)
       })
       .catch(err => {
-        console.error('Failed to load EDA stats:', err)
+        console.error('Failed to load EDA data:', err)
         setError('EDA data not yet generated')
         setLoading(false)
       })
@@ -225,6 +241,36 @@ export default function DatasetPage() {
               <p className="text-gray-700">
                 <strong>Duplicate Records:</strong> {stats.data_quality.duplicates}
               </p>
+            </div>
+          </div>
+        )}
+
+        {images.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Exploratory Data Analysis Visualizations</h2>
+            <p className="text-gray-600 mb-8">
+              All visualizations generated from real dataset (1000 credit applications, 20 attributes)
+            </p>
+            
+            <div className="space-y-8">
+              {images.map((image) => (
+                <div key={image.filename} className="border rounded-lg p-4 bg-gray-50">
+                  <h3 className="font-semibold text-lg mb-3 text-gray-800">
+                    {image.filename.replace('.png', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </h3>
+                  <div className="bg-white p-4 rounded border">
+                    <img 
+                      src={image.url} 
+                      alt={image.filename}
+                      className="w-full h-auto"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Generated: {new Date(image.last_modified).toLocaleString()} • Size: {(image.size / 1024).toFixed(2)} KB
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}
