@@ -1,21 +1,69 @@
-// Dataset page - Explaining the data foundation
+// Dataset page - Real EDA visualizations and statistics from German Credit Dataset
+
+'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+
+interface DatasetStats {
+  dataset_info?: {
+    name: string
+    source: string
+    total_records: number
+    total_attributes: number
+    numerical_attributes: number
+    categorical_attributes: number
+    bias_features_excluded: string[]
+  }
+  target_distribution?: {
+    good_credit: { count: number; percentage: number }
+    bad_credit: { count: number; percentage: number }
+    imbalance_ratio: number
+  }
+  feature_insights?: {
+    age?: { youngest: number; oldest: number; average: number }
+    credit_amount?: { smallest_dm: number; largest_dm: number; average_dm: number; median_dm: number }
+    duration?: { shortest_months: number; longest_months: number; average_months: number }
+  }
+}
 
 export default function DatasetPage() {
+  const [stats, setStats] = useState<DatasetStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const r2BaseUrl = 'https://pub-0c0b7d8c5e6e4c5f8f5e4c5f8f5e4c5f.r2.dev' // Will be replaced with actual R2 public URL
+
+  useEffect(() => {
+    // Fetch statistics from R2
+    fetch(`${apiUrl}/api/v1/admin/eda-stats`)
+      .then(res => res.json())
+      .then(data => {
+        setStats(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to load EDA stats:', err)
+        setError('EDA data not yet generated. Please run the EDA generation from the admin panel.')
+        setLoading(false)
+      })
+  }, [apiUrl])
+
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
             ← Back to Home
           </Link>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Understanding the Dataset
+            Dataset Transparency
           </h1>
           <p className="text-xl text-gray-600">
-            Transparency starts with the data. Learn about the foundation of our credit scoring model.
+            Comprehensive exploratory data analysis of the German Credit Risk Dataset
           </p>
         </div>
 

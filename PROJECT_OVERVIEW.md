@@ -46,6 +46,14 @@
 - [x] Railway deployment configuration
 - [x] Environment variable management
 - [x] Dataset download from UCI ML Repository (`download_dataset.py`)
+- [x] **Comprehensive EDA** (`generate_eda.py`)
+  - 7 high-quality visualizations (150 DPI)
+  - Target distribution with percentages
+  - Age, credit amount, duration distributions (with box plots by risk)
+  - Purpose and checking status distributions
+  - Correlation heatmap for 7 numerical attributes
+  - Detailed statistics JSON with all 20 attributes
+  - Bias features clearly marked
 
 ### Database (Complete)
 - [x] `sessions` table - participant demographics and session tracking
