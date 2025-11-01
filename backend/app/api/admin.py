@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 import subprocess
 import os
 from pathlib import Path
+import boto3
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
