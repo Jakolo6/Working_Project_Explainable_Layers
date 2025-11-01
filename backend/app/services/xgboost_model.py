@@ -110,18 +110,39 @@ class CreditModel:
         
         train_score = self.model.score(X_train, y_train)
         test_score = self.model.score(X_test, y_test)
+        roc_auc = roc_auc_score(y_test, y_test_proba)
+        
+        # Calculate additional metrics
+        from sklearn.metrics import precision_score, recall_score, f1_score
+        precision = precision_score(y_test, y_test_pred)
+        recall = recall_score(y_test, y_test_pred)
+        f1 = f1_score(y_test, y_test_pred)
+        
+        # Store metrics for later retrieval
+        self.training_metrics = {
+            'model_type': 'XGBoost',
+            'train_accuracy': float(train_score),
+            'test_accuracy': float(test_score),
+            'roc_auc': float(roc_auc),
+            'precision': float(precision),
+            'recall': float(recall),
+            'f1_score': float(f1),
+            'train_size': int(len(X_train)),
+            'test_size': int(len(X_test)),
+            'n_features': int(X.shape[1]),
+            'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
+            'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist()
+        }
         
         print(f"\n{'='*60}")
-        print("Model Training Results")
+        print("XGBoost Model Training Results")
         print(f"{'='*60}")
         print(f"Training accuracy: {train_score:.4f}")
         print(f"Test accuracy: {test_score:.4f}")
-        
-        try:
-            roc_auc = roc_auc_score(y_test, y_test_proba)
-            print(f"ROC-AUC Score: {roc_auc:.4f}")
-        except:
-            pass
+        print(f"ROC-AUC Score: {roc_auc:.4f}")
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall: {recall:.4f}")
+        print(f"F1 Score: {f1:.4f}")
         
         print(f"\nTest Set Classification Report:")
         print(classification_report(y_test, y_test_pred))
@@ -133,16 +154,7 @@ class CreditModel:
         return self.model
     
     def save_model_to_r2(self):
-        """Save trained model and preprocessor to Cloudflare R2"""
-        # Serialize model and preprocessor to bytes
-        buffer = BytesIO()
-        joblib.dump({
-            'model': self.model,
-            'preprocessor': self.preprocessor
-        }, buffer)
-        buffer.seek(0)
-        
-        # Upload to R2
+        """Save trained model, preprocessor, and metrics to Cloudflare R2"""
         s3_client = boto3.client(
             's3',
             endpoint_url=self.config.r2_endpoint_url,
@@ -150,13 +162,32 @@ class CreditModel:
             aws_secret_access_key=self.config.r2_secret_access_key
         )
         
+        # Save model and preprocessor
+        buffer = BytesIO()
+        joblib.dump({
+            'model': self.model,
+            'preprocessor': self.preprocessor
+        }, buffer)
+        buffer.seek(0)
+        
         s3_client.put_object(
             Bucket=self.config.r2_bucket_name,
             Key=self.config.model_path,
             Body=buffer.getvalue()
         )
-        
         print(f"Model and preprocessor saved to R2: {self.config.model_path}")
+        
+        # Save training metrics as JSON
+        if hasattr(self, 'training_metrics'):
+            import json
+            metrics_json = json.dumps(self.training_metrics, indent=2)
+            s3_client.put_object(
+                Bucket=self.config.r2_bucket_name,
+                Key='models/xgboost_metrics.json',
+                Body=metrics_json.encode('utf-8'),
+                ContentType='application/json'
+            )
+            print(f"Training metrics saved to R2: models/xgboost_metrics.json")
     
     def load_model_from_r2(self):
         """Load trained model and preprocessor from Cloudflare R2"""

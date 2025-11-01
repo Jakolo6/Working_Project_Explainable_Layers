@@ -103,18 +103,49 @@ class LogisticCreditModel:
         
         train_score = self.model.score(X_train, y_train)
         test_score = self.model.score(X_test, y_test)
+        roc_auc = roc_auc_score(y_test, y_test_proba)
+        
+        # Calculate additional metrics
+        from sklearn.metrics import precision_score, recall_score, f1_score
+        precision = precision_score(y_test, y_test_pred)
+        recall = recall_score(y_test, y_test_pred)
+        f1 = f1_score(y_test, y_test_pred)
+        
+        # Feature importance
+        feature_importance = pd.DataFrame({
+            'feature': self.preprocessor.feature_names,
+            'coefficient': self.model.coef_[0]
+        })
+        feature_importance['abs_coefficient'] = feature_importance['coefficient'].abs()
+        feature_importance = feature_importance.sort_values('abs_coefficient', ascending=False)
+        top_features = feature_importance.head(10)[['feature', 'coefficient']].to_dict('records')
+        
+        # Store metrics for later retrieval
+        self.training_metrics = {
+            'model_type': 'Logistic Regression',
+            'train_accuracy': float(train_score),
+            'test_accuracy': float(test_score),
+            'roc_auc': float(roc_auc),
+            'precision': float(precision),
+            'recall': float(recall),
+            'f1_score': float(f1),
+            'train_size': int(len(X_train)),
+            'test_size': int(len(X_test)),
+            'n_features': int(X.shape[1]),
+            'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
+            'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist(),
+            'top_features': top_features
+        }
         
         print(f"\n{'='*60}")
         print("Logistic Regression Training Results")
         print(f"{'='*60}")
         print(f"Training accuracy: {train_score:.4f}")
         print(f"Test accuracy: {test_score:.4f}")
-        
-        try:
-            roc_auc = roc_auc_score(y_test, y_test_proba)
-            print(f"ROC-AUC Score: {roc_auc:.4f}")
-        except:
-            pass
+        print(f"ROC-AUC Score: {roc_auc:.4f}")
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall: {recall:.4f}")
+        print(f"F1 Score: {f1:.4f}")
         
         print(f"\nTest Set Classification Report:")
         print(classification_report(y_test, y_test_pred))
@@ -124,12 +155,6 @@ class LogisticCreditModel:
         
         # Feature importance (coefficients)
         print(f"\nTop 10 Most Important Features (by absolute coefficient):")
-        feature_importance = pd.DataFrame({
-            'feature': self.preprocessor.feature_names,
-            'coefficient': self.model.coef_[0]
-        })
-        feature_importance['abs_coefficient'] = feature_importance['coefficient'].abs()
-        feature_importance = feature_importance.sort_values('abs_coefficient', ascending=False)
         print(feature_importance.head(10).to_string(index=False))
         
         print(f"{'='*60}\n")
@@ -137,20 +162,11 @@ class LogisticCreditModel:
         return self.model
     
     def save_model_to_r2(self, model_path: str = None):
-        """Save trained model and preprocessor to Cloudflare R2"""
+        """Save trained model, preprocessor, and metrics to Cloudflare R2"""
         if model_path is None:
             # Use different path for logistic regression
             model_path = self.config.model_path.replace('.pkl', '_logistic.pkl')
         
-        # Serialize model and preprocessor to bytes
-        buffer = BytesIO()
-        joblib.dump({
-            'model': self.model,
-            'preprocessor': self.preprocessor
-        }, buffer)
-        buffer.seek(0)
-        
-        # Upload to R2
         s3_client = boto3.client(
             's3',
             endpoint_url=self.config.r2_endpoint_url,
@@ -158,13 +174,32 @@ class LogisticCreditModel:
             aws_secret_access_key=self.config.r2_secret_access_key
         )
         
+        # Save model and preprocessor
+        buffer = BytesIO()
+        joblib.dump({
+            'model': self.model,
+            'preprocessor': self.preprocessor
+        }, buffer)
+        buffer.seek(0)
+        
         s3_client.put_object(
             Bucket=self.config.r2_bucket_name,
             Key=model_path,
             Body=buffer.getvalue()
         )
-        
         print(f"Logistic Regression model and preprocessor saved to R2: {model_path}")
+        
+        # Save training metrics as JSON
+        if hasattr(self, 'training_metrics'):
+            import json
+            metrics_json = json.dumps(self.training_metrics, indent=2)
+            s3_client.put_object(
+                Bucket=self.config.r2_bucket_name,
+                Key='models/logistic_metrics.json',
+                Body=metrics_json.encode('utf-8'),
+                ContentType='application/json'
+            )
+            print(f"Training metrics saved to R2: models/logistic_metrics.json")
     
     def load_model_from_r2(self, model_path: str = None):
         """Load trained model and preprocessor from Cloudflare R2"""

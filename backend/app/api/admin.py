@@ -174,3 +174,63 @@ async def train_model():
         import traceback
         error_detail = f"Exception: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
         raise HTTPException(status_code=500, detail=error_detail)
+
+
+@router.get("/model-metrics")
+async def get_model_metrics():
+    """
+    Retrieve training metrics for both models from R2.
+    Returns metrics for XGBoost and Logistic Regression models.
+    """
+    try:
+        import boto3
+        import json
+        from app.config import get_settings
+        
+        config = get_settings()
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=config.r2_endpoint_url,
+            aws_access_key_id=config.r2_access_key_id,
+            aws_secret_access_key=config.r2_secret_access_key
+        )
+        
+        metrics = {}
+        
+        # Try to load XGBoost metrics
+        try:
+            obj = s3_client.get_object(
+                Bucket=config.r2_bucket_name,
+                Key='models/xgboost_metrics.json'
+            )
+            metrics['xgboost'] = json.loads(obj['Body'].read().decode('utf-8'))
+        except:
+            metrics['xgboost'] = None
+        
+        # Try to load Logistic Regression metrics
+        try:
+            obj = s3_client.get_object(
+                Bucket=config.r2_bucket_name,
+                Key='models/logistic_metrics.json'
+            )
+            metrics['logistic'] = json.loads(obj['Body'].read().decode('utf-8'))
+        except:
+            metrics['logistic'] = None
+        
+        if not metrics['xgboost'] and not metrics['logistic']:
+            raise HTTPException(
+                status_code=404,
+                detail="No model metrics found. Please train the models first."
+            )
+        
+        return {
+            "success": True,
+            "metrics": metrics
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to retrieve model metrics: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
