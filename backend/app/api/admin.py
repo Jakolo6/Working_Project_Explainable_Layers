@@ -217,6 +217,75 @@ async def get_eda_stats():
         raise HTTPException(status_code=500, detail=error_detail)
 
 
+@router.get("/eda-images")
+async def get_eda_images():
+    """
+    List all available EDA visualization images from R2.
+    Returns URLs and metadata for all generated charts.
+    """
+    try:
+        import boto3
+        from app.config import get_settings
+        
+        config = get_settings()
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=config.r2_endpoint_url,
+            aws_access_key_id=config.r2_access_key_id,
+            aws_secret_access_key=config.r2_secret_access_key
+        )
+        
+        # List all objects in eda/ folder
+        response = s3_client.list_objects_v2(
+            Bucket=config.r2_bucket_name,
+            Prefix='eda/'
+        )
+        
+        if 'Contents' not in response:
+            raise HTTPException(
+                status_code=404,
+                detail="No EDA visualizations found. Please run 'Generate EDA' from the admin panel first."
+            )
+        
+        # Filter for PNG images only
+        images = []
+        for obj in response['Contents']:
+            if obj['Key'].endswith('.png'):
+                # Generate presigned URL (valid for 1 hour)
+                url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': config.r2_bucket_name,
+                        'Key': obj['Key']
+                    },
+                    ExpiresIn=3600  # 1 hour
+                )
+                
+                # Extract filename without path
+                filename = obj['Key'].split('/')[-1]
+                
+                images.append({
+                    'filename': filename,
+                    'key': obj['Key'],
+                    'url': url,
+                    'size': obj['Size'],
+                    'last_modified': obj['LastModified'].isoformat()
+                })
+        
+        return {
+            'success': True,
+            'count': len(images),
+            'images': sorted(images, key=lambda x: x['filename'])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to retrieve EDA images: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
+
+
 @router.get("/model-metrics")
 async def get_model_metrics():
     """
