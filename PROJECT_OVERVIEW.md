@@ -54,6 +54,17 @@
   - Correlation heatmap for 7 numerical attributes
   - Detailed statistics JSON with all 20 attributes
   - Bias features clearly marked
+- [x] **Model Metrics Collection** - Training metrics saved to R2
+  - Accuracy, Precision, Recall, F1 Score, ROC-AUC
+  - Confusion matrices for both models
+  - Feature importance (Logistic Regression coefficients)
+  - Train/test split sizes and performance comparison
+- [x] **Admin API Endpoints**
+  - `/api/v1/admin/download-dataset` - Download German Credit data
+  - `/api/v1/admin/generate-eda` - Generate EDA visualizations
+  - `/api/v1/admin/train-model` - Train both models
+  - `/api/v1/admin/eda-stats` - Serve EDA statistics JSON
+  - `/api/v1/admin/model-metrics` - Serve model training metrics
 
 ### Database (Complete)
 - [x] `sessions` table - participant demographics and session tracking
@@ -70,13 +81,24 @@
 - [x] TailwindCSS styling
 - [x] Netlify deployment configuration
 - [x] Landing page - Project introduction and overview
-- [x] Dataset page - Data transparency and ethics
-- [x] Model page - AI system explanation with SHAP
+- [x] **Dataset page** - Real EDA statistics display
+  - Dataset overview (1000 records, 20 attributes)
+  - Target distribution (700 good / 300 bad credit)
+  - Feature insights (age, credit amount, duration)
+  - Data quality metrics
+  - Fetches real data from `/api/v1/admin/eda-stats`
+- [x] **Model page** - Real model performance metrics
+  - XGBoost metrics (accuracy, precision, recall, F1, ROC-AUC)
+  - Logistic Regression metrics with feature importance
+  - Confusion matrices for both models
+  - Train/test performance comparison
+  - Fetches real data from `/api/v1/admin/model-metrics`
 - [x] About page - Research ethics and contact information
 - [x] **Admin page** - Setup buttons for project initialization
   - Download dataset from UCI (not Kaggle)
   - Generate EDA visualizations
   - Train both models (XGBoost + Logistic Regression)
+- [ ] **EDA Visualizations Display** - Show 7 charts on dataset page
 - [ ] Results page - Researcher dashboard
 - [ ] Registration page (`/experiment/start`)
 - [ ] Pre-experiment questionnaire page (`/experiment/pre`)
@@ -88,24 +110,53 @@
 
 ## 3. Next Steps / Tasks
 
-### Current Status
+### Current Status (Nov 1, 2025)
 - ✅ Database schema deployed to Supabase (all 6 tables exist)
-- ✅ Backend code complete with admin API endpoints
-- ✅ Frontend informational pages complete (landing, dataset, model, about)
-- ✅ Navigation component added to all pages
-- ✅ Admin panel with buttons to download data and train model
-- ✅ Netlify deployment successful and live
-- ✅ No mock data in codebase (all real data from Kaggle/model)
-- ⏳ Railway backend deployment pending
+- ✅ Backend deployed to Railway with all environment variables
+- ✅ Frontend deployed to Netlify and live
+- ✅ Dataset downloaded from UCI ML Repository (1000 records)
+- ✅ Both models trained and saved to R2 with metrics
+- ✅ EDA generated with 7 visualizations + statistics JSON
+- ✅ Dataset page displays real EDA statistics
+- ✅ Model page displays real training metrics
+- ✅ Admin panel fully functional
+- ✅ **NO MOCK DATA** - All data from real sources
 
-### Immediate Actions
-- [ ] Verify Netlify deployment successful (wait for rebuild)
-- [ ] Deploy backend to Railway with environment variables
-- [ ] Test API endpoints at Railway URL
-- [ ] Download dataset: `python3 backend/scripts/download_dataset.py`
-- [ ] Train both models: `python3 backend/scripts/train_all_models.py`
-  - Trains XGBoost and Logistic Regression
-  - Both exclude bias features (personal_status, foreign_worker)
+### Priority 1: Visual Enhancements (Next Session)
+- [ ] **Add EDA image display to dataset page**
+  - Create API endpoint to serve images from R2
+  - Display all 7 visualizations on dataset page
+  - Target distribution, age/amount/duration charts, confusion matrices
+- [ ] **Add model performance visualizations**
+  - ROC curves for both models
+  - Feature importance bar charts
+  - Training history plots (if available)
+
+### Priority 2: Experiment Flow Implementation
+- [ ] Registration page (`/experiment/start`)
+  - Collect participant demographics
+  - Generate unique session ID
+  - Store in Supabase
+- [ ] Pre-experiment questionnaire (`/experiment/pre`)
+  - AI trust and expectations questions
+  - Save to `pre_experiment_responses` table
+- [ ] Persona cycle implementation
+  - 3 personas × 4 explanation layers = 12 iterations
+  - Dynamic form for credit application input
+  - Real-time prediction with SHAP values
+  - Layer-specific explanation rendering
+  - Feedback collection after each layer
+- [ ] Post-experiment questionnaire (`/experiment/post`)
+  - Overall experience and insights
+  - Save to `post_experiment_responses` table
+- [ ] Thank you page with session summary
+
+### Priority 3: Research Dashboard
+- [ ] Results page for researchers
+  - Session statistics and completion rates
+  - Aggregated questionnaire responses
+  - Layer feedback analysis
+  - Export functionality (CSV/JSON)
   - Uses shared preprocessing pipeline
   - Saves both models to R2
 
