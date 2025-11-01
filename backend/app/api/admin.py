@@ -53,7 +53,7 @@ async def train_model():
         script_path = Path(__file__).parent.parent.parent / "scripts" / "train_model.py"
         
         if not script_path.exists():
-            raise HTTPException(status_code=404, detail="Training script not found")
+            raise HTTPException(status_code=404, detail=f"Training script not found at {script_path}")
         
         # Run the training script
         result = subprocess.run(
@@ -70,12 +70,18 @@ async def train_model():
                 "output": result.stdout
             }
         else:
+            # Return both stdout and stderr for debugging
+            error_msg = f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
             raise HTTPException(
                 status_code=500,
-                detail=f"Training failed: {result.stderr}"
+                detail=error_msg
             )
             
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=408, detail="Training timeout (>10 minutes)")
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"Exception: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
