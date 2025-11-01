@@ -155,7 +155,13 @@ class GermanCreditPreprocessor:
             Tuple of (X_transformed, y)
         """
         self.fit(df, target_col)
-        return self.transform(df, target_col)
+        X, y = self.transform(df, target_col)
+        
+        # Remap target labels from [1, 2] to [0, 1] for sklearn compatibility
+        if y is not None and y.min() == 1:
+            y = y - 1
+        
+        return X, y
     
     def _remove_bias_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove bias features from dataset"""

@@ -211,16 +211,18 @@ class LogisticCreditModel:
         prediction = self.model.predict(X)[0]
         probabilities = self.model.predict_proba(X)[0]
         
-        # Map prediction to decision
-        decision = "approved" if prediction == 1 else "rejected"
+        # Model uses [0, 1] internally, map back to original [1, 2]
+        # 0 = good credit (class 1), 1 = bad credit (class 2)
+        original_prediction = int(prediction) + 1
+        decision = "approved" if prediction == 0 else "rejected"
         confidence = float(max(probabilities))
         
         return {
             'decision': decision,
-            'prediction': int(prediction),
+            'prediction': original_prediction,  # Return original class labels [1, 2]
             'confidence': confidence,
-            'probability_good': float(probabilities[1]) if len(probabilities) > 1 else float(probabilities[0]),
-            'probability_bad': float(probabilities[0]) if len(probabilities) > 1 else 1 - float(probabilities[0]),
+            'probability_good': float(probabilities[0]),  # Class 0 = good credit
+            'probability_bad': float(probabilities[1]) if len(probabilities) > 1 else 1 - float(probabilities[0]),
             'preprocessed_features': X.iloc[0].to_dict()
         }
     
