@@ -18,6 +18,12 @@ interface ModelMetrics {
   n_features: number
   confusion_matrix: number[][]
   top_features?: Array<{ feature: string; coefficient: number }>
+  feature_importance?: Array<{ feature: string; importance: number }>
+  roc_curve?: {
+    fpr: number[]
+    tpr: number[]
+    thresholds: number[]
+  }
 }
 
 interface MetricsResponse {
@@ -36,6 +42,92 @@ const MetricCard = ({ label, value, format = 'percent' }: { label: string; value
     </div>
   </div>
 )
+
+const RocCurveChart = ({ data }: { data?: ModelMetrics['roc_curve'] }) => {
+  if (!data || data.fpr.length === 0) return null
+
+  const width = 220
+  const height = 220
+  const path = data.fpr
+    .map((fpr, idx) => {
+      const x = fpr * width
+      const y = height - data.tpr[idx] * height
+      return `${idx === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`
+    })
+    .join(' ')
+
+  return (
+    <div className="bg-white p-6 rounded-lg border">
+      <h4 className="font-semibold mb-4">ROC Curve</h4>
+      <svg viewBox={`0 0 ${width + 40} ${height + 40}`} className="w-full">
+        <g transform="translate(20, 20)">
+          <rect x={0} y={0} width={width} height={height} fill="#f9fafb" stroke="#d1d5db" />
+          <line x1={0} y1={height} x2={width} y2={0} stroke="#9ca3af" strokeDasharray="4 4" />
+          <path d={path} fill="none" stroke="#2563eb" strokeWidth={2} />
+          {data.fpr.map((fpr, idx) => (
+            <circle
+              key={idx}
+              cx={fpr * width}
+              cy={height - data.tpr[idx] * height}
+              r={2.5}
+              fill="#2563eb"
+            />
+          ))}
+          <text x={width / 2 - 20} y={height + 24} className="text-xs fill-gray-500">
+            False Positive Rate
+          </text>
+          <text x={-12} y={-8} className="text-xs fill-gray-500">
+            True Positive Rate
+          </text>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+const FeatureImportanceBars = ({
+  data,
+  title,
+  signed = false,
+}: {
+  data?: Array<{ feature: string; value: number }>
+  title: string
+  signed?: boolean
+}) => {
+  if (!data || data.length === 0) return null
+
+  const maxValue = Math.max(...data.map((item) => Math.abs(item.value))) || 1
+
+  return (
+    <div className="bg-white p-6 rounded-lg border">
+      <h4 className="font-semibold mb-4">{title}</h4>
+      <div className="space-y-3">
+        {data.map((item, idx) => {
+          const percentage = Math.abs(item.value) / maxValue
+          const barStyle = signed
+            ? item.value >= 0
+              ? 'bg-green-500'
+              : 'bg-red-500'
+            : 'bg-indigo-500'
+          return (
+            <div key={`${item.feature}-${idx}`}>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span className="truncate pr-2">{item.feature}</span>
+                <span className="font-mono text-gray-700">{item.value.toFixed(4)}</span>
+              </div>
+              <div className="h-2 rounded bg-gray-200">
+                <div
+                  className={`${barStyle} h-2 rounded`}
+                  style={{ width: `${Math.min(100, percentage * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 const ConfusionMatrix = ({ matrix }: { matrix: number[][] }) => (
   <div className="bg-white p-6 rounded-lg border">
@@ -126,7 +218,19 @@ export default function ModelPage() {
               <MetricCard label="Test Size" value={metrics.metrics.xgboost.test_size} format="number" />
             </div>
 
-            <ConfusionMatrix matrix={metrics.metrics.xgboost.confusion_matrix} />
+            <div className="grid md:grid-cols-2 gap-6">
+              <ConfusionMatrix matrix={metrics.metrics.xgboost.confusion_matrix} />
+              <div className="space-y-6">
+                <RocCurveChart data={metrics.metrics.xgboost.roc_curve} />
+                <FeatureImportanceBars
+                  data={metrics.metrics.xgboost.feature_importance?.slice(0, 10).map((item) => ({
+                    feature: item.feature,
+                    value: item.importance,
+                  }))}
+                  title="Top 10 Feature Importances"
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -147,22 +251,17 @@ export default function ModelPage() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <ConfusionMatrix matrix={metrics.metrics.logistic.confusion_matrix} />
-              
-              {metrics.metrics.logistic.top_features && (
-                <div className="bg-white p-6 rounded-lg border">
-                  <h4 className="font-semibold mb-4">Top 10 Features (by coefficient)</h4>
-                  <div className="space-y-2">
-                    {metrics.metrics.logistic.top_features.slice(0, 10).map((feat, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">{feat.feature}</span>
-                        <span className={`font-mono font-semibold ${feat.coefficient > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {feat.coefficient.toFixed(4)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="space-y-6">
+                <RocCurveChart data={metrics.metrics.logistic.roc_curve} />
+                <FeatureImportanceBars
+                  data={metrics.metrics.logistic.top_features?.map((feat) => ({
+                    feature: feat.feature,
+                    value: feat.coefficient,
+                  }))}
+                  title="Top 10 Coefficients"
+                  signed
+                />
+              </div>
             </div>
           </div>
         )}

@@ -98,10 +98,10 @@
   - Download dataset from UCI (not Kaggle)
   - Generate EDA visualizations
   - Train both models (XGBoost + Logistic Regression)
-- [ ] **EDA Visualizations Display** - Show 7 charts on dataset page
+- [x] **EDA Visualizations Display** - Show 7 charts on dataset page
 - [ ] Results page - Researcher dashboard
-- [ ] Registration page (`/experiment/start`)
-- [ ] Pre-experiment questionnaire page (`/experiment/pre`)
+- [x] Registration page (`/experiment/start`)
+- [x] Pre-experiment questionnaire page (`/experiment/pre`)
 - [ ] Persona cycle implementation (3 personas × 4 layers)
 - [ ] Post-experiment questionnaire page (`/experiment/post`)
 - [ ] Thank you page (`/experiment/complete`)
@@ -122,22 +122,22 @@
 - ✅ Admin panel fully functional
 - ✅ **NO MOCK DATA** - All data from real sources
 
-### Priority 1: Visual Enhancements (Next Session)
-- [ ] **Add EDA image display to dataset page**
+### Priority 1: Visual Enhancements (Completed)
+- [x] **Add EDA image display to dataset page**
   - Create API endpoint to serve images from R2
   - Display all 7 visualizations on dataset page
   - Target distribution, age/amount/duration charts, confusion matrices
-- [ ] **Add model performance visualizations**
+- [x] **Add model performance visualizations**
   - ROC curves for both models
   - Feature importance bar charts
   - Training history plots (if available)
 
-### Priority 2: Experiment Flow Implementation
-- [ ] Registration page (`/experiment/start`)
+- ### Priority 2: Experiment Flow Implementation
+- [x] Registration page (`/experiment/start`)
   - Collect participant demographics
   - Generate unique session ID
   - Store in Supabase
-- [ ] Pre-experiment questionnaire (`/experiment/pre`)
+- [x] Pre-experiment questionnaire (`/experiment/pre`)
   - AI trust and expectations questions
   - Save to `pre_experiment_responses` table
 - [ ] Persona cycle implementation
@@ -146,6 +146,9 @@
   - Real-time prediction with SHAP values
   - Layer-specific explanation rendering
   - Feedback collection after each layer
+- [ ] Persona selection hub (`/experiment/personas`) with session validation
+- [ ] Persona walkthrough page showing application data and model decision
+- [ ] Layer feedback form UI (trust, clarity, next steps)
 - [ ] Post-experiment questionnaire (`/experiment/post`)
   - Overall experience and insights
   - Save to `post_experiment_responses` table

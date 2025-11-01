@@ -3,7 +3,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface DatasetStats {
   dataset_info?: {
@@ -48,54 +48,108 @@ interface EdaImagesResponse {
   images: EdaImage[]
 }
 
+const humanizeFilename = (filename: string) =>
+  filename
+    .replace('.png', '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
 export default function DatasetPage() {
   const [stats, setStats] = useState<DatasetStats | null>(null)
   const [images, setImages] = useState<EdaImage[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingImages, setLoadingImages] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-  useEffect(() => {
-    // Fetch both statistics and images
-    Promise.all([
-      fetch(`${apiUrl}/api/v1/admin/eda-stats`).then(res => res.ok ? res.json() : null),
-      fetch(`${apiUrl}/api/v1/admin/eda-images`).then(res => res.ok ? res.json() : null)
-    ])
-      .then(([statsData, imagesData]) => {
-        if (statsData) setStats(statsData)
-        if (imagesData?.images) setImages(imagesData.images)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to load EDA data:', err)
-        setError('EDA data not yet generated')
-        setLoading(false)
-      })
+  const fetchStats = useCallback(async () => {
+    const res = await fetch(`${apiUrl}/api/v1/admin/eda-stats`)
+    if (!res.ok) {
+      throw new Error('Failed to load EDA statistics')
+    }
+    return res.json()
   }, [apiUrl])
+
+  const fetchImages = useCallback(async () => {
+    const res = await fetch(`${apiUrl}/api/v1/admin/eda-images`)
+    if (!res.ok) {
+      throw new Error('Failed to load EDA visualizations')
+    }
+    const data = await res.json()
+    return (data?.images ?? []) as EdaImage[]
+  }, [apiUrl])
+
+  const refreshAllData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const [statsData, imagesData] = await Promise.all([fetchStats(), fetchImages()])
+      setStats(statsData)
+      setImages(imagesData)
+    } catch (err) {
+      console.error('Failed to load EDA data:', err)
+      setError('EDA data not yet generated. Please run the EDA script from the admin panel.')
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchStats, fetchImages])
+
+  const refreshImagesOnly = useCallback(async () => {
+    try {
+      setLoadingImages(true)
+      setError(null)
+      const imagesData = await fetchImages()
+      setImages(imagesData)
+    } catch (err) {
+      console.error('Failed to refresh EDA images:', err)
+      setError('Unable to refresh EDA visualizations. Re-run generation from admin panel if issue persists.')
+    } finally {
+      setLoadingImages(false)
+    }
+  }, [fetchImages])
+
+  useEffect(() => {
+    refreshAllData()
+  }, [refreshAllData])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshImagesOnly()
+    }, 45 * 60 * 1000) // refresh presigned URLs every 45 minutes
+    return () => clearInterval(interval)
+  }, [refreshImagesOnly])
 
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
-            ← Back to Home
-          </Link>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Dataset Transparency
-          </h1>
-          <p className="text-xl text-gray-600">
-            Comprehensive exploratory data analysis of the German Credit Risk Dataset
-          </p>
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
+              ← Back to Home
+            </Link>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Dataset Transparency</h1>
+            <p className="text-xl text-gray-600">
+              Comprehensive exploratory data analysis of the German Credit Risk Dataset
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={refreshImagesOnly}
+            className="self-start rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow hover:bg-blue-700 transition disabled:opacity-60"
+            disabled={loadingImages}
+          >
+            {loadingImages ? 'Refreshing…' : 'Refresh Visualizations'}
+          </button>
         </div>
 
         {loading && (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <p className="text-gray-600">Loading dataset statistics...</p>
+            <p className="text-gray-600">Loading dataset statistics and visualizations…</p>
           </div>
         )}
 
-        {error && (
+        {error && !loading && (
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
             <p className="text-gray-700 mb-4">{error}</p>
             <p className="text-sm text-gray-600 mb-4">
@@ -245,31 +299,36 @@ export default function DatasetPage() {
           </div>
         )}
 
-        {images.length > 0 && (
+        {!loading && !error && images.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Exploratory Data Analysis Visualizations</h2>
-            <p className="text-gray-600 mb-8">
-              All visualizations generated from real dataset (1000 credit applications, 20 attributes)
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Exploratory Data Analysis Visualizations</h2>
+            <p className="text-gray-600 mb-6">
+              Generated directly from the German Credit Dataset (1,000 credit applications, 20 attributes). Use the
+              refresh button above if the images expire.
             </p>
-            
-            <div className="space-y-8">
+            <div className="grid gap-6 md:grid-cols-2">
               {images.map((image) => (
-                <div key={image.filename} className="border rounded-lg p-4 bg-gray-50">
-                  <h3 className="font-semibold text-lg mb-3 text-gray-800">
-                    {image.filename.replace('.png', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </h3>
-                  <div className="bg-white p-4 rounded border">
-                    <img 
-                      src={image.url} 
-                      alt={image.filename}
-                      className="w-full h-auto"
+                <figure key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                  <figcaption className="mb-3 text-lg font-semibold text-gray-800">
+                    {humanizeFilename(image.filename)}
+                  </figcaption>
+                  <div className="overflow-hidden rounded border bg-white">
+                    <img
+                      src={image.url}
+                      alt={humanizeFilename(image.filename)}
+                      className="h-auto w-full"
                       loading="lazy"
+                      onError={(event) => {
+                        const target = event.currentTarget
+                        target.alt = 'Visualization unavailable. Please refresh or regenerate from the admin panel.'
+                        target.src = ''
+                      }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="mt-2 text-xs text-gray-500">
                     Generated: {new Date(image.last_modified).toLocaleString()} • Size: {(image.size / 1024).toFixed(2)} KB
                   </p>
-                </div>
+                </figure>
               ))}
             </div>
           </div>

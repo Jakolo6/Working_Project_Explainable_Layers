@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
 import joblib
 import boto3
 from io import BytesIO
@@ -120,6 +120,9 @@ class LogisticCreditModel:
         feature_importance = feature_importance.sort_values('abs_coefficient', ascending=False)
         top_features = feature_importance.head(10)[['feature', 'coefficient']].to_dict('records')
         
+        # ROC curve data
+        fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
+
         # Store metrics for later retrieval
         self.training_metrics = {
             'model_type': 'Logistic Regression',
@@ -134,7 +137,12 @@ class LogisticCreditModel:
             'n_features': int(X.shape[1]),
             'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
             'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist(),
-            'top_features': top_features
+            'top_features': top_features,
+            'roc_curve': {
+                'fpr': fpr.tolist(),
+                'tpr': tpr.tolist(),
+                'thresholds': thresholds.tolist()
+            }
         }
         
         print(f"\n{'='*60}")

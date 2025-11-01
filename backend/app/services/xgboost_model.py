@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
 import joblib
 import boto3
 from io import BytesIO
@@ -118,6 +118,22 @@ class CreditModel:
         recall = recall_score(y_test, y_test_pred)
         f1 = f1_score(y_test, y_test_pred)
         
+        # Calculate ROC curve coordinates
+        fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
+
+        # Compute feature importances (aligned with preprocessor feature names)
+        feature_importances = []
+        if hasattr(self.model, 'feature_importances_') and self.preprocessor.feature_names:
+            importances = self.model.feature_importances_
+            feature_importances = [
+                {
+                    'feature': feature_name,
+                    'importance': float(importance)
+                }
+                for feature_name, importance in zip(self.preprocessor.feature_names, importances)
+            ]
+            feature_importances.sort(key=lambda item: item['importance'], reverse=True)
+
         # Store metrics for later retrieval
         self.training_metrics = {
             'model_type': 'XGBoost',
@@ -131,7 +147,13 @@ class CreditModel:
             'test_size': int(len(X_test)),
             'n_features': int(X.shape[1]),
             'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
-            'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist()
+            'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist(),
+            'roc_curve': {
+                'fpr': fpr.tolist(),
+                'tpr': tpr.tolist(),
+                'thresholds': thresholds.tolist()
+            },
+            'feature_importance': feature_importances
         }
         
         print(f"\n{'='*60}")
