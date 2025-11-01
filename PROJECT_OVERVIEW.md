@@ -16,7 +16,17 @@
 ## 2. Implemented Features
 
 ### Backend (Complete)
-- [x] XGBoost credit risk model with SHAP explanations
+- [x] **Preprocessing Pipeline** - `GermanCreditPreprocessor` class
+  - Excludes bias features (personal_status, foreign_worker)
+  - Handles categorical encoding with LabelEncoder
+  - Standardizes numerical features with StandardScaler
+  - Reusable for both training and prediction
+- [x] **XGBoost Model** - Credit risk classifier with SHAP explanations
+- [x] **Logistic Regression Model** - Alternative classifier for comparison
+- [x] **Model Training Scripts**
+  - `train_model.py` - Train XGBoost
+  - `train_logistic.py` - Train Logistic Regression
+  - `train_all_models.py` - Train both models
 - [x] FastAPI REST API with CORS configuration
 - [x] Supabase database integration
 - [x] Cloudflare R2 storage integration
@@ -28,6 +38,7 @@
 - [x] Session retrieval API (`GET /api/v1/experiment/session/{session_id}`)
 - [x] Railway deployment configuration
 - [x] Environment variable management
+- [x] Dataset download from UCI ML Repository (`download_dataset.py`)
 
 ### Database (Complete)
 - [x] `sessions` table - participant demographics and session tracking
@@ -47,6 +58,10 @@
 - [x] Dataset page - Data transparency and ethics
 - [x] Model page - AI system explanation with SHAP
 - [x] About page - Research ethics and contact information
+- [x] **Admin page** - Setup buttons for project initialization
+  - Download dataset from UCI (not Kaggle)
+  - Generate EDA visualizations
+  - Train both models (XGBoost + Logistic Regression)
 - [ ] Results page - Researcher dashboard
 - [ ] Registration page (`/experiment/start`)
 - [ ] Pre-experiment questionnaire page (`/experiment/pre`)
@@ -73,7 +88,11 @@
 - [ ] Deploy backend to Railway with environment variables
 - [ ] Test API endpoints at Railway URL
 - [ ] Download dataset: `python3 backend/scripts/download_dataset.py`
-- [ ] Train model: `python3 backend/scripts/train_model.py`
+- [ ] Train both models: `python3 backend/scripts/train_all_models.py`
+  - Trains XGBoost and Logistic Regression
+  - Both exclude bias features (personal_status, foreign_worker)
+  - Uses shared preprocessing pipeline
+  - Saves both models to R2
 
 ### Frontend Development (Next Phase)
 - [ ] Registration page (`/experiment/start`)

@@ -136,26 +136,26 @@ async def generate_eda():
 @router.post("/train-model")
 async def train_model():
     """
-    Trigger model training with XGBoost and SHAP
+    Trigger model training for both XGBoost and Logistic Regression
     """
     try:
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_model.py"
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_all_models.py"
         
         if not script_path.exists():
             raise HTTPException(status_code=404, detail=f"Training script not found at {script_path}")
         
-        # Run the training script
+        # Run the training script (trains both models)
         result = subprocess.run(
             ["python3", str(script_path)],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minutes timeout
+            timeout=900  # 15 minutes timeout (training both models)
         )
         
         if result.returncode == 0:
             return {
                 "success": True,
-                "message": "Model trained successfully",
+                "message": "Both models (XGBoost + Logistic Regression) trained successfully",
                 "output": result.stdout
             }
         else:
@@ -167,7 +167,7 @@ async def train_model():
             )
             
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=408, detail="Training timeout (>10 minutes)")
+        raise HTTPException(status_code=408, detail="Training timeout (>15 minutes)")
     except HTTPException:
         raise
     except Exception as e:

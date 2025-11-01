@@ -1,4 +1,4 @@
-# Script to train XGBoost model and upload to Cloudflare R2
+# Script to train Logistic Regression model and upload to Cloudflare R2
 
 import os
 import sys
@@ -8,15 +8,15 @@ from dotenv import load_dotenv
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from app.services.xgboost_model import CreditModel
+from app.services.logistic_model import LogisticCreditModel
 from app.config import get_settings
 
 load_dotenv()
 
 def main():
-    """Train model and upload to R2"""
+    """Train Logistic Regression model and upload to R2"""
     print("=" * 60)
-    print("XGBoost Model Training Pipeline")
+    print("Logistic Regression Model Training Pipeline")
     print("=" * 60)
     
     try:
@@ -24,8 +24,8 @@ def main():
         config = get_settings()
         
         # Initialize model service
-        print("\n📊 Initializing model service...")
-        model_service = CreditModel(config)
+        print("\n📊 Initializing Logistic Regression model service...")
+        model_service = LogisticCreditModel(config)
         
         # Load dataset from R2
         print("\n📥 Loading dataset from R2...")
@@ -39,7 +39,7 @@ def main():
         print(f"✓ Target distribution: {y.value_counts().to_dict()}")
         
         # Train model
-        print("\n🎯 Training XGBoost model...")
+        print("\n🎯 Training Logistic Regression model...")
         model_service.train_model(X, y)
         print("✓ Model trained successfully")
         

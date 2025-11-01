@@ -1,8 +1,8 @@
-# XGBoost model training and prediction service
+# Logistic Regression model training and prediction service
 
 import pandas as pd
 import numpy as np
-from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 import joblib
@@ -11,8 +11,9 @@ from io import BytesIO
 import os
 from .preprocessing import GermanCreditPreprocessor
 
-class CreditModel:
-    """Handles XGBoost model training, loading, and prediction"""
+
+class LogisticCreditModel:
+    """Handles Logistic Regression model training, loading, and prediction"""
     
     def __init__(self, config):
         self.config = config
@@ -69,7 +70,7 @@ class CreditModel:
     
     def train_model(self, X, y):
         """
-        Train XGBoost classifier with comprehensive evaluation.
+        Train Logistic Regression classifier with comprehensive evaluation.
         
         Args:
             X: Preprocessed features
@@ -82,25 +83,17 @@ class CreditModel:
             X, y, test_size=0.2, random_state=42, stratify=y
         )
         
-        # Initialize XGBoost with optimized parameters
-        self.model = XGBClassifier(
-            n_estimators=100,
-            max_depth=5,
-            learning_rate=0.1,
-            min_child_weight=1,
-            subsample=0.8,
-            colsample_bytree=0.8,
+        # Initialize Logistic Regression with optimized parameters
+        self.model = LogisticRegression(
+            max_iter=1000,
             random_state=42,
-            eval_metric='logloss',
-            use_label_encoder=False
+            solver='lbfgs',
+            C=1.0,
+            class_weight='balanced'  # Handle class imbalance
         )
         
         # Train model
-        self.model.fit(
-            X_train, y_train,
-            eval_set=[(X_test, y_test)],
-            verbose=False
-        )
+        self.model.fit(X_train, y_train)
         
         # Comprehensive evaluation
         y_train_pred = self.model.predict(X_train)
@@ -111,7 +104,7 @@ class CreditModel:
         test_score = self.model.score(X_test, y_test)
         
         print(f"\n{'='*60}")
-        print("Model Training Results")
+        print("Logistic Regression Training Results")
         print(f"{'='*60}")
         print(f"Training accuracy: {train_score:.4f}")
         print(f"Test accuracy: {test_score:.4f}")
@@ -127,12 +120,27 @@ class CreditModel:
         
         print(f"\nConfusion Matrix (Test Set):")
         print(confusion_matrix(y_test, y_test_pred))
+        
+        # Feature importance (coefficients)
+        print(f"\nTop 10 Most Important Features (by absolute coefficient):")
+        feature_importance = pd.DataFrame({
+            'feature': self.preprocessor.feature_names,
+            'coefficient': self.model.coef_[0]
+        })
+        feature_importance['abs_coefficient'] = feature_importance['coefficient'].abs()
+        feature_importance = feature_importance.sort_values('abs_coefficient', ascending=False)
+        print(feature_importance.head(10).to_string(index=False))
+        
         print(f"{'='*60}\n")
         
         return self.model
     
-    def save_model_to_r2(self):
+    def save_model_to_r2(self, model_path: str = None):
         """Save trained model and preprocessor to Cloudflare R2"""
+        if model_path is None:
+            # Use different path for logistic regression
+            model_path = self.config.model_path.replace('.pkl', '_logistic.pkl')
+        
         # Serialize model and preprocessor to bytes
         buffer = BytesIO()
         joblib.dump({
@@ -151,14 +159,17 @@ class CreditModel:
         
         s3_client.put_object(
             Bucket=self.config.r2_bucket_name,
-            Key=self.config.model_path,
+            Key=model_path,
             Body=buffer.getvalue()
         )
         
-        print(f"Model and preprocessor saved to R2: {self.config.model_path}")
+        print(f"Logistic Regression model and preprocessor saved to R2: {model_path}")
     
-    def load_model_from_r2(self):
+    def load_model_from_r2(self, model_path: str = None):
         """Load trained model and preprocessor from Cloudflare R2"""
+        if model_path is None:
+            model_path = self.config.model_path.replace('.pkl', '_logistic.pkl')
+        
         s3_client = boto3.client(
             's3',
             endpoint_url=self.config.r2_endpoint_url,
@@ -168,14 +179,14 @@ class CreditModel:
         
         obj = s3_client.get_object(
             Bucket=self.config.r2_bucket_name,
-            Key=self.config.model_path
+            Key=model_path
         )
         
         model_data = joblib.load(BytesIO(obj['Body'].read()))
         self.model = model_data['model']
         self.preprocessor = model_data['preprocessor']
         
-        print("Model and preprocessor loaded from R2")
+        print("Logistic Regression model and preprocessor loaded from R2")
     
     def predict(self, input_data: dict):
         """
@@ -200,7 +211,7 @@ class CreditModel:
         prediction = self.model.predict(X)[0]
         probabilities = self.model.predict_proba(X)[0]
         
-        # Map prediction to decision (assuming 1 = good credit, 2 = bad credit from dataset)
+        # Map prediction to decision
         decision = "approved" if prediction == 1 else "rejected"
         confidence = float(max(probabilities))
         

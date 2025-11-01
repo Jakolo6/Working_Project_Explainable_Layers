@@ -17,7 +17,7 @@ export default function AdminPage() {
 
   const handleDownloadDataset = async () => {
     setLoading({ ...loading, download: true })
-    setDownloadStatus('Downloading dataset from Kaggle...')
+    setDownloadStatus('Downloading dataset from UCI ML Repository...')
     
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -65,7 +65,7 @@ export default function AdminPage() {
 
   const handleTrainModel = async () => {
     setLoading({ ...loading, train: true })
-    setTrainStatus('Training XGBoost model with SHAP...')
+    setTrainStatus('Training XGBoost and Logistic Regression models...')
     
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -78,7 +78,7 @@ export default function AdminPage() {
       if (response.ok) {
         setTrainStatus(`✅ Success: ${data.message}`)
       } else {
-        setTrainStatus(`❌ Error: ${data.detail || 'Failed to train model'}`)
+        setTrainStatus(`❌ Error: ${data.detail || 'Failed to train models'}`)
       }
     } catch (error) {
       setTrainStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
@@ -126,14 +126,14 @@ export default function AdminPage() {
             1. Download Dataset
           </h2>
           <p className="text-gray-700 mb-6">
-            Download the German Credit Risk Dataset from Kaggle and upload it to Cloudflare R2 storage.
+            Download the German Credit Risk Dataset from UCI ML Repository and upload it to Cloudflare R2 storage.
           </p>
           
           <div className="space-y-4">
             <div className="bg-blue-50 rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-2">Requirements:</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li>Kaggle API credentials configured in Railway</li>
+                <li>ucimlrepo package installed on backend</li>
                 <li>Cloudflare R2 bucket access</li>
                 <li>Internet connection on backend server</li>
               </ul>
@@ -148,7 +148,7 @@ export default function AdminPage() {
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {loading.download ? 'Downloading...' : 'Download Dataset from Kaggle'}
+              {loading.download ? 'Downloading...' : 'Download Dataset from UCI'}
             </button>
 
             {downloadStatus && (
@@ -224,10 +224,10 @@ export default function AdminPage() {
         {/* Model Training Section */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            3. Train Model
+            3. Train Models
           </h2>
           <p className="text-gray-700 mb-6">
-            Train the XGBoost credit risk model with SHAP explainability and upload it to R2 storage.
+            Train both XGBoost and Logistic Regression models with bias-free preprocessing and upload to R2 storage.
           </p>
           
           <div className="space-y-4">
@@ -236,7 +236,7 @@ export default function AdminPage() {
               <ul className="list-disc list-inside text-gray-700 space-y-1">
                 <li>Dataset must be downloaded first (Step 1)</li>
                 <li>Python dependencies installed on backend</li>
-                <li>Sufficient compute resources (training takes 2-5 minutes)</li>
+                <li>Sufficient compute resources (training takes 3-7 minutes)</li>
               </ul>
             </div>
 
@@ -244,9 +244,10 @@ export default function AdminPage() {
               <h3 className="font-semibold text-gray-900 mb-2">Training Process:</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
                 <li>Load dataset from R2</li>
-                <li>Train XGBoost classifier (84% accuracy)</li>
-                <li>Generate SHAP explainer</li>
-                <li>Upload model to R2 storage</li>
+                <li>Exclude bias features (personal_status, foreign_worker)</li>
+                <li>Train XGBoost classifier with SHAP</li>
+                <li>Train Logistic Regression classifier</li>
+                <li>Upload both models to R2 storage</li>
               </ul>
             </div>
 
@@ -259,7 +260,7 @@ export default function AdminPage() {
                   : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              {loading.train ? 'Training Model...' : 'Train XGBoost Model'}
+              {loading.train ? 'Training Models...' : 'Train Both Models (XGBoost + Logistic)'}
             </button>
 
             {trainStatus && (
