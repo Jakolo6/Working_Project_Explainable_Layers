@@ -43,13 +43,21 @@ class CreditModel:
         df = df.drop(columns=[col for col in sensitive_features if col in df.columns])
         
         # Separate features and target
-        if 'target' in df.columns or 'credit_risk' in df.columns:
-            target_col = 'target' if 'target' in df.columns else 'credit_risk'
+        # German Credit dataset uses 'Risk' or 'class' as target column
+        possible_target_cols = ['target', 'credit_risk', 'Risk', 'class', 'risk', 'Class']
+        target_col = None
+        
+        for col in possible_target_cols:
+            if col in df.columns:
+                target_col = col
+                break
+        
+        if target_col:
             X = df.drop(columns=[target_col])
             y = df[target_col]
         else:
-            X = df
-            y = None
+            # If no target found, raise error with available columns
+            raise ValueError(f"No target column found. Available columns: {df.columns.tolist()}")
         
         # Encode categorical features
         categorical_cols = X.select_dtypes(include=['object']).columns
