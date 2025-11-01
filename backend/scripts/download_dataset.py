@@ -1,9 +1,10 @@
-# Script to download German Credit dataset from Kaggle and upload to Cloudflare R2
+# Script to download German Credit dataset from UCI ML Repository and upload to Cloudflare R2
 
 import os
 import sys
 from pathlib import Path
 import boto3
+import pandas as pd
 from dotenv import load_dotenv
 
 # Add parent directory to path for imports
@@ -12,56 +13,42 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Load environment variables
 load_dotenv()
 
-def setup_kaggle():
-    """Configure Kaggle API credentials"""
-    kaggle_username = os.getenv('KAGGLE_USERNAME')
-    kaggle_key = os.getenv('KAGGLE_KEY')
-    
-    if not kaggle_username or not kaggle_key:
-        raise ValueError("KAGGLE_USERNAME and KAGGLE_KEY must be set in .env")
-    
-    # Set Kaggle credentials
-    os.environ['KAGGLE_USERNAME'] = kaggle_username
-    os.environ['KAGGLE_KEY'] = kaggle_key
-    
-    print(f"✓ Kaggle credentials configured for user: {kaggle_username}")
-
-def download_from_kaggle():
-    """Download UCI German Credit dataset from Kaggle"""
-    print("\n📥 Downloading dataset from Kaggle...")
+def download_from_uci():
+    """Download German Credit dataset from UCI ML Repository"""
+    print("\n📥 Downloading dataset from UCI ML Repository...")
     
     try:
-        from kaggle.api.kaggle_api_extended import KaggleApi
+        from ucimlrepo import fetch_ucirepo
         
-        api = KaggleApi()
-        api.authenticate()
+        # Fetch dataset (ID 144 = Statlog German Credit Data)
+        print("Fetching Statlog German Credit Data (ID: 144)...")
+        statlog_german_credit_data = fetch_ucirepo(id=144)
         
-        # Download German Credit dataset
-        # Using the UCI repository dataset
-        dataset = "uciml/german-credit"
+        # Get features and target
+        X = statlog_german_credit_data.data.features
+        y = statlog_german_credit_data.data.targets
+        
+        print(f"✓ Features shape: {X.shape}")
+        print(f"✓ Target shape: {y.shape}")
+        
+        # Combine features and target into single DataFrame
+        df = pd.concat([X, y], axis=1)
+        
+        print(f"✓ Combined dataset: {df.shape[0]} rows, {df.shape[1]} columns")
+        print(f"✓ Columns: {df.columns.tolist()}")
+        
+        # Save to temporary CSV file
         download_path = "./data"
-        
         os.makedirs(download_path, exist_ok=True)
+        csv_file = os.path.join(download_path, "german_credit_data.csv")
         
-        api.dataset_download_files(
-            dataset,
-            path=download_path,
-            unzip=True
-        )
+        df.to_csv(csv_file, index=False)
+        print(f"✓ Dataset saved to {csv_file}")
         
-        print(f"✓ Dataset downloaded to {download_path}")
-        
-        # Find the CSV file
-        csv_files = list(Path(download_path).glob("*.csv"))
-        if csv_files:
-            csv_file = csv_files[0]
-            print(f"✓ Found dataset file: {csv_file.name}")
-            return str(csv_file)
-        else:
-            raise FileNotFoundError("No CSV file found in downloaded data")
+        return csv_file
             
     except Exception as e:
-        print(f"✗ Error downloading from Kaggle: {e}")
+        print(f"✗ Error downloading from UCI: {e}")
         raise
 
 def upload_to_r2(file_path: str):
@@ -118,13 +105,10 @@ def main():
     print("=" * 60)
     
     try:
-        # Step 1: Configure Kaggle
-        setup_kaggle()
+        # Step 1: Download from UCI ML Repository
+        csv_file = download_from_uci()
         
-        # Step 2: Download from Kaggle
-        csv_file = download_from_kaggle()
-        
-        # Step 3: Upload to R2
+        # Step 2: Upload to R2
         upload_to_r2(csv_file)
         
         print("\n" + "=" * 60)
@@ -135,6 +119,8 @@ def main():
         print("\n" + "=" * 60)
         print(f"✗ Pipeline failed: {e}")
         print("=" * 60)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
