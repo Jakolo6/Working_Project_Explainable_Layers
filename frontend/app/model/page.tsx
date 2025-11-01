@@ -19,47 +19,32 @@ export default function ModelPage() {
           </p>
         </div>
 
-        {/* Model Comparison */}
+        {/* Model Selection */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Model Selection</h2>
           <p className="text-gray-700 mb-6">
-            We compared two machine learning approaches to find the right balance between 
-            performance and interpretability:
+            We selected XGBoost as our credit scoring model based on its ability to capture 
+            complex patterns while maintaining explainability through SHAP values.
           </p>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border-2 border-gray-300 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-3 text-gray-800">Logistic Regression</h3>
-              <div className="space-y-2 text-gray-700 mb-4">
-                <p><strong>Accuracy:</strong> 72%</p>
-                <p><strong>Interpretability:</strong> High</p>
-                <p><strong>Complexity:</strong> Low</p>
-              </div>
-              <p className="text-sm text-gray-600">
-                Simple linear model where each feature has a clear weight. Easy to understand 
-                but limited in capturing complex patterns.
-              </p>
+          <div className="border-2 border-blue-600 rounded-lg p-6 bg-blue-50">
+            <h3 className="text-xl font-semibold mb-3 text-blue-900">XGBoost with SHAP</h3>
+            <div className="space-y-2 text-gray-700 mb-4">
+              <p><strong>Model Type:</strong> Gradient Boosted Decision Trees</p>
+              <p><strong>Explainability Method:</strong> SHAP (SHapley Additive exPlanations)</p>
+              <p><strong>Training Data:</strong> German Credit Risk Dataset (1,000 applications)</p>
             </div>
-
-            <div className="border-2 border-blue-600 rounded-lg p-6 bg-blue-50">
-              <h3 className="text-xl font-semibold mb-3 text-blue-900">XGBoost (Selected)</h3>
-              <div className="space-y-2 text-gray-700 mb-4">
-                <p><strong>Accuracy:</strong> 84%</p>
-                <p><strong>Interpretability:</strong> Low (without SHAP)</p>
-                <p><strong>Complexity:</strong> High</p>
-              </div>
-              <p className="text-sm text-gray-600">
-                Ensemble of decision trees that captures non-linear relationships. More accurate 
-                but requires explainability tools like SHAP.
-              </p>
-            </div>
+            <p className="text-sm text-gray-600">
+              Ensemble of decision trees that captures non-linear relationships between features. 
+              SHAP values provide mathematically rigorous explanations for each prediction.
+            </p>
           </div>
 
           <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-500 p-4">
             <p className="text-gray-700">
-              <strong>The Trade-off:</strong> XGBoost provides 12% higher accuracy, which could 
-              prevent significant financial losses. However, its complexity requires sophisticated 
-              explanation methods to maintain trust and regulatory compliance.
+              <strong>Why XGBoost?</strong> Research shows gradient boosting methods achieve 
+              superior performance on tabular financial data compared to linear models, while 
+              SHAP enables transparent explanations required for regulatory compliance.
             </p>
           </div>
         </div>
@@ -222,26 +207,30 @@ export default function ModelPage() {
           </div>
         </div>
 
-        {/* Model Performance */}
+        {/* Model Training Status */}
         <div className="bg-blue-50 rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Model Performance Metrics</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">84%</div>
-              <div className="text-gray-600">Overall Accuracy</div>
-            </div>
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">81%</div>
-              <div className="text-gray-600">Precision (Approved)</div>
-            </div>
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">87%</div>
-              <div className="text-gray-600">Recall (Approved)</div>
-            </div>
-          </div>
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            Metrics validated on held-out test set (150 applications)
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Model Training</h2>
+          <p className="text-gray-700 mb-4">
+            The XGBoost model must be trained on the German Credit Dataset before it can make predictions. 
+            Training includes data preprocessing, model fitting, and SHAP value computation.
           </p>
+          <div className="bg-white rounded-lg p-6 border-l-4 border-blue-600">
+            <p className="text-gray-700 mb-2">
+              <strong>To train the model:</strong>
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-gray-600 mb-4">
+              <li>Go to the Admin panel</li>
+              <li>Download the dataset from Kaggle</li>
+              <li>Click "Train Model" and wait 2-5 minutes</li>
+              <li>Model performance metrics will be displayed after training</li>
+            </ol>
+            <Link 
+              href="/admin"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+            >
+              Go to Admin Panel →
+            </Link>
+          </div>
         </div>
 
         {/* Navigation */}

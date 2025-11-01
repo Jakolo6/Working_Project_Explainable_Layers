@@ -125,3 +125,25 @@ Codebase stays minimal, organized, and free of duplicates.
 /PROJECT_OVERVIEW.md fully reflects architecture, progress, and remaining work.
 
 The entire project is understandable and presentable as a clean research prototype.
+
+──────────────────────────────
+ENVIRONMENT VARIABLES 
+
+Railway:
+
+SUPABASE_URL="https://yiwgmbpjykwlbysfpxqk.supabase.co"
+SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpd2dtYnBqeWt3bGJ5c2ZweHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0ODg1MTQsImV4cCI6MjA3NzA2NDUxNH0.lfB2PmAfYHfRJlKfxmT_nhtYtJ_Efvqz8tLeHfDfFho"
+R2_ACCOUNT_ID="ff9c5d15c3296ba6a3aa9a96d1163cfe"
+R2_ACCESS_KEY_ID="58df651c2650ad40980aee11b9537146"
+R2_SECRET_ACCESS_KEY="e28f2e1d94035dfd814b79159dcadf82a33b926fe1f481becd1a50da9d2caa18"
+R2_BUCKET_NAME="xai-financial-data"
+R2_ENDPOINT_URL="https://ff9c5d15c3296ba6a3aa9a96d1163cfe.r2.cloudflarestorage.com"
+KAGGLE_USERNAME="jaakoob6"
+KAGGLE_KEY="20564917d23bed39607e4e27250fb5bb"
+FRONTEND_URL="https://novaxai.netlify.app"
+MODEL_PATH="models/xgboost_credit_model.pkl"
+DATASET_PATH="data/german_credit_data.csv"
+CORS_ALLOWED_ORIGINS="https://novaxai.netlify.app,http://localhost:3000"
+
+Netlify: 
+NEXT_PUBLIC_API_URL= https://workingprojectexplainablelayers-production.up.railway.app
