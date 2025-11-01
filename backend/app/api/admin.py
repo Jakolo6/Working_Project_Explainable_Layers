@@ -44,6 +44,51 @@ async def download_dataset():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/list-r2-files")
+async def list_r2_files():
+    """
+    List all files in R2 bucket for debugging
+    """
+    try:
+        from app.config import get_settings
+        import boto3
+        
+        config = get_settings()
+        
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=config.r2_endpoint_url,
+            aws_access_key_id=config.r2_access_key_id,
+            aws_secret_access_key=config.r2_secret_access_key
+        )
+        
+        response = s3_client.list_objects_v2(Bucket=config.r2_bucket_name)
+        
+        files = []
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                files.append({
+                    'key': obj['Key'],
+                    'size': obj['Size'],
+                    'last_modified': obj['LastModified'].isoformat()
+                })
+        
+        return {
+            "success": True,
+            "bucket": config.r2_bucket_name,
+            "endpoint": config.r2_endpoint_url,
+            "dataset_path_config": config.dataset_path,
+            "files": files
+        }
+        
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error listing R2 files: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        )
+
+
 @router.post("/generate-eda")
 async def generate_eda():
     """
