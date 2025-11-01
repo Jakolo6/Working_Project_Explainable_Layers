@@ -82,6 +82,8 @@ BEHAVIOR RULES
 
 Keep all code simple, clean, and functional — no over-engineering.
 
+No Mock Data allowed. Always use data from the algorithms and from the dataset and from the layers but never make up data. 
+
 Never duplicate code or generate unused boilerplate.
 
 Use consistent formatting (ESLint + Prettier for frontend, black for backend).
