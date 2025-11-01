@@ -27,7 +27,7 @@ class SystemAuditor:
             "env_vars": {},
             "supabase": {},
             "r2": {},
-            "kaggle": {},
+            "uci": {},
             "backend": {},
             "frontend": {}
         }
@@ -59,8 +59,6 @@ class SystemAuditor:
             "R2_SECRET_ACCESS_KEY": "R2 secret access key",
             "R2_BUCKET_NAME": "R2 bucket name",
             "R2_ENDPOINT_URL": "R2 endpoint URL",
-            "KAGGLE_USERNAME": "Kaggle username",
-            "KAGGLE_KEY": "Kaggle API key",
             "FRONTEND_URL": "Frontend URL for CORS"
         }
         
@@ -213,55 +211,47 @@ class SystemAuditor:
             return False
     
     # ========================================================================
-    # 4. KAGGLE API VERIFICATION
+    # 4. UCI ML REPOSITORY VERIFICATION
     # ========================================================================
     
-    def verify_kaggle(self):
-        """Test Kaggle API connection"""
-        self.print_header("4. KAGGLE API VERIFICATION")
+    def verify_uci(self):
+        """Test UCI ML Repository package"""
+        self.print_header("4. UCI ML REPOSITORY VERIFICATION")
         
         try:
-            username = os.getenv("KAGGLE_USERNAME")
-            api_key = os.getenv("KAGGLE_KEY")
-            
-            if not username or not api_key:
-                self.print_status("Kaggle Credentials", False, "Missing")
-                return False
-            
-            # Set Kaggle credentials
-            os.environ['KAGGLE_USERNAME'] = username
-            os.environ['KAGGLE_KEY'] = api_key
-            
-            # Try importing kaggle
+            # Try importing ucimlrepo
             try:
-                from kaggle.api.kaggle_api_extended import KaggleApi
-                api = KaggleApi()
-                api.authenticate()
-                self.print_status("Kaggle Authentication", True, f"Authenticated as {username}")
+                from ucimlrepo import fetch_ucirepo
+                self.print_status("ucimlrepo Package", True, "Installed")
                 
-                # Try to list datasets (just to verify connection)
+                # Try to fetch dataset metadata (without downloading full dataset)
                 try:
-                    datasets = api.dataset_list(search="credit", page_size=3)
-                    self.print_status("Kaggle API Access", True, f"Can access datasets")
-                    print(f"\nSample datasets found:")
-                    for ds in datasets[:3]:
-                        print(f"  - {ds.ref}")
-                    self.results["kaggle"]["api_works"] = True
+                    print("\nTesting UCI ML Repository access...")
+                    print("Fetching German Credit dataset metadata (ID: 144)...")
+                    dataset = fetch_ucirepo(id=144)
+                    
+                    self.print_status("UCI Repository Access", True, "Can access datasets")
+                    print(f"\nDataset Info:")
+                    print(f"  - Name: Statlog German Credit Data")
+                    print(f"  - Features: {dataset.data.features.shape}")
+                    print(f"  - Target: {dataset.data.targets.shape}")
+                    
+                    self.results["uci"]["api_works"] = True
                 except Exception as e:
-                    self.print_status("Kaggle API Access", False, str(e)[:50])
-                    self.results["kaggle"]["api_works"] = False
+                    self.print_status("UCI Repository Access", False, str(e)[:50])
+                    self.results["uci"]["api_works"] = False
                     
             except ImportError:
-                self.print_status("Kaggle Package", False, "Not installed (pip install kaggle)")
+                self.print_status("ucimlrepo Package", False, "Not installed (pip install ucimlrepo)")
                 return False
             
             print(f"\n{'='*80}")
-            kaggle_ok = self.results["kaggle"].get("api_works", False)
-            print(f"Kaggle API: {'✅ WORKING' if kaggle_ok else '❌ ISSUES FOUND'}")
-            return kaggle_ok
+            uci_ok = self.results["uci"].get("api_works", False)
+            print(f"UCI ML Repository: {'✅ WORKING' if uci_ok else '❌ ISSUES FOUND'}")
+            return uci_ok
             
         except Exception as e:
-            self.print_status("Kaggle Setup", False, str(e))
+            self.print_status("UCI Setup", False, str(e))
             return False
     
     # ========================================================================
@@ -334,7 +324,10 @@ class SystemAuditor:
                 self.print_status("Model Check", False, str(e)[:50])
         
         print(f"\n{'='*80}")
-        scripts_ok = all(self.results["backend"].get(s, False) for s in scripts.keys())
+        # Ensure both scripts are present and the model file (if checked) exists
+        all_scripts_present = all(self.results["backend"].get(s, False) for s in scripts.keys())
+        model_present = self.results["backend"].get("model_exists", True)  # Treat missing check as true
+        scripts_ok = all_scripts_present and model_present
         print(f"Backend Scripts: {'✅ ALL PRESENT' if scripts_ok else '❌ SOME MISSING'}")
         return scripts_ok
     
@@ -346,7 +339,9 @@ class SystemAuditor:
         """Test backend API endpoints"""
         self.print_header("6. BACKEND API HEALTH CHECK")
         
-        backend_url = os.getenv("FRONTEND_URL", "").replace("novaxai.netlify.app", "working-project-explainable-layers.up.railway.app")
+        # Determine backend URL, defaulting to the Railway endpoint if not provided
+        frontend_url = os.getenv("FRONTEND_URL", "")
+        backend_url = frontend_url.replace("novaxai.netlify.app", "working-project-explainable-layers.up.railway.app") if frontend_url else "https://working-project-explainable-layers.up.railway.app"
         if "localhost" in backend_url:
             backend_url = "https://working-project-explainable-layers.up.railway.app"
         
@@ -428,7 +423,7 @@ class SystemAuditor:
             "Environment Variables": self.results["env_vars"],
             "Supabase Database": self.results["supabase"],
             "Cloudflare R2": self.results["r2"],
-            "Kaggle API": self.results["kaggle"],
+            "UCI ML Repository": self.results["uci"],
             "Backend Scripts": self.results["backend"],
             "Frontend": self.results["frontend"]
         }
@@ -464,7 +459,7 @@ class SystemAuditor:
         self.validate_env_vars()
         self.verify_supabase()
         self.verify_r2()
-        self.verify_kaggle()
+        self.verify_uci()
         self.verify_backend_scripts()
         self.verify_backend_api()
         self.verify_frontend()

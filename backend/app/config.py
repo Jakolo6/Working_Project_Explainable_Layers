@@ -15,10 +15,6 @@ class Settings(BaseSettings):
     r2_bucket_name: str = "xai-financial-data"
     r2_endpoint_url: str = ""
     
-    # Kaggle
-    kaggle_username: str = ""
-    kaggle_key: str = ""
-    
     # Optional
     openai_api_key: str = ""
     frontend_url: str = "http://localhost:3000"
