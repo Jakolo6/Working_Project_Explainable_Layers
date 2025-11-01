@@ -369,82 +369,10 @@ class FeatureMappings:
         
         Returns:
             Dictionary with feature names and their options
+            
+        All mappings based on official German Credit Dataset documentation.
         """
         return {
-            'credit_history': {
-                'type': 'select',
-                'label': 'Credit History',
-                'options': [
-                    {'value': 'no_credits', 'label': 'No credits taken / All paid back duly'},
-                    {'value': 'all_paid', 'label': 'All credits at this bank paid back duly'},
-                    {'value': 'existing_paid', 'label': 'Existing credits paid back duly till now'},
-                    {'value': 'delay', 'label': 'Delay in paying off in the past'},
-                    {'value': 'critical', 'label': 'Critical account / Other credits existing'}
-                ]
-            },
-            'purpose': {
-                'type': 'select',
-                'label': 'Purpose of Credit',
-                'options': [
-                    {'value': 'car_new', 'label': 'New car'},
-                    {'value': 'car_used', 'label': 'Used car'},
-                    {'value': 'furniture', 'label': 'Furniture/equipment'},
-                    {'value': 'radio_tv', 'label': 'Radio/television'},
-                    {'value': 'appliances', 'label': 'Domestic appliances'},
-                    {'value': 'repairs', 'label': 'Repairs'},
-                    {'value': 'education', 'label': 'Education'},
-                    {'value': 'retraining', 'label': 'Retraining'},
-                    {'value': 'business', 'label': 'Business'},
-                    {'value': 'others', 'label': 'Others'}
-                ]
-            },
-            'other_debtors': {
-                'type': 'select',
-                'label': 'Other Debtors/Guarantors',
-                'options': [
-                    {'value': 'none', 'label': 'None'},
-                    {'value': 'co_applicant', 'label': 'Co-applicant'},
-                    {'value': 'guarantor', 'label': 'Guarantor'}
-                ]
-            },
-            'property': {
-                'type': 'select',
-                'label': 'Property',
-                'options': [
-                    {'value': 'real_estate', 'label': 'Real estate'},
-                    {'value': 'savings_insurance', 'label': 'Building society savings / Life insurance'},
-                    {'value': 'car', 'label': 'Car or other'},
-                    {'value': 'none', 'label': 'No property'}
-                ]
-            },
-            'other_plans': {
-                'type': 'select',
-                'label': 'Other Installment Plans',
-                'options': [
-                    {'value': 'none', 'label': 'None'},
-                    {'value': 'bank', 'label': 'Bank'},
-                    {'value': 'stores', 'label': 'Stores'}
-                ]
-            },
-            'housing': {
-                'type': 'select',
-                'label': 'Housing',
-                'options': [
-                    {'value': 'rent', 'label': 'Rent'},
-                    {'value': 'own', 'label': 'Own'},
-                    {'value': 'free', 'label': 'For free'}
-                ]
-            },
-            'job': {
-                'type': 'select',
-                'label': 'Job',
-                'options': [
-                    {'value': 'unemployed', 'label': 'Unemployed / Unskilled non-resident'},
-                    {'value': 'unskilled', 'label': 'Unskilled resident'},
-                    {'value': 'skilled', 'label': 'Skilled employee / Official'},
-                    {'value': 'management', 'label': 'Management / Self-employed / Highly qualified'}
-                ]
-            },
             'checking_balance': {
                 'type': 'number',
                 'label': 'Checking Account Balance (DM)',
@@ -452,78 +380,183 @@ class FeatureMappings:
                 'max': 50000,
                 'step': 1,
                 'nullable': True,
-                'help': 'Leave empty if no checking account'
+                'help': 'Leave empty if no checking account. Negative values allowed.',
+                'mapping_info': {
+                    'A11': '< 0 DM',
+                    'A12': '0 ≤ … < 200 DM',
+                    'A13': '≥ 200 DM',
+                    'A14': 'No checking account'
+                }
             },
             'duration_months': {
                 'type': 'number',
                 'label': 'Credit Duration (months)',
                 'min': 1,
                 'max': 72,
-                'step': 1
+                'step': 1,
+                'help': 'Duration of the credit in months'
+            },
+            'credit_history': {
+                'type': 'select',
+                'label': 'Credit History',
+                'options': [
+                    {'value': 'no_credits', 'label': 'No credits taken / All credits paid back duly', 'code': 'A30'},
+                    {'value': 'all_paid', 'label': 'All credits at this bank paid back duly', 'code': 'A31'},
+                    {'value': 'existing_paid', 'label': 'Existing credits paid back duly till now', 'code': 'A32'},
+                    {'value': 'delay', 'label': 'Delay in paying off in the past', 'code': 'A33'},
+                    {'value': 'critical', 'label': 'Critical account / Other credits existing (not at this bank)', 'code': 'A34'}
+                ]
+            },
+            'purpose': {
+                'type': 'select',
+                'label': 'Purpose of Credit',
+                'options': [
+                    {'value': 'car_new', 'label': 'Car (new)', 'code': 'A40'},
+                    {'value': 'car_used', 'label': 'Car (used)', 'code': 'A41'},
+                    {'value': 'furniture', 'label': 'Furniture/equipment', 'code': 'A42'},
+                    {'value': 'radio_tv', 'label': 'Radio/television', 'code': 'A43'},
+                    {'value': 'appliances', 'label': 'Domestic appliances', 'code': 'A44'},
+                    {'value': 'repairs', 'label': 'Repairs', 'code': 'A45'},
+                    {'value': 'education', 'label': 'Education', 'code': 'A46'},
+                    {'value': 'retraining', 'label': 'Retraining', 'code': 'A48'},
+                    {'value': 'business', 'label': 'Business', 'code': 'A49'},
+                    {'value': 'others', 'label': 'Others', 'code': 'A410'}
+                ]
             },
             'credit_amount': {
                 'type': 'number',
                 'label': 'Credit Amount (DM)',
                 'min': 250,
                 'max': 20000,
-                'step': 50
+                'step': 50,
+                'help': 'Amount of credit requested in Deutsche Mark'
             },
             'savings_balance': {
                 'type': 'number',
-                'label': 'Savings Account Balance (DM)',
+                'label': 'Savings Account/Bonds Balance (DM)',
                 'min': 0,
                 'max': 50000,
                 'step': 10,
                 'nullable': True,
-                'help': 'Leave empty if no savings account'
+                'help': 'Leave empty if no savings account',
+                'mapping_info': {
+                    'A61': '< 100 DM',
+                    'A62': '100 ≤ … < 500 DM',
+                    'A63': '500 ≤ … < 1000 DM',
+                    'A64': '≥ 1000 DM',
+                    'A65': 'Unknown / No savings account'
+                }
             },
             'employment_years': {
                 'type': 'number',
-                'label': 'Employment Duration (years)',
+                'label': 'Present Employment Duration (years)',
                 'min': 0,
                 'max': 50,
                 'step': 0.5,
                 'nullable': True,
-                'help': 'Enter 0 if unemployed'
+                'help': 'Enter 0 if unemployed',
+                'mapping_info': {
+                    'A71': 'Unemployed',
+                    'A72': '< 1 year',
+                    'A73': '1 ≤ … < 4 years',
+                    'A74': '4 ≤ … < 7 years',
+                    'A75': '≥ 7 years'
+                }
             },
             'installment_rate': {
                 'type': 'number',
                 'label': 'Installment Rate (% of disposable income)',
                 'min': 1,
                 'max': 4,
-                'step': 1
+                'step': 1,
+                'help': 'Percentage of disposable income for installments'
+            },
+            'other_debtors': {
+                'type': 'select',
+                'label': 'Other Debtors/Guarantors',
+                'options': [
+                    {'value': 'none', 'label': 'None', 'code': 'A101'},
+                    {'value': 'co_applicant', 'label': 'Co-applicant', 'code': 'A102'},
+                    {'value': 'guarantor', 'label': 'Guarantor', 'code': 'A103'}
+                ]
             },
             'residence_years': {
                 'type': 'number',
                 'label': 'Present Residence Since (years)',
                 'min': 1,
                 'max': 4,
-                'step': 1
+                'step': 1,
+                'help': 'How long have you lived at your current residence'
+            },
+            'property': {
+                'type': 'select',
+                'label': 'Property',
+                'options': [
+                    {'value': 'real_estate', 'label': 'Real estate', 'code': 'A121'},
+                    {'value': 'savings_insurance', 'label': 'Building society savings agreement / Life insurance', 'code': 'A122'},
+                    {'value': 'car', 'label': 'Car or other (not in savings)', 'code': 'A123'},
+                    {'value': 'none', 'label': 'Unknown / No property', 'code': 'A124'}
+                ]
             },
             'age': {
                 'type': 'number',
                 'label': 'Age (years)',
                 'min': 18,
                 'max': 75,
-                'step': 1
+                'step': 1,
+                'help': 'Your age in years'
+            },
+            'other_plans': {
+                'type': 'select',
+                'label': 'Other Installment Plans',
+                'options': [
+                    {'value': 'bank', 'label': 'Bank', 'code': 'A141'},
+                    {'value': 'stores', 'label': 'Stores', 'code': 'A142'},
+                    {'value': 'none', 'label': 'None', 'code': 'A143'}
+                ]
+            },
+            'housing': {
+                'type': 'select',
+                'label': 'Housing',
+                'options': [
+                    {'value': 'rent', 'label': 'Rent', 'code': 'A151'},
+                    {'value': 'own', 'label': 'Own', 'code': 'A152'},
+                    {'value': 'free', 'label': 'For free', 'code': 'A153'}
+                ]
             },
             'existing_credits': {
                 'type': 'number',
-                'label': 'Number of Existing Credits',
+                'label': 'Number of Existing Credits at This Bank',
                 'min': 1,
                 'max': 4,
-                'step': 1
+                'step': 1,
+                'help': 'How many credits do you currently have at this bank'
+            },
+            'job': {
+                'type': 'select',
+                'label': 'Job',
+                'options': [
+                    {'value': 'unemployed', 'label': 'Unemployed / Unskilled - non-resident', 'code': 'A171'},
+                    {'value': 'unskilled', 'label': 'Unskilled - resident', 'code': 'A172'},
+                    {'value': 'skilled', 'label': 'Skilled employee / Official', 'code': 'A173'},
+                    {'value': 'management', 'label': 'Management / Self-employed / Highly qualified employee / Officer', 'code': 'A174'}
+                ]
             },
             'dependents': {
                 'type': 'number',
-                'label': 'Number of Dependents',
+                'label': 'Number of People Being Liable to Provide Maintenance For',
                 'min': 1,
                 'max': 2,
-                'step': 1
+                'step': 1,
+                'help': 'Number of dependents you are responsible for'
             },
             'telephone': {
                 'type': 'boolean',
-                'label': 'Registered Telephone',
-                'help': 'Do you have a telephone registered under your name?'
+                'label': 'Telephone',
+                'help': 'Do you have a telephone registered under your name?',
+                'mapping_info': {
+                    'A191': 'None',
+                    'A192': 'Yes, registered under customer\'s name'
+                }
             }
         }
