@@ -1,4 +1,5 @@
-# Script to generate EDA (Exploratory Data Analysis) and upload to R2
+# Script to generate comprehensive EDA for German Credit Dataset and upload to R2
+# Based on official dataset documentation with 20 attributes
 
 import os
 import sys
@@ -13,6 +14,7 @@ import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import Counter
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
@@ -20,6 +22,31 @@ sys.path.append(str(Path(__file__).parent.parent))
 from app.config import get_settings
 
 load_dotenv()
+
+# German Credit Dataset attribute mapping
+ATTRIBUTE_NAMES = {
+    'Attribute1': 'checking_status',
+    'Attribute2': 'duration',
+    'Attribute3': 'credit_history',
+    'Attribute4': 'purpose',
+    'Attribute5': 'credit_amount',
+    'Attribute6': 'savings_status',
+    'Attribute7': 'employment',
+    'Attribute8': 'installment_commitment',
+    'Attribute9': 'personal_status',  # BIAS - excluded from training
+    'Attribute10': 'other_parties',
+    'Attribute11': 'residence_since',
+    'Attribute12': 'property_magnitude',
+    'Attribute13': 'age',
+    'Attribute14': 'other_payment_plans',
+    'Attribute15': 'housing',
+    'Attribute16': 'existing_credits',
+    'Attribute17': 'job',
+    'Attribute18': 'num_dependents',
+    'Attribute19': 'own_telephone',
+    'Attribute20': 'foreign_worker',  # BIAS - excluded from training
+    'class': 'credit_risk'
+}
 
 def load_dataset_from_r2(config):
     """Download dataset from Cloudflare R2"""
@@ -39,97 +66,160 @@ def load_dataset_from_r2(config):
     return df, s3_client
 
 def generate_statistics(df):
-    """Generate comprehensive dataset statistics"""
+    """Generate comprehensive statistics for German Credit Dataset"""
+    
+    # Identify target column
+    target_col = 'class' if 'class' in df.columns else None
+    
     stats = {
-        "overview": {
+        "dataset_info": {
+            "name": "German Credit Data",
+            "source": "Professor Dr. Hans Hofmann, Universität Hamburg",
             "total_records": int(df.shape[0]),
-            "total_features": int(df.shape[1]),
-            "memory_usage_mb": float(df.memory_usage(deep=True).sum() / 1024**2)
+            "total_attributes": 20,
+            "numerical_attributes": 7,
+            "categorical_attributes": 13,
+            "bias_features_excluded": ["Attribute9 (personal_status)", "Attribute20 (foreign_worker)"]
         },
         "target_distribution": {},
-        "numerical_features": {},
-        "categorical_features": {},
-        "missing_values": {},
-        "correlations": {}
+        "numerical_summary": {},
+        "categorical_summary": {},
+        "data_quality": {
+            "missing_values": {},
+            "duplicates": int(df.duplicated().sum())
+        },
+        "feature_insights": {}
     }
     
-    # Target distribution
-    if 'credit_risk' in df.columns:
-        target_counts = df['credit_risk'].value_counts().to_dict()
+    # Target distribution (class: 1=Good, 2=Bad)
+    if target_col:
+        target_counts = df[target_col].value_counts().sort_index().to_dict()
+        total = len(df)
+        good_count = target_counts.get(1, 0)
+        bad_count = target_counts.get(2, 0)
+        
         stats["target_distribution"] = {
-            "good": int(target_counts.get('good', 0)),
-            "bad": int(target_counts.get('bad', 0)),
-            "good_percentage": float(target_counts.get('good', 0) / len(df) * 100),
-            "bad_percentage": float(target_counts.get('bad', 0) / len(df) * 100)
+            "good_credit": {
+                "count": int(good_count),
+                "percentage": float(good_count / total * 100),
+                "label": "Class 1"
+            },
+            "bad_credit": {
+                "count": int(bad_count),
+                "percentage": float(bad_count / total * 100),
+                "label": "Class 2"
+            },
+            "imbalance_ratio": float(good_count / bad_count) if bad_count > 0 else 0,
+            "cost_matrix_note": "Misclassifying bad as good costs 5x more than rejecting good customer"
         }
     
-    # Numerical features
-    numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    for col in numerical_cols:
-        stats["numerical_features"][col] = {
-            "mean": float(df[col].mean()),
-            "median": float(df[col].median()),
-            "std": float(df[col].std()),
-            "min": float(df[col].min()),
-            "max": float(df[col].max()),
-            "q25": float(df[col].quantile(0.25)),
-            "q75": float(df[col].quantile(0.75))
-        }
+    # Numerical features (7 attributes)
+    numerical_attrs = ['Attribute2', 'Attribute5', 'Attribute8', 'Attribute11', 'Attribute13', 'Attribute16', 'Attribute18']
+    for attr in numerical_attrs:
+        if attr in df.columns:
+            col_data = df[attr]
+            stats["numerical_summary"][ATTRIBUTE_NAMES.get(attr, attr)] = {
+                "attribute": attr,
+                "mean": float(col_data.mean()),
+                "median": float(col_data.median()),
+                "std": float(col_data.std()),
+                "min": float(col_data.min()),
+                "max": float(col_data.max()),
+                "q25": float(col_data.quantile(0.25)),
+                "q50": float(col_data.quantile(0.50)),
+                "q75": float(col_data.quantile(0.75)),
+                "skewness": float(col_data.skew()),
+                "kurtosis": float(col_data.kurtosis())
+            }
     
-    # Categorical features
-    categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
-    for col in categorical_cols:
-        value_counts = df[col].value_counts().head(10).to_dict()
-        stats["categorical_features"][col] = {
-            "unique_values": int(df[col].nunique()),
-            "top_values": {str(k): int(v) for k, v in value_counts.items()}
-        }
+    # Categorical features (13 attributes)
+    categorical_attrs = ['Attribute1', 'Attribute3', 'Attribute4', 'Attribute6', 'Attribute7', 
+                         'Attribute9', 'Attribute10', 'Attribute12', 'Attribute14', 'Attribute15',
+                         'Attribute17', 'Attribute19', 'Attribute20']
     
-    # Missing values
+    for attr in categorical_attrs:
+        if attr in df.columns:
+            value_counts = df[attr].value_counts().to_dict()
+            is_bias = attr in ['Attribute9', 'Attribute20']
+            
+            stats["categorical_summary"][ATTRIBUTE_NAMES.get(attr, attr)] = {
+                "attribute": attr,
+                "unique_values": int(df[attr].nunique()),
+                "most_common": str(df[attr].mode()[0]) if len(df[attr].mode()) > 0 else None,
+                "distribution": {str(k): int(v) for k, v in sorted(value_counts.items())},
+                "excluded_from_training": is_bias,
+                "reason": "Bias prevention (gender/nationality)" if is_bias else None
+            }
+    
+    # Missing values check
     missing = df.isnull().sum()
-    stats["missing_values"] = {
-        col: {
-            "count": int(missing[col]),
-            "percentage": float(missing[col] / len(df) * 100)
+    if missing.sum() > 0:
+        stats["data_quality"]["missing_values"] = {
+            col: {
+                "count": int(missing[col]),
+                "percentage": float(missing[col] / len(df) * 100)
+            }
+            for col in df.columns if missing[col] > 0
         }
-        for col in df.columns if missing[col] > 0
-    }
+    else:
+        stats["data_quality"]["missing_values"] = "No missing values detected"
     
-    # Correlations (top 10)
-    if len(numerical_cols) > 1:
-        corr_matrix = df[numerical_cols].corr()
-        # Get top correlations (excluding diagonal)
-        corr_pairs = []
-        for i in range(len(corr_matrix.columns)):
-            for j in range(i+1, len(corr_matrix.columns)):
-                corr_pairs.append({
-                    "feature1": corr_matrix.columns[i],
-                    "feature2": corr_matrix.columns[j],
-                    "correlation": float(corr_matrix.iloc[i, j])
-                })
-        corr_pairs.sort(key=lambda x: abs(x["correlation"]), reverse=True)
-        stats["correlations"]["top_10"] = corr_pairs[:10]
+    # Feature insights
+    if 'Attribute13' in df.columns:  # Age
+        stats["feature_insights"]["age"] = {
+            "youngest": int(df['Attribute13'].min()),
+            "oldest": int(df['Attribute13'].max()),
+            "average": float(df['Attribute13'].mean())
+        }
+    
+    if 'Attribute5' in df.columns:  # Credit amount
+        stats["feature_insights"]["credit_amount"] = {
+            "smallest_dm": float(df['Attribute5'].min()),
+            "largest_dm": float(df['Attribute5'].max()),
+            "average_dm": float(df['Attribute5'].mean()),
+            "median_dm": float(df['Attribute5'].median())
+        }
+    
+    if 'Attribute2' in df.columns:  # Duration
+        stats["feature_insights"]["duration"] = {
+            "shortest_months": int(df['Attribute2'].min()),
+            "longest_months": int(df['Attribute2'].max()),
+            "average_months": float(df['Attribute2'].mean())
+        }
     
     return stats
 
 def generate_visualizations(df, config, s3_client):
-    """Generate and upload visualization plots"""
+    """Generate comprehensive visualizations for German Credit Dataset"""
     sns.set_style("whitegrid")
+    sns.set_palette("husl")
     plots_uploaded = []
     
-    # 1. Target distribution
-    if 'credit_risk' in df.columns:
-        plt.figure(figsize=(8, 6))
-        df['credit_risk'].value_counts().plot(kind='bar', color=['#2ecc71', '#e74c3c'])
-        plt.title('Credit Risk Distribution', fontsize=14, fontweight='bold')
-        plt.xlabel('Credit Risk')
-        plt.ylabel('Count')
-        plt.xticks(rotation=0)
+    target_col = 'class' if 'class' in df.columns else None
+    
+    # 1. Target distribution (Class 1=Good vs Class 2=Bad)
+    if target_col:
+        plt.figure(figsize=(10, 6))
+        counts = df[target_col].value_counts().sort_index()
+        colors = ['#2ecc71', '#e74c3c']
+        bars = plt.bar(['Good Credit (1)', 'Bad Credit (2)'], counts.values, color=colors, edgecolor='black', linewidth=1.5)
+        plt.title('Credit Risk Distribution\n(1000 Applications)', fontsize=16, fontweight='bold', pad=20)
+        plt.ylabel('Number of Applications', fontsize=12)
+        plt.ylim(0, max(counts.values) * 1.15)
+        
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(height)}\n({height/len(df)*100:.1f}%)',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
+        
+        plt.grid(axis='y', alpha=0.3)
+        plt.tight_layout()
         
         buf = BytesIO()
-        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
         s3_client.put_object(
             Bucket=config.r2_bucket_name,
             Key='eda/target_distribution.png',
@@ -139,18 +229,36 @@ def generate_visualizations(df, config, s3_client):
         plots_uploaded.append('eda/target_distribution.png')
         plt.close()
     
-    # 2. Age distribution
-    if 'age' in df.columns:
-        plt.figure(figsize=(10, 6))
-        plt.hist(df['age'], bins=30, color='#3498db', edgecolor='black', alpha=0.7)
-        plt.title('Age Distribution', fontsize=14, fontweight='bold')
-        plt.xlabel('Age')
-        plt.ylabel('Frequency')
+    # 2. Age distribution (Attribute 13)
+    if 'Attribute13' in df.columns:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
         
+        # Histogram
+        ax1.hist(df['Attribute13'], bins=25, color='#3498db', edgecolor='black', alpha=0.8)
+        ax1.axvline(df['Attribute13'].mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {df["Attribute13"].mean():.1f}')
+        ax1.axvline(df['Attribute13'].median(), color='green', linestyle='--', linewidth=2, label=f'Median: {df["Attribute13"].median():.1f}')
+        ax1.set_title('Age Distribution (Attribute 13)', fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Age (years)', fontsize=12)
+        ax1.set_ylabel('Frequency', fontsize=12)
+        ax1.legend()
+        ax1.grid(axis='y', alpha=0.3)
+        
+        # Box plot by credit risk
+        if target_col:
+            df_plot = df[[target_col, 'Attribute13']].copy()
+            df_plot[target_col] = df_plot[target_col].map({1: 'Good', 2: 'Bad'})
+            ax2.boxplot([df[df[target_col]==1]['Attribute13'], df[df[target_col]==2]['Attribute13']],
+                       labels=['Good Credit', 'Bad Credit'], patch_artist=True,
+                       boxprops=dict(facecolor='#3498db', alpha=0.7),
+                       medianprops=dict(color='red', linewidth=2))
+            ax2.set_title('Age by Credit Risk', fontsize=14, fontweight='bold')
+            ax2.set_ylabel('Age (years)', fontsize=12)
+            ax2.grid(axis='y', alpha=0.3)
+        
+        plt.tight_layout()
         buf = BytesIO()
-        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
         s3_client.put_object(
             Bucket=config.r2_bucket_name,
             Key='eda/age_distribution.png',
@@ -160,18 +268,34 @@ def generate_visualizations(df, config, s3_client):
         plots_uploaded.append('eda/age_distribution.png')
         plt.close()
     
-    # 3. Credit amount distribution
-    if 'credit_amount' in df.columns:
-        plt.figure(figsize=(10, 6))
-        plt.hist(df['credit_amount'], bins=50, color='#9b59b6', edgecolor='black', alpha=0.7)
-        plt.title('Credit Amount Distribution', fontsize=14, fontweight='bold')
-        plt.xlabel('Credit Amount')
-        plt.ylabel('Frequency')
+    # 3. Credit amount distribution (Attribute 5)
+    if 'Attribute5' in df.columns:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
         
+        # Histogram
+        ax1.hist(df['Attribute5'], bins=40, color='#9b59b6', edgecolor='black', alpha=0.8)
+        ax1.axvline(df['Attribute5'].mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {df["Attribute5"].mean():.0f} DM')
+        ax1.axvline(df['Attribute5'].median(), color='green', linestyle='--', linewidth=2, label=f'Median: {df["Attribute5"].median():.0f} DM')
+        ax1.set_title('Credit Amount Distribution (Attribute 5)', fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Credit Amount (DM)', fontsize=12)
+        ax1.set_ylabel('Frequency', fontsize=12)
+        ax1.legend()
+        ax1.grid(axis='y', alpha=0.3)
+        
+        # Box plot by credit risk
+        if target_col:
+            ax2.boxplot([df[df[target_col]==1]['Attribute5'], df[df[target_col]==2]['Attribute5']],
+                       labels=['Good Credit', 'Bad Credit'], patch_artist=True,
+                       boxprops=dict(facecolor='#9b59b6', alpha=0.7),
+                       medianprops=dict(color='red', linewidth=2))
+            ax2.set_title('Credit Amount by Credit Risk', fontsize=14, fontweight='bold')
+            ax2.set_ylabel('Credit Amount (DM)', fontsize=12)
+            ax2.grid(axis='y', alpha=0.3)
+        
+        plt.tight_layout()
         buf = BytesIO()
-        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
         s3_client.put_object(
             Bucket=config.r2_bucket_name,
             Key='eda/credit_amount_distribution.png',
@@ -181,40 +305,64 @@ def generate_visualizations(df, config, s3_client):
         plots_uploaded.append('eda/credit_amount_distribution.png')
         plt.close()
     
-    # 4. Correlation heatmap
-    numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if len(numerical_cols) > 1:
-        plt.figure(figsize=(12, 10))
-        corr = df[numerical_cols].corr()
-        sns.heatmap(corr, annot=True, fmt='.2f', cmap='coolwarm', center=0,
-                    square=True, linewidths=1, cbar_kws={"shrink": 0.8})
-        plt.title('Feature Correlation Heatmap', fontsize=14, fontweight='bold')
+    # 4. Duration distribution (Attribute 2)
+    if 'Attribute2' in df.columns:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
         
+        # Histogram
+        ax1.hist(df['Attribute2'], bins=30, color='#e67e22', edgecolor='black', alpha=0.8)
+        ax1.axvline(df['Attribute2'].mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {df["Attribute2"].mean():.1f} months')
+        ax1.axvline(df['Attribute2'].median(), color='green', linestyle='--', linewidth=2, label=f'Median: {df["Attribute2"].median():.1f} months')
+        ax1.set_title('Credit Duration Distribution (Attribute 2)', fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Duration (months)', fontsize=12)
+        ax1.set_ylabel('Frequency', fontsize=12)
+        ax1.legend()
+        ax1.grid(axis='y', alpha=0.3)
+        
+        # Box plot by credit risk
+        if target_col:
+            ax2.boxplot([df[df[target_col]==1]['Attribute2'], df[df[target_col]==2]['Attribute2']],
+                       labels=['Good Credit', 'Bad Credit'], patch_artist=True,
+                       boxprops=dict(facecolor='#e67e22', alpha=0.7),
+                       medianprops=dict(color='red', linewidth=2))
+            ax2.set_title('Duration by Credit Risk', fontsize=14, fontweight='bold')
+            ax2.set_ylabel('Duration (months)', fontsize=12)
+            ax2.grid(axis='y', alpha=0.3)
+        
+        plt.tight_layout()
         buf = BytesIO()
-        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
         s3_client.put_object(
             Bucket=config.r2_bucket_name,
-            Key='eda/correlation_heatmap.png',
+            Key='eda/duration_distribution.png',
             Body=buf.getvalue(),
             ContentType='image/png'
         )
-        plots_uploaded.append('eda/correlation_heatmap.png')
+        plots_uploaded.append('eda/duration_distribution.png')
         plt.close()
     
-    # 5. Purpose distribution
-    if 'purpose' in df.columns:
-        plt.figure(figsize=(12, 6))
-        df['purpose'].value_counts().head(10).plot(kind='barh', color='#1abc9c')
-        plt.title('Top 10 Credit Purposes', fontsize=14, fontweight='bold')
-        plt.xlabel('Count')
-        plt.ylabel('Purpose')
+    # 5. Purpose distribution (Attribute 4)
+    if 'Attribute4' in df.columns:
+        plt.figure(figsize=(14, 8))
+        purpose_counts = df['Attribute4'].value_counts()
+        colors = sns.color_palette('husl', len(purpose_counts))
+        bars = plt.barh(range(len(purpose_counts)), purpose_counts.values, color=colors, edgecolor='black', linewidth=1)
+        plt.yticks(range(len(purpose_counts)), purpose_counts.index)
+        plt.xlabel('Number of Applications', fontsize=12)
+        plt.title('Credit Purpose Distribution (Attribute 4)\nSymbolic Codes: A40-A410', fontsize=14, fontweight='bold', pad=20)
+        
+        # Add value labels
+        for i, (bar, val) in enumerate(zip(bars, purpose_counts.values)):
+            plt.text(val, bar.get_y() + bar.get_height()/2, f' {val}', 
+                    va='center', fontsize=10, fontweight='bold')
+        
+        plt.grid(axis='x', alpha=0.3)
+        plt.tight_layout()
         
         buf = BytesIO()
-        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
         buf.seek(0)
-        
         s3_client.put_object(
             Bucket=config.r2_bucket_name,
             Key='eda/purpose_distribution.png',
@@ -222,6 +370,70 @@ def generate_visualizations(df, config, s3_client):
             ContentType='image/png'
         )
         plots_uploaded.append('eda/purpose_distribution.png')
+        plt.close()
+    
+    # 6. Checking account status (Attribute 1)
+    if 'Attribute1' in df.columns:
+        plt.figure(figsize=(12, 7))
+        status_counts = df['Attribute1'].value_counts().sort_index()
+        colors = ['#e74c3c', '#f39c12', '#2ecc71', '#95a5a6']
+        bars = plt.bar(range(len(status_counts)), status_counts.values, color=colors[:len(status_counts)], 
+                      edgecolor='black', linewidth=1.5, alpha=0.8)
+        plt.xticks(range(len(status_counts)), status_counts.index, fontsize=11)
+        plt.ylabel('Number of Applicants', fontsize=12)
+        plt.title('Checking Account Status Distribution (Attribute 1)\nA11: <0 DM | A12: 0-200 DM | A13: ≥200 DM | A14: No account', 
+                 fontsize=13, fontweight='bold', pad=20)
+        
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(height)}',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
+        
+        plt.grid(axis='y', alpha=0.3)
+        plt.tight_layout()
+        
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        buf.seek(0)
+        s3_client.put_object(
+            Bucket=config.r2_bucket_name,
+            Key='eda/checking_status_distribution.png',
+            Body=buf.getvalue(),
+            ContentType='image/png'
+        )
+        plots_uploaded.append('eda/checking_status_distribution.png')
+        plt.close()
+    
+    # 7. Correlation heatmap (numerical attributes only)
+    numerical_attrs = ['Attribute2', 'Attribute5', 'Attribute8', 'Attribute11', 'Attribute13', 'Attribute16', 'Attribute18']
+    available_numerical = [col for col in numerical_attrs if col in df.columns]
+    
+    if len(available_numerical) > 1:
+        plt.figure(figsize=(12, 10))
+        corr_df = df[available_numerical].copy()
+        corr_df.columns = [ATTRIBUTE_NAMES.get(col, col) for col in available_numerical]
+        corr = corr_df.corr()
+        
+        mask = np.triu(np.ones_like(corr, dtype=bool))
+        sns.heatmap(corr, mask=mask, annot=True, fmt='.2f', cmap='RdYlGn', center=0,
+                    square=True, linewidths=1.5, cbar_kws={"shrink": 0.8},
+                    vmin=-1, vmax=1)
+        plt.title('Numerical Features Correlation Heatmap\n(7 Numerical Attributes)', 
+                 fontsize=14, fontweight='bold', pad=20)
+        plt.tight_layout()
+        
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        buf.seek(0)
+        s3_client.put_object(
+            Bucket=config.r2_bucket_name,
+            Key='eda/correlation_heatmap.png',
+            Body=buf.getvalue(),
+            ContentType='image/png'
+        )
+        plots_uploaded.append('eda/correlation_heatmap.png')
         plt.close()
     
     return plots_uploaded
