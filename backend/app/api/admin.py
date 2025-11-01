@@ -44,6 +44,49 @@ async def download_dataset():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/generate-eda")
+async def generate_eda():
+    """
+    Generate EDA (Exploratory Data Analysis) and upload to R2
+    """
+    try:
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "generate_eda.py"
+        
+        if not script_path.exists():
+            raise HTTPException(status_code=404, detail=f"EDA script not found at {script_path}")
+        
+        # Run the EDA script
+        result = subprocess.run(
+            ["python3", str(script_path)],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minutes timeout
+        )
+        
+        if result.returncode == 0:
+            return {
+                "success": True,
+                "message": "EDA generated successfully",
+                "output": result.stdout
+            }
+        else:
+            # Return both stdout and stderr for debugging
+            error_msg = f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
+            raise HTTPException(
+                status_code=500,
+                detail=error_msg
+            )
+            
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="EDA generation timeout (>5 minutes)")
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Exception: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
+
+
 @router.post("/train-model")
 async def train_model():
     """

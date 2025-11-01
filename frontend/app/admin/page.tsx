@@ -7,9 +7,11 @@ import Link from 'next/link'
 
 export default function AdminPage() {
   const [downloadStatus, setDownloadStatus] = useState<string>('')
+  const [edaStatus, setEdaStatus] = useState<string>('')
   const [trainStatus, setTrainStatus] = useState<string>('')
-  const [loading, setLoading] = useState<{ download: boolean; train: boolean }>({
+  const [loading, setLoading] = useState<{ download: boolean; eda: boolean; train: boolean }>({
     download: false,
+    eda: false,
     train: false,
   })
 
@@ -34,6 +36,30 @@ export default function AdminPage() {
       setDownloadStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
     } finally {
       setLoading({ ...loading, download: false })
+    }
+  }
+
+  const handleGenerateEDA = async () => {
+    setLoading({ ...loading, eda: true })
+    setEdaStatus('Generating EDA visualizations and statistics...')
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/admin/generate-eda`, {
+        method: 'POST',
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setEdaStatus(`✅ Success: ${data.message}`)
+      } else {
+        setEdaStatus(`❌ Error: ${data.detail || 'Failed to generate EDA'}`)
+      }
+    } catch (error) {
+      setEdaStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setLoading({ ...loading, eda: false })
     }
   }
 
@@ -139,10 +165,66 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* EDA Generation Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            2. Generate EDA
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Generate Exploratory Data Analysis with visualizations and statistics, then upload to R2 storage.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Requirements:</h3>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>Dataset must be downloaded first (Step 1)</li>
+                <li>Python visualization libraries installed</li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Generated Outputs:</h3>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>statistics.json - Comprehensive dataset statistics</li>
+                <li>target_distribution.png - Credit risk distribution</li>
+                <li>age_distribution.png - Age histogram</li>
+                <li>credit_amount_distribution.png - Credit amount histogram</li>
+                <li>correlation_heatmap.png - Feature correlations</li>
+                <li>purpose_distribution.png - Top credit purposes</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={handleGenerateEDA}
+              disabled={loading.eda}
+              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition ${
+                loading.eda
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {loading.eda ? 'Generating EDA...' : 'Generate EDA Visualizations'}
+            </button>
+
+            {edaStatus && (
+              <div className={`p-4 rounded-lg ${
+                edaStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800' 
+                  : edaStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-blue-50 text-blue-800'
+              }`}>
+                {edaStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Model Training Section */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            2. Train Model
+            3. Train Model
           </h2>
           <p className="text-gray-700 mb-6">
             Train the XGBoost credit risk model with SHAP explainability and upload it to R2 storage.
