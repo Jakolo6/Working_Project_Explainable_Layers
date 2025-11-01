@@ -10,6 +10,7 @@ import boto3
 from io import BytesIO
 import os
 from .preprocessing import GermanCreditPreprocessor
+from .feature_mappings import FeatureMappings
 
 class CreditModel:
     """Handles XGBoost model training, loading, and prediction"""
@@ -177,12 +178,15 @@ class CreditModel:
         
         print("Model and preprocessor loaded from R2")
     
-    def predict(self, input_data: dict):
+    def predict(self, input_data: dict, is_human_readable: bool = True):
         """
         Make prediction on new data using trained model and preprocessor.
         
         Args:
-            input_data: Dictionary with raw feature values
+            input_data: Dictionary with feature values
+                - If is_human_readable=True: human-readable values (e.g., checking_balance=150)
+                - If is_human_readable=False: symbolic codes (e.g., Attribute1='A12')
+            is_human_readable: Whether input uses human-readable format
             
         Returns:
             Dictionary with prediction results
@@ -192,6 +196,10 @@ class CreditModel:
         
         if not self.preprocessor.is_fitted:
             raise ValueError("Preprocessor not fitted. Model may not be properly loaded.")
+        
+        # Translate human-readable input to symbolic codes if needed
+        if is_human_readable:
+            input_data = FeatureMappings.map_user_input(input_data)
         
         # Prepare input using preprocessor
         X = self.preprocessor.prepare_input_for_prediction(input_data)

@@ -17,6 +17,7 @@ from app.models.schemas import (
 from app.services.xgboost_model import CreditModel
 from app.services.shap_service import SHAPExplainer
 from app.services.supabase_service import SupabaseService
+from app.services.feature_mappings import FeatureMappings
 from app.config import get_settings
 import pandas as pd
 import uuid
@@ -241,7 +242,7 @@ async def submit_post_experiment_response(response: PostExperimentResponse):
         
         # Mark session as completed
         if result:
-            db.mark_session_complete(response.session_id)
+            if not db.mark_session_complete(response.session_id): raise HTTPException(status_code=500, detail="Failed to mark session as complete")
             return {
                 "success": True,
                 "message": "Post-experiment response stored successfully"
@@ -322,4 +323,26 @@ async def get_session(session_id: str):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve session: {str(e)}"
+        )
+
+
+@router.get("/feature-options")
+async def get_feature_options():
+    """
+    Get all available options for categorical features and metadata for numerical features.
+    Used by frontend to generate dynamic input forms with correct options.
+    
+    Returns human-readable feature names and options that will be automatically
+    mapped to symbolic codes (A11, A12, etc.) when making predictions.
+    """
+    try:
+        return {
+            "success": True,
+            "features": FeatureMappings.get_feature_options(),
+            "note": "All categorical values will be automatically mapped to symbolic codes used in training"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve feature options: {str(e)}"
         )

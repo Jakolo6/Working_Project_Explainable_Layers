@@ -20,7 +20,13 @@
   - Excludes bias features (personal_status, foreign_worker)
   - Handles categorical encoding with LabelEncoder
   - Standardizes numerical features with StandardScaler
+  - Remaps target labels [1,2] → [0,1] for sklearn compatibility
   - Reusable for both training and prediction
+- [x] **Feature Mapping System** - `FeatureMappings` class
+  - Translates human-readable inputs to symbolic codes (A11, A12, etc.)
+  - Threshold-based mappings (e.g., 150 DM → A12)
+  - Validation logic for all 18 features
+  - Provides feature options for frontend forms
 - [x] **XGBoost Model** - Credit risk classifier with SHAP explanations
 - [x] **Logistic Regression Model** - Alternative classifier for comparison
 - [x] **Model Training Scripts**
@@ -36,6 +42,7 @@
 - [x] Layer feedback API (`POST /api/v1/experiment/layer_feedback`)
 - [x] Prediction API with persona support (`POST /api/v1/experiment/predict`)
 - [x] Session retrieval API (`GET /api/v1/experiment/session/{session_id}`)
+- [x] Feature options API (`GET /api/v1/experiment/feature-options`)
 - [x] Railway deployment configuration
 - [x] Environment variable management
 - [x] Dataset download from UCI ML Repository (`download_dataset.py`)
