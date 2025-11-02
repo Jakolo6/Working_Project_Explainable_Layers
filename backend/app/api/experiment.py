@@ -328,11 +328,11 @@ async def predict_persona(request: PersonaPredictionRequest):
         # Make prediction (is_human_readable=True so it will map the values)
         prediction_result = model.predict(input_dict, is_human_readable=True)
         decision = prediction_result['decision']
-        probability = prediction_result['probability']
+        probability = prediction_result['confidence']  # Use 'confidence' key from predict()
         
         # Get SHAP values for explanation
         features_scaled_df = pd.DataFrame([prediction_result['features_scaled']])
-        features_raw_df = pd.DataFrame([prediction_result['features_raw']])
+        features_raw_dict = prediction_result['features_raw']
         
         # Calculate SHAP values
         shap_values = explainer.explainer.shap_values(features_scaled_df)
@@ -341,7 +341,14 @@ async def predict_persona(request: PersonaPredictionRequest):
         
         # Get top 10 SHAP features
         feature_names = model.feature_names
-        shap_importance = list(zip(feature_names, shap_values[0], features_raw_df.iloc[0]))
+        
+        # Create list of (feature_name, shap_value, raw_value)
+        shap_importance = []
+        for feat_name, shap_val in zip(feature_names, shap_values[0]):
+            # Get raw value from dict, use scaled value as fallback
+            raw_val = features_raw_dict.get(feat_name, prediction_result['features_scaled'].get(feat_name, 0))
+            shap_importance.append((feat_name, shap_val, raw_val))
+        
         shap_importance_sorted = sorted(shap_importance, key=lambda x: abs(x[1]), reverse=True)[:10]
         
         # Format SHAP features for response
