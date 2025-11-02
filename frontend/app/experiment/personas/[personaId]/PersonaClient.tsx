@@ -150,13 +150,13 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
           {/* Duration */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Duration (months) {ADJUSTABLE_FIELDS.includes('duration') && <span className="text-blue-600">✎ Adjustable</span>}
+              Duration (months) {ADJUSTABLE_FIELDS.includes('duration_months') && <span className="text-blue-600">✎ Adjustable</span>}
             </label>
             <input
               type="number"
-              value={application.duration}
-              onChange={(e) => handleFieldChange('duration', parseInt(e.target.value))}
-              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('duration')}
+              value={application.duration_months}
+              onChange={(e) => handleFieldChange('duration_months', parseInt(e.target.value))}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('duration_months')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
@@ -192,13 +192,13 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
           {/* Residence Since */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Present Residence Since (years) {ADJUSTABLE_FIELDS.includes('residence_since') && <span className="text-blue-600">✎ Adjustable</span>}
+              Present Residence Since (years) {ADJUSTABLE_FIELDS.includes('present_residence_since') && <span className="text-blue-600">✎ Adjustable</span>}
             </label>
             <input
               type="number"
-              value={application.residence_since}
-              onChange={(e) => handleFieldChange('residence_since', parseInt(e.target.value))}
-              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('residence_since')}
+              value={application.present_residence_since}
+              onChange={(e) => handleFieldChange('present_residence_since', parseInt(e.target.value))}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('present_residence_since')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
