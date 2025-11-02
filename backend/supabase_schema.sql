@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   participant_age INTEGER,
   participant_profession TEXT,
   finance_experience TEXT,
-  ai_familiarity INTEGER CHECK (ai_familiarity BETWEEN 1 AND 5),
+  ai_familiarity TEXT CHECK (ai_familiarity IN ('none', 'basic', 'intermediate', 'advanced')),
   completed BOOLEAN DEFAULT FALSE,
   metadata JSONB
 );
