@@ -17,6 +17,10 @@ interface ModelMetrics {
   test_size: number
   n_features: number
   confusion_matrix: number[][]
+  total_cost?: number
+  avg_cost_per_prediction?: number
+  false_positives?: number
+  false_negatives?: number
   top_features?: Array<{ feature: string; coefficient: number }>
   feature_importance?: Array<{ feature: string; importance: number }>
   roc_curve?: {
@@ -146,6 +150,61 @@ const ConfusionMatrix = ({ matrix }: { matrix: number[][] }) => (
   </div>
 )
 
+const CostAnalysis = ({ metrics }: { metrics: ModelMetrics }) => {
+  if (!metrics.total_cost && !metrics.avg_cost_per_prediction) return null
+  
+  const fp = metrics.false_positives || 0
+  const fn = metrics.false_negatives || 0
+  const totalCost = metrics.total_cost || 0
+  const avgCost = metrics.avg_cost_per_prediction || 0
+  
+  return (
+    <div className="bg-white p-6 rounded-lg border">
+      <h4 className="font-semibold mb-4">Misclassification Cost Analysis</h4>
+      <div className="space-y-4">
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="text-sm text-gray-600 mb-2">Cost Matrix (German Credit Dataset)</div>
+          <div className="grid grid-cols-3 gap-2 text-xs mb-3">
+            <div></div>
+            <div className="text-center font-semibold">Pred Bad</div>
+            <div className="text-center font-semibold">Pred Good</div>
+            <div className="font-semibold">Actual Good</div>
+            <div className="bg-blue-100 p-2 text-center font-mono">0</div>
+            <div className="bg-yellow-100 p-2 text-center font-mono">1</div>
+            <div className="font-semibold">Actual Bad</div>
+            <div className="bg-red-100 p-2 text-center font-mono">5</div>
+            <div className="bg-blue-100 p-2 text-center font-mono">0</div>
+          </div>
+          <p className="text-xs text-gray-600 italic">
+            Predicting "good" for a bad customer costs 5× more than rejecting a good customer
+          </p>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">False Positives (FP)</span>
+            <span className="font-mono font-bold text-red-600">{fp} × 5 = {fp * 5}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">False Negatives (FN)</span>
+            <span className="font-mono font-bold text-yellow-600">{fn} × 1 = {fn * 1}</span>
+          </div>
+          <div className="border-t pt-2 mt-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-900">Total Cost</span>
+              <span className="font-mono font-bold text-lg text-gray-900">{totalCost}</span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-sm text-gray-600">Avg Cost per Prediction</span>
+              <span className="font-mono text-gray-700">{avgCost.toFixed(4)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ModelPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -218,18 +277,20 @@ export default function ModelPage() {
               <MetricCard label="Test Size" value={metrics.metrics.xgboost.test_size} format="number" />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
               <ConfusionMatrix matrix={metrics.metrics.xgboost.confusion_matrix} />
-              <div className="space-y-6">
-                <RocCurveChart data={metrics.metrics.xgboost.roc_curve} />
-                <FeatureImportanceBars
-                  data={metrics.metrics.xgboost.feature_importance?.slice(0, 10).map((item) => ({
-                    feature: item.feature,
-                    value: item.importance,
-                  }))}
-                  title="Top 10 Feature Importances"
-                />
-              </div>
+              <CostAnalysis metrics={metrics.metrics.xgboost} />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <RocCurveChart data={metrics.metrics.xgboost.roc_curve} />
+              <FeatureImportanceBars
+                data={metrics.metrics.xgboost.feature_importance?.slice(0, 10)?.map((item) => ({
+                  feature: item.feature,
+                  value: item.importance,
+                }))}
+                title="Top 10 Feature Importances"
+              />
             </div>
           </div>
         )}
@@ -249,19 +310,21 @@ export default function ModelPage() {
               <MetricCard label="Test Size" value={metrics.metrics.logistic.test_size} format="number" />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
               <ConfusionMatrix matrix={metrics.metrics.logistic.confusion_matrix} />
-              <div className="space-y-6">
-                <RocCurveChart data={metrics.metrics.logistic.roc_curve} />
-                <FeatureImportanceBars
-                  data={metrics.metrics.logistic.top_features?.map((feat) => ({
-                    feature: feat.feature,
-                    value: feat.coefficient,
-                  }))}
-                  title="Top 10 Coefficients"
-                  signed
-                />
-              </div>
+              <CostAnalysis metrics={metrics.metrics.logistic} />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <RocCurveChart data={metrics.metrics.logistic.roc_curve} />
+              <FeatureImportanceBars
+                data={metrics.metrics.logistic.top_features?.map((feat) => ({
+                  feature: feat.feature,
+                  value: feat.coefficient,
+                }))}
+                title="Top 10 Coefficients"
+                signed
+              />
             </div>
           </div>
         )}

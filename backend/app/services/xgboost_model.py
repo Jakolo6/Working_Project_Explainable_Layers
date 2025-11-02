@@ -121,6 +121,16 @@ class CreditModel:
         
         # Calculate ROC curve coordinates
         fpr, tpr, thresholds = roc_curve(y_test, y_test_proba)
+        
+        # Calculate misclassification cost using German Credit cost matrix
+        # Cost matrix: [[0, 1], [5, 0]]
+        # Row = actual, Column = predicted
+        # Cost of FP (predict good when bad) = 5
+        # Cost of FN (predict bad when good) = 1
+        cm = confusion_matrix(y_test, y_test_pred)
+        tn, fp, fn, tp = cm.ravel()
+        total_cost = (fp * 5) + (fn * 1)  # FP costs 5, FN costs 1
+        avg_cost_per_prediction = total_cost / len(y_test)
 
         # Compute feature importances (aligned with preprocessor feature names)
         feature_importances = []
@@ -152,6 +162,10 @@ class CreditModel:
             'n_features': int(X_scaled.shape[1]),
             'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
             'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist(),
+            'total_cost': int(total_cost),
+            'avg_cost_per_prediction': float(avg_cost_per_prediction),
+            'false_positives': int(fp),
+            'false_negatives': int(fn),
             'roc_curve': {
                 'fpr': fpr.tolist(),
                 'tpr': tpr.tolist(),
@@ -175,6 +189,12 @@ class CreditModel:
         
         print(f"\nConfusion Matrix (Test Set):")
         print(confusion_matrix(y_test, y_test_pred))
+        
+        print(f"\nMisclassification Cost Analysis:")
+        print(f"False Positives (predict good when bad): {fp} × 5 = {fp * 5}")
+        print(f"False Negatives (predict bad when good): {fn} × 1 = {fn * 1}")
+        print(f"Total Cost: {total_cost}")
+        print(f"Average Cost per Prediction: {avg_cost_per_prediction:.4f}")
         print(f"{'='*60}\n")
         
         return self.model
