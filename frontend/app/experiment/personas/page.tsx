@@ -26,38 +26,38 @@ const SESSION_STORAGE_KEY = 'experiment_session_id'
 const PERSONAS: PersonaCard[] = [
   {
     id: 'elderly-woman',
-    title: 'Persona 1 · Helga (68) – Retired Bookkeeper',
-    subtitle: 'Fixed pension income, cautious spender, limited digital literacy',
+    title: 'Persona 1: Maria (67) – Retired',
+    subtitle: '€4,000 for home renovation',
     context:
-      'Helga managed a small bookstore for 35 years and now relies on a modest state pension. She needs a credit line to fund home renovations, but is wary of digital banking tools and wants clear, trustworthy explanations.',
+      'Maria is a 67-year-old retiree who wants to borrow €4,000 to renovate her bathroom for better accessibility. She has a modest pension and some savings, but is concerned about taking on debt at her age.',
     keyFactors: [
-      'Stable but modest retirement income',
-      'Low appetite for risk after previous investment loss',
-      'Looks for human reassurance when receiving automated decisions',
+      'Fixed retirement income from pension',
+      'Owns her home with no mortgage',
+      'Limited existing credits, good payment history',
     ],
   },
   {
     id: 'young-entrepreneur',
-    title: 'Persona 2 · Milan (31) – Tech Entrepreneur',
-    subtitle: 'Rapidly growing start-up, volatile cash flow, data-savvy decision-maker',
+    title: 'Persona 2: Jonas (27) – Employee',
+    subtitle: '€12,000 for business start-up',
     context:
-      'Milan co-founded a fintech start-up and is applying for a credit extension to finance expansion. He is comfortable with advanced analytics and wants explanations that connect the AI decision to tangible business metrics.',
+      'Jonas is a 27-year-old employee who wants to borrow €12,000 to start a small online business alongside his current job. He has been employed for 3 years and has a stable income.',
     keyFactors: [
-      'High month-to-month revenue swings due to project-based income',
-      'Strong credit history but increasing leverage to fuel growth',
-      'Prefers actionable, contextual comparisons to market benchmarks',
+      'Steady employment income',
+      'Young with limited credit history',
+      'Ambitious but higher risk due to business venture',
     ],
   },
   {
     id: 'middle-aged-employee',
-    title: 'Persona 3 · Sara (47) – Operations Manager',
-    subtitle: 'Consistent salary, family obligations, values fairness and transparency',
+    title: 'Persona 3: Sofia (44) – Single Parent',
+    subtitle: '€20,000 to consolidate debt',
     context:
-      'Sara supports two teenagers and recently refinanced her mortgage. She is seeking a credit increase for education expenses and wants assurance that the AI evaluates her case fairly without hidden biases.',
+      'Sofia is a 44-year-old single parent who wants to borrow €20,000 to consolidate multiple smaller debts into one manageable payment. She works full-time and supports two children.',
     keyFactors: [
-      'Steady employment with mid-level management salary',
-      'Balances multiple obligations: mortgage, tuition, and savings goals',
-      'Sensitive to fairness due to past experience with opaque lending decisions',
+      'Stable employment but supporting family alone',
+      'Multiple existing credits to consolidate',
+      'Seeking better financial management through consolidation',
     ],
   },
 ]
@@ -141,13 +141,19 @@ export default function PersonaSelectionPage() {
 
     return (
       <div className="space-y-8">
-        <section className="rounded-xl bg-white p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Choose your next persona</h2>
-          <p className="text-gray-600">
-            Explore each persona sequentially. For every persona, you will submit a credit application, review four
-            explanation layers, and provide feedback. Your session ID ensures the research team can map your insights to
-            the correct study stage.
-          </p>
+        <section className="rounded-xl bg-blue-50 border border-blue-200 p-8 shadow-lg">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🏦 You are a Bank Clerk</h2>
+          <div className="space-y-3 text-gray-700">
+            <p>
+              <strong>Your role:</strong> You are processing loan applications today. You'll meet three customers, each with different financial situations and credit needs.
+            </p>
+            <p>
+              <strong>Your task:</strong> For each customer, you'll enter their information into the system and the AI will generate a credit decision (Approved or Rejected).
+            </p>
+            <p>
+              <strong>What happens next:</strong> After the AI makes its decision, you'll see 5 different explanation formats. Rate each one on trust, understanding, usefulness, and mental effort.
+            </p>
+          </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -168,9 +174,9 @@ export default function PersonaSelectionPage() {
               </ul>
               <Link
                 href={`/experiment/personas/${persona.id}`}
-                className="mt-6 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="mt-6 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
               >
-                Enter Persona Flow
+                Start with this Customer →
               </Link>
             </article>
           ))}
