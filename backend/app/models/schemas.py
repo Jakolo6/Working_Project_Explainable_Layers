@@ -58,7 +58,7 @@ class SessionCreate(BaseModel):
     participant_age: Optional[int] = Field(None, ge=18, le=100, description="Participant's age")
     participant_profession: str = Field(..., min_length=2, description="Participant's profession")
     finance_experience: str = Field(..., description="Experience level with finance")
-    ai_familiarity: int = Field(..., ge=1, le=5, description="AI familiarity rating (1-5)")
+    ai_familiarity: str = Field(..., min_length=3, description="AI familiarity level (none/basic/intermediate/advanced)")
 
 class SessionResponse(BaseModel):
     """Response after creating a session"""
