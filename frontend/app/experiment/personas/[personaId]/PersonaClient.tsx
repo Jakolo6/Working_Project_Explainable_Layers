@@ -80,8 +80,8 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('Prediction error:', errorData)
-        throw new Error(errorData.detail || 'Failed to get prediction')
+        console.error('Prediction error:', JSON.stringify(errorData, null, 2))
+        throw new Error(JSON.stringify(errorData.detail) || 'Failed to get prediction')
       }
 
       const result = await response.json()
