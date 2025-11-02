@@ -83,6 +83,12 @@ export default function PersonaDetailPage() {
         probability: result.probability,
       })
       setIsLocked(true)
+      
+      // Save prediction to localStorage for layers page
+      if (typeof window !== 'undefined') {
+        const predictionKey = `prediction_${personaId}`
+        window.localStorage.setItem(predictionKey, JSON.stringify(result))
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
