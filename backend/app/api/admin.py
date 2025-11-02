@@ -189,11 +189,11 @@ async def generate_eda():
 @router.post("/train-model")
 async def train_model():
     """
-    Trigger XGBoost model training with new one-hot encoding preprocessing pipeline.
-    Uses the refactored train_model.py script.
+    Trigger training for both XGBoost and Logistic Regression models.
+    Uses new one-hot encoding preprocessing pipeline for both models.
     """
     try:
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_model.py"
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_both_models.py"
         
         if not script_path.exists():
             raise HTTPException(status_code=404, detail=f"Training script not found at {script_path}")
@@ -203,15 +203,15 @@ async def train_model():
             ["python3", str(script_path)],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minutes timeout
+            timeout=900  # 15 minutes timeout for both models
         )
         
         if result.returncode == 0:
             return {
                 "success": True,
-                "message": "XGBoost model trained successfully with one-hot encoding",
+                "message": "Both models (XGBoost + Logistic Regression) trained successfully with new preprocessing",
                 "output": result.stdout,
-                "note": "Model uses new preprocessing: one-hot encoding + raw feature preservation"
+                "note": "Both models use one-hot encoding + raw feature preservation for fair comparison"
             }
         else:
             # Return both stdout and stderr for debugging
@@ -222,7 +222,7 @@ async def train_model():
             )
             
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=408, detail="Training timeout (>10 minutes)")
+        raise HTTPException(status_code=408, detail="Training timeout (>15 minutes)")
     except HTTPException:
         raise
     except Exception as e:
@@ -332,8 +332,8 @@ async def get_eda_images():
 @router.get("/model-metrics")
 async def get_model_metrics():
     """
-    Retrieve training metrics for XGBoost model from R2.
-    Returns metrics including feature importance and performance stats.
+    Retrieve training metrics for both XGBoost and Logistic Regression models from R2.
+    Returns metrics including feature importance and performance stats for benchmarking.
     """
     try:
         import boto3
@@ -343,25 +343,40 @@ async def get_model_metrics():
         config = get_settings()
         s3_client = create_r2_client(config)
         
+        metrics = {}
+        
         # Load XGBoost metrics
         try:
             obj = s3_client.get_object(
                 Bucket=config.r2_bucket_name,
                 Key='models/xgboost_metrics.json'
             )
-            metrics = json.loads(obj['Body'].read().decode('utf-8'))
-            
-            return {
-                "success": True,
-                "model_type": "XGBoost",
-                "preprocessing": "one-hot encoding + raw feature preservation",
-                "metrics": metrics
-            }
+            metrics['xgboost'] = json.loads(obj['Body'].read().decode('utf-8'))
         except s3_client.exceptions.NoSuchKey:
+            metrics['xgboost'] = None
+        
+        # Load Logistic Regression metrics
+        try:
+            obj = s3_client.get_object(
+                Bucket=config.r2_bucket_name,
+                Key='models/logistic_metrics.json'
+            )
+            metrics['logistic'] = json.loads(obj['Body'].read().decode('utf-8'))
+        except s3_client.exceptions.NoSuchKey:
+            metrics['logistic'] = None
+        
+        if not metrics['xgboost'] and not metrics['logistic']:
             raise HTTPException(
                 status_code=404,
-                detail="No model metrics found. Please train the model first using the admin panel."
+                detail="No model metrics found. Please train the models first using the admin panel."
             )
+        
+        return {
+            "success": True,
+            "preprocessing": "one-hot encoding + raw feature preservation",
+            "note": "Both models use identical preprocessing for fair benchmarking",
+            "metrics": metrics
+        }
         
     except HTTPException:
         raise
