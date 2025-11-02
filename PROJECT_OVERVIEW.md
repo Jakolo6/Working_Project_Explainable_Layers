@@ -39,9 +39,7 @@
 - [x] Session management API (`POST /api/v1/experiment/create_session`)
 - [x] Pre-experiment questionnaire API (`POST /api/v1/experiment/pre_response`)
 - [x] Post-experiment questionnaire API (`POST /api/v1/experiment/post_response`)
-- [x] Layer feedback API (`POST /api/v1/experiment/layer_feedback`)
-- [x] Prediction API with persona support (`POST /api/v1/experiment/predict`)
-- [x] **Persona Prediction API** (`POST /api/v1/experiment/predict_persona`) - NEW!
+- [x] **Persona Prediction API** (`POST /api/v1/experiment/predict_persona`)
   - Takes persona application data
   - Runs XGBoost model prediction
   - Calculates top 10 SHAP values
