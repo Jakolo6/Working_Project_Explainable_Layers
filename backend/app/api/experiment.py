@@ -398,7 +398,7 @@ async def predict_persona(request: PersonaPredictionRequest):
 @router.post("/submit_layer_rating", response_model=LayerRatingResponse)
 async def submit_layer_rating(
     rating: LayerRatingRequest,
-    supabase: SupabaseService = Depends(lambda: SupabaseService())
+    supabase: SupabaseService = Depends(lambda: SupabaseService(get_settings()))
 ):
     """
     Submit rating for an explanation layer.
@@ -449,7 +449,7 @@ async def submit_layer_rating(
 @router.post("/submit_post_questionnaire", response_model=PostQuestionnaireResponse)
 async def submit_post_questionnaire(
     questionnaire: PostQuestionnaireRequest,
-    supabase: SupabaseService = Depends(lambda: SupabaseService())
+    supabase: SupabaseService = Depends(lambda: SupabaseService(get_settings()))
 ):
     """
     Submit post-experiment questionnaire.
