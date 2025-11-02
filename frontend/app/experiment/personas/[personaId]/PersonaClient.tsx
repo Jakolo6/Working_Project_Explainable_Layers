@@ -65,18 +65,23 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const payload = {
+        session_id: sessionId,
+        persona_id: personaId,
+        application_data: application
+      }
+      console.log('Sending prediction request:', payload)
+      
       const response = await fetch(`${apiUrl}/api/v1/experiment/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          persona_id: personaId,
-          application_data: application
-        })
+        body: JSON.stringify(payload)
       })
 
       if (!response.ok) {
-        throw new Error('Failed to get prediction')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Prediction error:', errorData)
+        throw new Error(errorData.detail || 'Failed to get prediction')
       }
 
       const result = await response.json()
