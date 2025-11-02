@@ -70,9 +70,9 @@ class SessionResponse(BaseModel):
 class PreExperimentResponse(BaseModel):
     """Pre-experiment questionnaire responses"""
     session_id: str
-    expectation_ai_decision: str = Field(..., min_length=10, description="What participant expects AI to show")
-    expectation_fair_explanation: str = Field(..., min_length=10, description="What would make explanation feel fair")
-    expectation_role_explanations: str = Field(..., min_length=10, description="Role of explanations in AI banking")
+    expectation_ai_decision: int = Field(..., ge=1, le=5, description="Likert scale: expectation of AI decision")
+    expectation_fair_explanation: int = Field(..., ge=1, le=5, description="Likert scale: expectation of fair explanation")
+    expectation_role_explanations: str = Field(..., min_length=1, description="Role of explanations in AI banking")
 
 class PostExperimentResponse(BaseModel):
     """Post-experiment questionnaire responses"""
