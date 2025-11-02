@@ -245,6 +245,239 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             />
           </div>
 
+          {/* Checking Account Status */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Checking Account Status {ADJUSTABLE_FIELDS.includes('checking_account_status') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.checking_account_status}
+              onChange={(e) => handleFieldChange('checking_account_status', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('checking_account_status')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="less than 0 DM">Less than 0 DM (overdrawn)</option>
+              <option value="0 to 200 DM">0 to 200 DM</option>
+              <option value="200 DM or more">200 DM or more</option>
+              <option value="no checking account">No checking account</option>
+            </select>
+          </div>
+
+          {/* Savings Account */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Savings Account {ADJUSTABLE_FIELDS.includes('savings_account') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.savings_account}
+              onChange={(e) => handleFieldChange('savings_account', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('savings_account')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="less than 100 DM">Less than 100 DM</option>
+              <option value="100 to 500 DM">100 to 500 DM</option>
+              <option value="500 to 1000 DM">500 to 1000 DM</option>
+              <option value="1000 DM or more">1000 DM or more</option>
+              <option value="unknown/no savings">Unknown/No savings</option>
+            </select>
+          </div>
+
+          {/* Employment Status */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Employment Status {ADJUSTABLE_FIELDS.includes('employment_status') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.employment_status}
+              onChange={(e) => handleFieldChange('employment_status', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('employment_status')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="unemployed">Unemployed</option>
+              <option value="less than 1 year">Less than 1 year</option>
+              <option value="1 to 4 years">1 to 4 years</option>
+              <option value="4 to 7 years">4 to 7 years</option>
+              <option value="7 years or more">7 years or more</option>
+            </select>
+          </div>
+
+          {/* Property */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Property {ADJUSTABLE_FIELDS.includes('property') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.property}
+              onChange={(e) => handleFieldChange('property', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('property')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="real estate">Real estate</option>
+              <option value="building society savings/life insurance">Building society savings/Life insurance</option>
+              <option value="car or other">Car or other</option>
+              <option value="unknown/no property">Unknown/No property</option>
+            </select>
+          </div>
+
+          {/* Housing */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Housing {ADJUSTABLE_FIELDS.includes('housing') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.housing}
+              onChange={(e) => handleFieldChange('housing', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('housing')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="rent">Rent</option>
+              <option value="own">Own</option>
+              <option value="for free">For free</option>
+            </select>
+          </div>
+
+          {/* Credit History */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Credit History {ADJUSTABLE_FIELDS.includes('credit_history') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.credit_history}
+              onChange={(e) => handleFieldChange('credit_history', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('credit_history')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="no credits taken/all paid back">No credits taken/All paid back</option>
+              <option value="all credits paid back duly">All credits paid back duly</option>
+              <option value="existing credits paid back duly">Existing credits paid back duly</option>
+              <option value="delay in paying off in the past">Delay in paying off in the past</option>
+              <option value="critical account">Critical account</option>
+            </select>
+          </div>
+
+          {/* Purpose */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Purpose {ADJUSTABLE_FIELDS.includes('purpose') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.purpose}
+              onChange={(e) => handleFieldChange('purpose', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('purpose')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="car (new)">Car (new)</option>
+              <option value="car (used)">Car (used)</option>
+              <option value="furniture/equipment">Furniture/Equipment</option>
+              <option value="radio/television">Radio/Television</option>
+              <option value="domestic appliances">Domestic appliances</option>
+              <option value="repairs">Repairs</option>
+              <option value="education">Education</option>
+              <option value="retraining">Retraining</option>
+              <option value="business">Business</option>
+              <option value="others">Others</option>
+            </select>
+          </div>
+
+          {/* Other Debtors */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Other Debtors/Guarantors {ADJUSTABLE_FIELDS.includes('other_debtors') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.other_debtors}
+              onChange={(e) => handleFieldChange('other_debtors', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('other_debtors')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="none">None</option>
+              <option value="co-applicant">Co-applicant</option>
+              <option value="guarantor">Guarantor</option>
+            </select>
+          </div>
+
+          {/* Other Installment Plans */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Other Installment Plans {ADJUSTABLE_FIELDS.includes('other_installment_plans') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.other_installment_plans}
+              onChange={(e) => handleFieldChange('other_installment_plans', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('other_installment_plans')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="none">None</option>
+              <option value="bank">Bank</option>
+              <option value="stores">Stores</option>
+            </select>
+          </div>
+
+          {/* Job */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Job {ADJUSTABLE_FIELDS.includes('job') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.job}
+              onChange={(e) => handleFieldChange('job', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('job')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="unemployed/unskilled - non-resident">Unemployed/Unskilled - Non-resident</option>
+              <option value="unskilled - resident">Unskilled - Resident</option>
+              <option value="skilled employee">Skilled employee/Official</option>
+              <option value="management/self-employed">Management/Self-employed/Highly qualified</option>
+            </select>
+          </div>
+
+          {/* Telephone */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Telephone {ADJUSTABLE_FIELDS.includes('telephone') && <span className="text-blue-600">✎ Adjustable</span>}
+            </label>
+            <select
+              value={application.telephone}
+              onChange={(e) => handleFieldChange('telephone', e.target.value)}
+              disabled={isLocked || !ADJUSTABLE_FIELDS.includes('telephone')}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="no">No</option>
+              <option value="yes">Yes (registered under customer's name)</option>
+            </select>
+          </div>
+
+          {/* Read-only fields */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Fixed Attributes (Not Editable)</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Sex</label>
+                <input
+                  type="text"
+                  value={application.sex}
+                  disabled
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Foreign Worker</label>
+                <input
+                  type="text"
+                  value={application.foreign_worker}
+                  disabled
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-2">
+              * These fields are not editable to prevent bias manipulation in the experiment
+            </p>
+          </div>
+
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}

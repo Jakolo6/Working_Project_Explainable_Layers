@@ -145,8 +145,29 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   },
 }
 
-// Fields that participants can adjust (to reduce fatigue)
-export const ADJUSTABLE_FIELDS = ['credit_amount', 'duration_months']
+// Fields that participants can adjust
+// All fields are editable to allow full exploration of the model
+export const ADJUSTABLE_FIELDS = [
+  'age',
+  'checking_account_status',
+  'savings_account',
+  'credit_amount',
+  'duration_months',
+  'employment_status',
+  'present_residence_since',
+  'property',
+  'housing',
+  'credit_history',
+  'purpose',
+  'installment_rate',
+  'existing_credits',
+  'other_debtors',
+  'other_installment_plans',
+  'job',
+  'num_dependents',
+  'telephone'
+  // Note: sex and foreign_worker excluded to prevent bias manipulation
+]
 
 // Helper to get persona by ID
 export function getPersona(id: string): PersonaInfo | null {
