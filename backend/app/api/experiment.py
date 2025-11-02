@@ -23,7 +23,7 @@ import pandas as pd
 import uuid
 from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/experiment", tags=["experiment"])
 
 # Global instances (loaded on startup)
 credit_model = None
