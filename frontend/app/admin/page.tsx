@@ -9,10 +9,13 @@ export default function AdminPage() {
   const [downloadStatus, setDownloadStatus] = useState<string>('')
   const [edaStatus, setEdaStatus] = useState<string>('')
   const [trainStatus, setTrainStatus] = useState<string>('')
-  const [loading, setLoading] = useState<{ download: boolean; eda: boolean; train: boolean }>({
+  const [clearStatus, setClearStatus] = useState<string>('')
+  const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false)
+  const [loading, setLoading] = useState<{ download: boolean; eda: boolean; train: boolean; clear: boolean }>({
     download: false,
     eda: false,
     train: false,
+    clear: false,
   })
 
   const handleDownloadDataset = async () => {
@@ -87,6 +90,31 @@ export default function AdminPage() {
     }
   }
 
+  const handleClearR2Bucket = async () => {
+    setLoading({ ...loading, clear: true })
+    setClearStatus('Deleting all files from R2 bucket...')
+    setShowClearConfirm(false)
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/admin/clear-r2-bucket`, {
+        method: 'DELETE',
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setClearStatus(`✅ Success: ${data.message} (${data.deleted_count} files deleted)`)
+      } else {
+        setClearStatus(`❌ Error: ${data.detail || 'Failed to clear R2 bucket'}`)
+      }
+    } catch (error) {
+      setClearStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setLoading({ ...loading, clear: false })
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -117,6 +145,81 @@ export default function AdminPage() {
                 Make sure you have proper credentials configured in Railway environment variables.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Clear R2 Bucket Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-2 border-red-200">
+          <h2 className="text-2xl font-bold text-red-700 mb-4">
+            0. Clear R2 Bucket (Danger Zone)
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Delete all files from Cloudflare R2 storage. Use this before retraining to ensure a clean state.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+              <h3 className="font-semibold text-red-900 mb-2">⚠️ WARNING - This will delete:</h3>
+              <ul className="list-disc list-inside text-red-800 space-y-1">
+                <li>All trained models (XGBoost + Logistic Regression)</li>
+                <li>All EDA visualizations and statistics</li>
+                <li>Dataset files</li>
+                <li>Model metrics and performance data</li>
+              </ul>
+              <p className="mt-3 text-sm text-red-700 font-semibold">
+                This action cannot be undone! You will need to re-download the dataset and retrain all models.
+              </p>
+            </div>
+
+            {!showClearConfirm ? (
+              <button
+                onClick={() => setShowClearConfirm(true)}
+                disabled={loading.clear}
+                className="w-full py-3 px-6 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition"
+              >
+                Clear R2 Bucket
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-red-100 border border-red-300 rounded-lg p-4">
+                  <p className="text-red-900 font-semibold mb-3">
+                    Are you absolutely sure? This will permanently delete all files!
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleClearR2Bucket}
+                      disabled={loading.clear}
+                      className={`flex-1 py-2 px-4 rounded-lg font-semibold text-white transition ${
+                        loading.clear
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-red-700 hover:bg-red-800'
+                      }`}
+                    >
+                      {loading.clear ? 'Deleting...' : 'Yes, Delete Everything'}
+                    </button>
+                    <button
+                      onClick={() => setShowClearConfirm(false)}
+                      disabled={loading.clear}
+                      className="flex-1 py-2 px-4 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {clearStatus && (
+              <div className={`p-4 rounded-lg ${
+                clearStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800' 
+                  : clearStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-blue-50 text-blue-800'
+              }`}>
+                {clearStatus}
+              </div>
+            )}
           </div>
         </div>
 

@@ -57,6 +57,53 @@ async def download_dataset():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.delete("/clear-r2-bucket")
+async def clear_r2_bucket():
+    """
+    Delete all files in R2 bucket.
+    Use this before retraining to ensure clean state.
+    WARNING: This will delete all models, EDA files, and datasets!
+    """
+    try:
+        from app.config import get_settings
+        
+        config = get_settings()
+        s3_client = create_r2_client(config)
+        
+        # List all objects
+        response = s3_client.list_objects_v2(Bucket=config.r2_bucket_name)
+        
+        if 'Contents' not in response:
+            return {
+                "success": True,
+                "message": "Bucket is already empty",
+                "deleted_count": 0
+            }
+        
+        # Delete all objects
+        deleted_keys = []
+        for obj in response['Contents']:
+            s3_client.delete_object(
+                Bucket=config.r2_bucket_name,
+                Key=obj['Key']
+            )
+            deleted_keys.append(obj['Key'])
+        
+        return {
+            "success": True,
+            "message": f"Deleted {len(deleted_keys)} files from R2 bucket",
+            "deleted_count": len(deleted_keys),
+            "deleted_files": deleted_keys
+        }
+        
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear R2 bucket: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        )
+
+
 @router.post("/generate-eda")
 async def generate_eda():
     """
