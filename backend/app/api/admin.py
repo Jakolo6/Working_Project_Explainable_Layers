@@ -371,9 +371,12 @@ async def get_dashboard_stats():
     Aggregates data from experiment_sessions, layer_ratings, and post_questionnaires tables.
     """
     try:
-        from app.services.supabase_service import get_supabase_client
+        from app.services.supabase_service import SupabaseService
+        from app.config import get_settings
         
-        supabase = get_supabase_client()
+        config = get_settings()
+        supabase_service = SupabaseService(config)
+        supabase = supabase_service.client
         
         # Get total and completed sessions
         sessions_response = supabase.table('experiment_sessions').select('session_id, completed_at').execute()
