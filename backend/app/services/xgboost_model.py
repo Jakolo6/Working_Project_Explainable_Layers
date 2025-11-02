@@ -228,6 +228,10 @@ class CreditModel:
         model_data = joblib.load(BytesIO(obj['Body'].read()))
         self.model = model_data['model']
         self.preprocessor = model_data['preprocessor']
+        if hasattr(self.preprocessor, 'feature_names'):
+            self.feature_names = self.preprocessor.feature_names
+        else:
+            self.feature_names = []
         
         print("Model and preprocessor loaded from R2")
     
