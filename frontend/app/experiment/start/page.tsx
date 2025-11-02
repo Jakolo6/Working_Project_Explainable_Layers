@@ -207,14 +207,20 @@ export default function ExperimentStartPage() {
 
           {sessionId && (
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800">
-              <p className="font-semibold mb-2">Session created successfully!</p>
+              <p className="font-semibold mb-2">✓ Session created successfully!</p>
               <p>
                 <span className="font-semibold">Session ID:</span>{' '}
-                <span className="font-mono text-green-900">{sessionId}</span>
+                <span className="font-mono text-green-900 bg-white px-2 py-1 rounded">{sessionId}</span>
               </p>
-              <p className="mt-2 text-gray-700">
-                Please copy this ID. You will need it for the pre-experiment questionnaire and throughout the study.
+              <p className="mt-3 text-gray-700">
+                Your session ID has been saved. Click below to continue to the pre-experiment questionnaire.
               </p>
+              <Link
+                href="/experiment/pre"
+                className="mt-4 inline-block w-full text-center rounded-lg bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-700 transition"
+              >
+                Continue to Pre-Experiment Questionnaire →
+              </Link>
             </div>
           )}
 
