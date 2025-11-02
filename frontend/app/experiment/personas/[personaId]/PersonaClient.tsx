@@ -155,7 +155,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.duration_months}
-              onChange={(e) => handleFieldChange('duration_months', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('duration_months', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('duration_months')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -169,7 +169,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.credit_amount}
-              onChange={(e) => handleFieldChange('credit_amount', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('credit_amount', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('credit_amount')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -183,7 +183,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.installment_rate}
-              onChange={(e) => handleFieldChange('installment_rate', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('installment_rate', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('installment_rate')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -197,7 +197,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.present_residence_since}
-              onChange={(e) => handleFieldChange('present_residence_since', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('present_residence_since', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('present_residence_since')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -211,7 +211,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.age}
-              onChange={(e) => handleFieldChange('age', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('age', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('age')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -225,7 +225,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.existing_credits}
-              onChange={(e) => handleFieldChange('existing_credits', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('existing_credits', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('existing_credits')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -239,7 +239,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.num_dependents}
-              onChange={(e) => handleFieldChange('num_dependents', parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('num_dependents', parseInt(e.target.value) || 0)}
               disabled={isLocked || !ADJUSTABLE_FIELDS.includes('num_dependents')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
