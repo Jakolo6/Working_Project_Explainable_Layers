@@ -72,7 +72,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
       }
       console.log('Sending prediction request:', payload)
       
-      const response = await fetch(`${apiUrl}/api/v1/experiment/predict`, {
+      const response = await fetch(`${apiUrl}/api/v1/experiment/predict_persona`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
