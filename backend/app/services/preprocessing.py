@@ -188,7 +188,9 @@ class GermanCreditPreprocessor:
     
     def _remove_bias_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove bias features from dataset"""
-        cols_to_drop = [col for col in self.bias_features if col in df.columns]
+        # Handle both symbolic names (Attribute9, Attribute20) and readable names
+        bias_feature_variants = self.bias_features + ['Attribute9', 'Attribute20']
+        cols_to_drop = [col for col in bias_feature_variants if col in df.columns]
         if cols_to_drop:
             print(f"Removing bias features: {cols_to_drop}")
             df = df.drop(columns=cols_to_drop)
