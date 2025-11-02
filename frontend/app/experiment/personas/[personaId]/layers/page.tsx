@@ -47,6 +47,15 @@ const LAYER_NAMES = [
 
 const TOTAL_LAYERS = 5
 
+// Generate static params for all persona IDs
+export function generateStaticParams() {
+  return [
+    { personaId: 'elderly-woman' },
+    { personaId: 'young-entrepreneur' },
+    { personaId: 'middle-aged-employee' }
+  ]
+}
+
 export default function LayersPage() {
   const params = useParams()
   const router = useRouter()
