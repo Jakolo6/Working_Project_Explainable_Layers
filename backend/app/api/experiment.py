@@ -72,15 +72,16 @@ async def predict_credit_decision(application: CreditApplicationInput):
         # Generate session ID
         session_id = str(uuid.uuid4())
         
-        # Make prediction
+        # Make prediction (returns both scaled and raw features)
         prediction_result = model.predict(input_data)
         
         # Assign random explanation layer
         layer = explainer.assign_random_layer()
         
-        # Generate SHAP explanation
-        features_df = pd.DataFrame([prediction_result['features']])
-        explanation = explainer.generate_explanation(features_df, layer)
+        # Generate SHAP explanation using both scaled and raw features
+        features_scaled_df = pd.DataFrame([prediction_result['features_scaled']])
+        features_raw_df = pd.DataFrame([prediction_result['features_raw']])
+        explanation = explainer.generate_explanation(features_scaled_df, features_raw_df, layer)
         
         # Store prediction in Supabase
         prediction_data = {

@@ -41,35 +41,55 @@ class SHAPExplainer:
         
         return shap_values
     
-    def get_top_features(self, features: pd.DataFrame, top_n: int = 5) -> List[Dict]:
-        """Get top N contributing features with SHAP values"""
-        shap_values = self.compute_shap_values(features)
+    def get_top_features(self, features_scaled: pd.DataFrame, features_raw: pd.DataFrame = None, top_n: int = 5) -> List[Dict]:
+        """Get top N contributing features with SHAP values
         
-        # Create explanation data
-        explanations = []
-        feature_values = features.iloc[0].to_dict()
+        Args:
+            features_scaled: Scaled features for SHAP computation
+            features_raw: Raw feature values for interpretable display
+            top_n: Number of top features to return
+            
+        Returns:
+            List of feature explanations with human-readable values
+        """
+        shap_values = self.compute_shap_values(features_scaled)
+        
+        # Use raw features for display if available, otherwise use scaled
+        display_features = features_raw if features_raw is not None else features_scaled
+        feature_values = display_features.iloc[0].to_dict()
         
         # Get absolute SHAP values for ranking
         abs_shap = np.abs(shap_values[0])
         top_indices = np.argsort(abs_shap)[-top_n:][::-1]
         
+        explanations = []
         for idx in top_indices:
             feature_name = self.feature_names[idx]
+            raw_value = feature_values.get(feature_name, 0)
+            
             explanations.append({
                 'feature': feature_name,
-                'value': float(feature_values[feature_name]),
-                'contribution': float(shap_values[0][idx])
+                'value': float(raw_value),
+                'contribution': float(shap_values[0][idx]),
+                'direction': 'increases' if shap_values[0][idx] > 0 else 'decreases'
             })
         
         return explanations
     
-    def generate_explanation(self, features: pd.DataFrame, layer: str) -> List[Dict]:
+    def generate_explanation(self, features_scaled: pd.DataFrame, features_raw: pd.DataFrame = None, layer: str = "feature_importance") -> List[Dict]:
         """
         Generate explanation based on assigned layer
-        For Phase 1, all layers return SHAP values as placeholder
+        
+        Args:
+            features_scaled: Scaled features for SHAP computation
+            features_raw: Raw features for display
+            layer: Explanation layer type
+            
+        Returns:
+            List of feature explanations
         """
-        # Get SHAP-based top features
-        top_features = self.get_top_features(features, top_n=5)
+        # Get SHAP-based top features with raw values
+        top_features = self.get_top_features(features_scaled, features_raw, top_n=5)
         
         # TODO: Implement layer-specific formatting in future phases
         # For now, return raw SHAP data for all layers

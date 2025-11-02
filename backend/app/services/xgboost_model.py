@@ -46,7 +46,7 @@ class CreditModel:
             fit_preprocessor: If True, fit the preprocessor (training mode)
             
         Returns:
-            Tuple of (X, y) - preprocessed features and target
+            Tuple of (X_scaled, y, X_raw) - scaled features, target, and raw features
         """
         # Determine target column
         possible_target_cols = ['class', 'Class', 'target', 'credit_risk', 'Risk', 'risk']
@@ -62,25 +62,26 @@ class CreditModel:
         
         # Fit or transform using preprocessor
         if fit_preprocessor:
-            X, y = self.preprocessor.fit_transform(df, target_col=target_col)
+            X_scaled, y, X_raw = self.preprocessor.fit_transform(df, target_col=target_col)
         else:
-            X, y = self.preprocessor.transform(df, target_col=target_col)
+            X_scaled, y, X_raw = self.preprocessor.transform(df, target_col=target_col)
         
-        return X, y
+        return X_scaled, y, X_raw
     
-    def train_model(self, X, y):
+    def train_model(self, X_scaled, y, X_raw=None):
         """
         Train XGBoost classifier with comprehensive evaluation.
         
         Args:
-            X: Preprocessed features
+            X_scaled: Scaled preprocessed features
             y: Target variable
+            X_raw: Raw feature values (for interpretability, optional)
             
         Returns:
             Trained model
         """
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42, stratify=y
+            X_scaled, y, test_size=0.2, random_state=42, stratify=y
         )
         
         # Initialize XGBoost with optimized parameters
@@ -133,6 +134,9 @@ class CreditModel:
                 for feature_name, importance in zip(self.preprocessor.feature_names, importances)
             ]
             feature_importances.sort(key=lambda item: item['importance'], reverse=True)
+            
+            # Store top 10 key features for focused explanations
+            self.key_features = [item['feature'] for item in feature_importances[:10]]
 
         # Store metrics for later retrieval
         self.training_metrics = {
@@ -145,7 +149,7 @@ class CreditModel:
             'f1_score': float(f1),
             'train_size': int(len(X_train)),
             'test_size': int(len(X_test)),
-            'n_features': int(X.shape[1]),
+            'n_features': int(X_scaled.shape[1]),
             'classification_report': classification_report(y_test, y_test_pred, output_dict=True),
             'confusion_matrix': confusion_matrix(y_test, y_test_pred).tolist(),
             'roc_curve': {
@@ -246,7 +250,7 @@ class CreditModel:
             is_human_readable: Whether input uses human-readable format
             
         Returns:
-            Dictionary with prediction results
+            Dictionary with prediction results including both scaled and raw features
         """
         if self.model is None:
             raise ValueError("Model not loaded. Call load_model_from_r2() first.")
@@ -258,12 +262,12 @@ class CreditModel:
         if is_human_readable:
             input_data = FeatureMappings.map_user_input(input_data)
         
-        # Prepare input using preprocessor
-        X = self.preprocessor.prepare_input_for_prediction(input_data)
+        # Prepare input using preprocessor (returns both scaled and raw)
+        X_scaled, X_raw = self.preprocessor.prepare_input_for_prediction(input_data)
         
-        # Make prediction
-        prediction = self.model.predict(X)[0]
-        probabilities = self.model.predict_proba(X)[0]
+        # Make prediction using scaled features
+        prediction = self.model.predict(X_scaled)[0]
+        probabilities = self.model.predict_proba(X_scaled)[0]
         
         # Model uses [0, 1] internally, map back to original [1, 2]
         # 0 = good credit (class 1), 1 = bad credit (class 2)
@@ -277,7 +281,8 @@ class CreditModel:
             'confidence': confidence,
             'probability_good': float(probabilities[0]),  # Class 0 = good credit
             'probability_bad': float(probabilities[1]) if len(probabilities) > 1 else 1 - float(probabilities[0]),
-            'preprocessed_features': X.iloc[0].to_dict()
+            'features_scaled': X_scaled.iloc[0].to_dict(),
+            'features_raw': X_raw.iloc[0].to_dict()
         }
     
     def get_feature_info(self):

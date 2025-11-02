@@ -32,15 +32,16 @@ def main():
         df = model_service.load_dataset_from_r2()
         print(f"✓ Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
         
-        # Preprocess data
+        # Preprocess data (returns scaled, target, and raw features)
         print("\n🔧 Preprocessing data...")
-        X, y = model_service.preprocess_data(df, fit_preprocessor=True)
-        print(f"✓ Features: {X.shape[1]} columns")
+        X_scaled, y, X_raw = model_service.preprocess_data(df, fit_preprocessor=True)
+        print(f"✓ Features (after one-hot encoding): {X_scaled.shape[1]} columns")
         print(f"✓ Target distribution: {y.value_counts().to_dict()}")
+        print(f"✓ Raw features preserved for interpretability")
         
         # Train model
         print("\n🎯 Training XGBoost model...")
-        model_service.train_model(X, y)
+        model_service.train_model(X_scaled, y, X_raw)
         print("✓ Model trained successfully")
         
         # Save to R2

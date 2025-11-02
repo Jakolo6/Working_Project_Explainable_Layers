@@ -22,6 +22,7 @@ class ExplanationData(BaseModel):
     feature: str
     value: float
     contribution: float
+    direction: str = Field(default="neutral", description="increases or decreases credit risk")
 
 class PredictionResponse(BaseModel):
     """Response schema for credit prediction"""
