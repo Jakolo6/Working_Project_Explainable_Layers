@@ -183,3 +183,14 @@ class PostQuestionnaireResponse(BaseModel):
     success: bool
     message: str
     questionnaire_id: Optional[str] = None
+
+class NaturalLanguageRequest(BaseModel):
+    """Request to generate natural language explanation"""
+    decision: str = Field(..., description="approved or rejected")
+    probability: float = Field(..., ge=0, le=1)
+    top_features: List[SHAPFeature] = Field(..., description="Top 3 SHAP features")
+
+class NaturalLanguageResponse(BaseModel):
+    """Response with GPT-generated explanation"""
+    explanation: str = Field(..., description="Natural language explanation")
+    success: bool = True

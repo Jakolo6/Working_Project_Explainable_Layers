@@ -19,7 +19,9 @@ from app.models.schemas import (
     LayerRatingRequest,
     LayerRatingResponse,
     PostQuestionnaireRequest,
-    PostQuestionnaireResponse
+    PostQuestionnaireResponse,
+    NaturalLanguageRequest,
+    NaturalLanguageResponse
 )
 from app.services.xgboost_model import CreditModel
 from app.services.shap_service import SHAPExplainer
@@ -491,4 +493,47 @@ async def submit_post_questionnaire(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to submit questionnaire: {str(e)}"
+        )
+
+@router.post("/generate_explanation", response_model=NaturalLanguageResponse)
+async def generate_natural_language_explanation(request: NaturalLanguageRequest):
+    """
+    Generate natural language explanation using OpenAI GPT.
+    Takes top 3 SHAP features and creates a human-readable summary.
+    """
+    try:
+        from app.services.openai_service import OpenAIService
+        
+        # Initialize OpenAI service
+        openai_service = OpenAIService()
+        
+        # Convert SHAPFeature objects to dicts
+        features_list = [
+            {
+                'feature': f.feature,
+                'value': f.value,
+                'impact': f.impact
+            }
+            for f in request.top_features[:3]
+        ]
+        
+        # Generate explanation
+        explanation = openai_service.generate_explanation(
+            decision=request.decision,
+            probability=request.probability,
+            top_features=features_list
+        )
+        
+        return NaturalLanguageResponse(
+            explanation=explanation,
+            success=True
+        )
+        
+    except Exception as e:
+        print(f"Error generating explanation: {e}")
+        # Return fallback explanation
+        fallback = f"The decision was based on the applicant's {', '.join([f.feature for f in request.top_features[:3]])}."
+        return NaturalLanguageResponse(
+            explanation=fallback,
+            success=False
         )

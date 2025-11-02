@@ -26,3 +26,6 @@ seaborn==0.13.0
 
 # Dataset utilities
 ucimlrepo==0.0.3
+
+# OpenAI for natural language explanations
+openai==1.54.0

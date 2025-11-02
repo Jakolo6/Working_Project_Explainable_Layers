@@ -1,6 +1,8 @@
 // Layer 2: Short Text - GPT-4 generated natural language explanation
 
-import React from 'react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
 
 interface SHAPFeature {
   feature: string
@@ -18,6 +20,48 @@ interface Layer2ShortTextProps {
 export default function Layer2ShortText({ decision, probability, shapFeatures }: Layer2ShortTextProps) {
   // Get top 3 features
   const top3Features = shapFeatures.slice(0, 3)
+  const [gptExplanation, setGptExplanation] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [useFallback, setUseFallback] = useState(false)
+  
+  useEffect(() => {
+    const fetchExplanation = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        const response = await fetch(`${apiUrl}/api/v1/experiment/generate_explanation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            decision,
+            probability,
+            top_features: top3Features
+          })
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to generate explanation')
+        }
+        
+        const data = await response.json()
+        setGptExplanation(data.explanation)
+        setUseFallback(!data.success)
+      } catch (error) {
+        console.error('Error fetching GPT explanation:', error)
+        // Fallback explanation
+        const fallback = `The decision was based on the applicant's ${top3Features.map(f => f.feature.toLowerCase()).join(', ')}.`
+        setGptExplanation(fallback)
+        setUseFallback(true)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    if (top3Features.length > 0) {
+      fetchExplanation()
+    }
+  }, [decision, probability, top3Features])
   
   if (top3Features.length === 0) {
     return (
@@ -28,25 +72,6 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
   }
 
   const isApproved = decision === 'approved'
-  
-  // Generate natural language explanation based on top 3 features
-  // In production, this would come from GPT-4 API
-  // For now, we'll generate a structured explanation
-  const generateExplanation = () => {
-    const decisionText = isApproved ? 'approved' : 'rejected'
-    const confidenceText = `${(probability * 100).toFixed(0)}%`
-    
-    // Build explanation from top 3 features
-    const feature1 = top3Features[0]
-    const feature2 = top3Features[1]
-    const feature3 = top3Features[2]
-    
-    const impact1 = feature1.impact === 'positive' ? 'positively influenced' : 'negatively influenced'
-    const impact2 = feature2.impact === 'positive' ? 'supported' : 'raised concerns about'
-    const impact3 = feature3.impact === 'positive' ? 'further strengthened' : 'also affected'
-    
-    return `This credit application was ${decisionText} with ${confidenceText} confidence. The decision was primarily ${impact1} by the applicant's ${feature1.feature.toLowerCase()} (${feature1.value}), which was the strongest factor. Additionally, the ${feature2.feature.toLowerCase()} (${feature2.value}) ${impact2} the decision. Finally, the ${feature3.feature.toLowerCase()} (${feature3.value}) ${impact3} the overall assessment.`
-  }
 
   return (
     <div className="bg-white rounded-lg border-2 border-gray-200 p-8">
@@ -68,9 +93,16 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
         <div className="flex items-start gap-3">
           <div className="text-3xl">💬</div>
           <div className="flex-1">
-            <p className="text-lg leading-relaxed text-gray-800">
-              {generateExplanation()}
-            </p>
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                <p className="text-gray-600">Generating explanation...</p>
+              </div>
+            ) : (
+              <p className="text-lg leading-relaxed text-gray-800">
+                {gptExplanation}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -102,7 +134,7 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
 
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-gray-700">
-          <strong>💡 About this explanation:</strong> This natural language summary translates the AI's 
+          <strong>💡 About this explanation:</strong> This natural language summary was {useFallback ? 'generated' : 'created by AI'} to translate the 
           mathematical decision into plain English. It focuses on the three most important factors and 
           explains how they contributed to the{' '}
           <span className={isApproved ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}>
