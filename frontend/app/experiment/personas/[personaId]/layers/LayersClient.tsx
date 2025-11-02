@@ -42,11 +42,11 @@ interface LayersClientProps {
 }
 
 const LAYER_NAMES = [
-  'Layer 1: Minimal',
-  'Layer 2: Short Text',
-  'Layer 3: Visual SHAP',
-  'Layer 4: Contextual',
-  'Layer 5: Counterfactual'
+  'Minimal',
+  'Feature Importance',
+  'Detailed SHAP',
+  'Visual',
+  'Counterfactual'
 ]
 
 const TOTAL_LAYERS = 5
