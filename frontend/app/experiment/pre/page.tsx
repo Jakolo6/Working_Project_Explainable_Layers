@@ -1,4 +1,5 @@
 // Pre-experiment questionnaire page - collects expectations before experiment
+// Auto-redirects to personas hub after successful submission
 
 'use client'
 
