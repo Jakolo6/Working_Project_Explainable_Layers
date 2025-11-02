@@ -12,7 +12,10 @@ from app.models.schemas import (
     PreExperimentResponse,
     PostExperimentResponse,
     LayerFeedbackRequest,
-    LayerFeedbackResponse
+    LayerFeedbackResponse,
+    PersonaPredictionRequest,
+    PersonaPredictionResponse,
+    SHAPFeature
 )
 from app.services.xgboost_model import CreditModel
 from app.services.shap_service import SHAPExplainer
@@ -346,4 +349,101 @@ async def get_feature_options():
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve feature options: {str(e)}"
+        )
+
+# ============================================================================
+# PERSONA PREDICTION ENDPOINT
+# ============================================================================
+
+@router.post("/predict_persona", response_model=PersonaPredictionResponse)
+async def predict_persona(request: PersonaPredictionRequest):
+    """
+    Generate AI credit decision for a persona with SHAP explanations.
+    This endpoint:
+    1. Takes persona application data
+    2. Runs XGBoost model prediction
+    3. Calculates SHAP values for explanation
+    4. Returns decision + probability + top SHAP features
+    """
+    try:
+        model, explainer, db = get_services()
+        
+        # Convert application data to model input format
+        app_data = request.application_data.dict()
+        
+        # Map categorical values to model format (if needed)
+        # The model expects specific format for categorical variables
+        input_dict = {
+            'Age': app_data['age'],
+            'Sex': app_data['sex'],
+            'Job': app_data['job'],
+            'Housing': app_data['housing'],
+            'Saving accounts': app_data['savings_account'],
+            'Checking account': app_data['checking_account_status'],
+            'Credit amount': app_data['credit_amount'],
+            'Duration': app_data['duration_months'],
+            'Purpose': app_data['purpose'],
+        }
+        
+        # Make prediction
+        prediction_result = model.predict(input_dict)
+        decision = prediction_result['decision']
+        probability = prediction_result['probability']
+        
+        # Get SHAP values for explanation
+        features_scaled_df = pd.DataFrame([prediction_result['features_scaled']])
+        features_raw_df = pd.DataFrame([prediction_result['features_raw']])
+        
+        # Calculate SHAP values
+        shap_values = explainer.explainer.shap_values(features_scaled_df)
+        if isinstance(shap_values, list):
+            shap_values = shap_values[1]  # Get positive class SHAP values
+        
+        # Get top 10 SHAP features
+        feature_names = model.feature_names
+        shap_importance = list(zip(feature_names, shap_values[0], features_raw_df.iloc[0]))
+        shap_importance_sorted = sorted(shap_importance, key=lambda x: abs(x[1]), reverse=True)[:10]
+        
+        # Format SHAP features for response
+        shap_features = []
+        for feat_name, shap_val, feat_val in shap_importance_sorted:
+            shap_features.append(SHAPFeature(
+                feature=feat_name,
+                value=str(feat_val),
+                shap_value=float(shap_val),
+                impact="positive" if shap_val > 0 else "negative"
+            ))
+        
+        # Generate prediction ID
+        prediction_id = str(uuid.uuid4())
+        
+        # Store prediction in database (optional - for tracking)
+        try:
+            prediction_record = {
+                'id': prediction_id,
+                'session_id': request.session_id,
+                'persona_id': request.persona_id,
+                'decision': decision,
+                'probability': float(probability),
+                'shap_values': [f.dict() for f in shap_features],
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            # Note: You may want to store this in Supabase predictions table
+        except Exception as e:
+            print(f"Warning: Failed to store prediction: {e}")
+        
+        return PersonaPredictionResponse(
+            session_id=request.session_id,
+            persona_id=request.persona_id,
+            decision=decision,
+            probability=float(probability),
+            shap_features=shap_features,
+            prediction_id=prediction_id
+        )
+        
+    except Exception as e:
+        print(f"Prediction error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate prediction: {str(e)}"
         )

@@ -100,3 +100,52 @@ class LayerFeedbackResponse(BaseModel):
     success: bool
     message: str
     feedback_id: str
+
+# ============================================================================
+# PERSONA PREDICTION SCHEMAS
+# ============================================================================
+
+class PersonaApplicationData(BaseModel):
+    """Application data for a persona"""
+    age: int
+    sex: str
+    checking_account_status: str
+    savings_account: str
+    credit_amount: int
+    duration_months: int
+    employment_status: str
+    present_residence_since: int
+    property: str
+    housing: str
+    credit_history: str
+    purpose: str
+    installment_rate: int
+    existing_credits: int
+    other_debtors: str
+    other_installment_plans: str
+    job: str
+    num_dependents: int
+    telephone: str
+    foreign_worker: str
+
+class PersonaPredictionRequest(BaseModel):
+    """Request for persona prediction"""
+    session_id: str
+    persona_id: str = Field(..., description="Persona identifier")
+    application_data: PersonaApplicationData
+
+class SHAPFeature(BaseModel):
+    """SHAP feature contribution"""
+    feature: str
+    value: str  # Human-readable value
+    shap_value: float
+    impact: str  # "positive" or "negative"
+
+class PersonaPredictionResponse(BaseModel):
+    """Response from persona prediction"""
+    session_id: str
+    persona_id: str
+    decision: str = Field(..., description="approved or rejected")
+    probability: float = Field(..., ge=0, le=1)
+    shap_features: List[SHAPFeature] = Field(..., description="Top SHAP features")
+    prediction_id: str
