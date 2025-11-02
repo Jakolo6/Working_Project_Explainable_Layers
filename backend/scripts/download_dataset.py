@@ -13,6 +13,119 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Load environment variables
 load_dotenv()
 
+def map_to_symbolic_codes(df):
+    """
+    Map UCI descriptive values to original symbolic codes (A11, A12, etc.)
+    This ensures compatibility with the original German Credit dataset format.
+    """
+    print("\n🔄 Mapping to symbolic codes...")
+    
+    df = df.copy()
+    
+    # Mapping dictionaries based on original dataset documentation
+    mappings = {
+        'checking_status': {
+            '< 0 DM': 'A11',
+            '0 <= ... < 200 DM': 'A12',
+            '>= 200 DM / salary for at least 1 year': 'A13',
+            'no checking account': 'A14'
+        },
+        'credit_history': {
+            'no credits taken/all credits paid back duly': 'A30',
+            'all credits at this bank paid back duly': 'A31',
+            'existing credits paid back duly till now': 'A32',
+            'delay in paying off in the past': 'A33',
+            'critical account/other credits existing (not at this bank)': 'A34'
+        },
+        'purpose': {
+            'car (new)': 'A40',
+            'car (used)': 'A41',
+            'furniture/equipment': 'A42',
+            'radio/television': 'A43',
+            'domestic appliances': 'A44',
+            'repairs': 'A45',
+            'education': 'A46',
+            'retraining': 'A48',
+            'business': 'A49',
+            'others': 'A410'
+        },
+        'savings': {
+            '< 100 DM': 'A61',
+            '100 <= ... < 500 DM': 'A62',
+            '500 <= ... < 1000 DM': 'A63',
+            '>= 1000 DM': 'A64',
+            'unknown/no savings account': 'A65'
+        },
+        'employment_duration': {
+            'unemployed': 'A71',
+            '< 1 year': 'A72',
+            '1 <= ... < 4 years': 'A73',
+            '4 <= ... < 7 years': 'A74',
+            '>= 7 years': 'A75'
+        },
+        'personal_status_sex': {
+            'male : divorced/separated': 'A91',
+            'female : divorced/separated/married': 'A92',
+            'male : single': 'A93',
+            'male : married/widowed': 'A94',
+            'female : single': 'A95'
+        },
+        'other_debtors': {
+            'none': 'A101',
+            'co-applicant': 'A102',
+            'guarantor': 'A103'
+        },
+        'property': {
+            'real estate': 'A121',
+            'building society savings agreement/life insurance': 'A122',
+            'car or other': 'A123',
+            'unknown / no property': 'A124'
+        },
+        'other_installment_plans': {
+            'bank': 'A141',
+            'stores': 'A142',
+            'none': 'A143'
+        },
+        'housing': {
+            'rent': 'A151',
+            'own': 'A152',
+            'for free': 'A153'
+        },
+        'job': {
+            'unemployed/unskilled - non-resident': 'A171',
+            'unskilled - resident': 'A172',
+            'skilled employee/official': 'A173',
+            'management/self-employed/highly qualified employee/officer': 'A174'
+        },
+        'telephone': {
+            'none': 'A191',
+            'yes': 'A192'
+        },
+        'foreign_worker': {
+            'yes': 'A201',
+            'no': 'A202'
+        }
+    }
+    
+    # Apply mappings
+    for col, mapping in mappings.items():
+        if col in df.columns:
+            # Check current values
+            unique_vals = df[col].unique()
+            print(f"  Mapping {col}: {len(unique_vals)} unique values")
+            
+            # Apply mapping
+            df[col] = df[col].map(mapping)
+            
+            # Check for unmapped values
+            unmapped = df[col].isna().sum()
+            if unmapped > 0:
+                print(f"    ⚠️  Warning: {unmapped} unmapped values in {col}")
+                print(f"    Original values: {unique_vals.tolist()}")
+    
+    print(f"✓ Symbolic mapping complete")
+    return df
+
 def download_from_uci():
     """Download German Credit dataset from UCI ML Repository"""
     print("\n📥 Downloading dataset from UCI ML Repository...")
@@ -36,6 +149,9 @@ def download_from_uci():
         
         print(f"✓ Combined dataset: {df.shape[0]} rows, {df.shape[1]} columns")
         print(f"✓ Columns: {df.columns.tolist()}")
+        
+        # Map to symbolic codes (A11, A12, etc.)
+        df = map_to_symbolic_codes(df)
         
         # Save to temporary CSV file
         download_path = "./data"
