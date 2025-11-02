@@ -447,9 +447,16 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             </select>
           </div>
 
-          {/* Read-only fields */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Fixed Attributes (Not Editable)</h3>
+          {/* Excluded fields - not used in model */}
+          <div className="border-t-2 border-yellow-300 bg-yellow-50 rounded-lg p-4 mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+              <span className="text-yellow-600 mr-2">⚠️</span>
+              Excluded Attributes (Not Used in Credit Decision)
+            </h3>
+            
+            <p className="text-sm text-gray-700 mb-3">
+              These attributes are <strong>NOT used</strong> by the AI model to prevent discrimination based on gender and nationality.
+            </p>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -473,8 +480,8 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               </div>
             </div>
             
-            <p className="text-xs text-gray-500 mt-2">
-              * These fields are not editable to prevent bias manipulation in the experiment
+            <p className="text-xs text-gray-600 mt-3 italic">
+              ℹ️ The XGBoost model was trained without these features to ensure fair and unbiased credit decisions.
             </p>
           </div>
 
