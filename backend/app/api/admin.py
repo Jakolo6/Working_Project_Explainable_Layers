@@ -97,6 +97,52 @@ async def list_r2_files():
         )
 
 
+@router.delete("/clear-r2-bucket")
+async def clear_r2_bucket():
+    """
+    Delete all files in R2 bucket.
+    Use this to clean up before retraining with new preprocessing pipeline.
+    """
+    try:
+        from app.config import get_settings
+        
+        config = get_settings()
+        s3_client = create_r2_client(config)
+        
+        # List all objects
+        response = s3_client.list_objects_v2(Bucket=config.r2_bucket_name)
+        
+        if 'Contents' not in response:
+            return {
+                "success": True,
+                "message": "Bucket is already empty",
+                "deleted_count": 0
+            }
+        
+        # Delete all objects
+        deleted_keys = []
+        for obj in response['Contents']:
+            s3_client.delete_object(
+                Bucket=config.r2_bucket_name,
+                Key=obj['Key']
+            )
+            deleted_keys.append(obj['Key'])
+        
+        return {
+            "success": True,
+            "message": f"Deleted {len(deleted_keys)} files from R2 bucket",
+            "deleted_count": len(deleted_keys),
+            "deleted_files": deleted_keys
+        }
+        
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear R2 bucket: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        )
+
+
 @router.post("/generate-eda")
 async def generate_eda():
     """
@@ -143,27 +189,29 @@ async def generate_eda():
 @router.post("/train-model")
 async def train_model():
     """
-    Trigger model training for both XGBoost and Logistic Regression
+    Trigger XGBoost model training with new one-hot encoding preprocessing pipeline.
+    Uses the refactored train_model.py script.
     """
     try:
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_all_models.py"
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "train_model.py"
         
         if not script_path.exists():
             raise HTTPException(status_code=404, detail=f"Training script not found at {script_path}")
         
-        # Run the training script (trains both models)
+        # Run the training script with new preprocessing
         result = subprocess.run(
             ["python3", str(script_path)],
             capture_output=True,
             text=True,
-            timeout=900  # 15 minutes timeout (training both models)
+            timeout=600  # 10 minutes timeout
         )
         
         if result.returncode == 0:
             return {
                 "success": True,
-                "message": "Both models (XGBoost + Logistic Regression) trained successfully",
-                "output": result.stdout
+                "message": "XGBoost model trained successfully with one-hot encoding",
+                "output": result.stdout,
+                "note": "Model uses new preprocessing: one-hot encoding + raw feature preservation"
             }
         else:
             # Return both stdout and stderr for debugging
@@ -174,7 +222,7 @@ async def train_model():
             )
             
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=408, detail="Training timeout (>15 minutes)")
+        raise HTTPException(status_code=408, detail="Training timeout (>10 minutes)")
     except HTTPException:
         raise
     except Exception as e:
@@ -284,8 +332,8 @@ async def get_eda_images():
 @router.get("/model-metrics")
 async def get_model_metrics():
     """
-    Retrieve training metrics for both models from R2.
-    Returns metrics for XGBoost and Logistic Regression models.
+    Retrieve training metrics for XGBoost model from R2.
+    Returns metrics including feature importance and performance stats.
     """
     try:
         import boto3
@@ -293,45 +341,27 @@ async def get_model_metrics():
         from app.config import get_settings
         
         config = get_settings()
-        s3_client = boto3.client(
-            's3',
-            endpoint_url=config.r2_endpoint_url,
-            aws_access_key_id=config.r2_access_key_id,
-            aws_secret_access_key=config.r2_secret_access_key
-        )
+        s3_client = create_r2_client(config)
         
-        metrics = {}
-        
-        # Try to load XGBoost metrics
+        # Load XGBoost metrics
         try:
             obj = s3_client.get_object(
                 Bucket=config.r2_bucket_name,
                 Key='models/xgboost_metrics.json'
             )
-            metrics['xgboost'] = json.loads(obj['Body'].read().decode('utf-8'))
-        except:
-            metrics['xgboost'] = None
-        
-        # Try to load Logistic Regression metrics
-        try:
-            obj = s3_client.get_object(
-                Bucket=config.r2_bucket_name,
-                Key='models/logistic_metrics.json'
-            )
-            metrics['logistic'] = json.loads(obj['Body'].read().decode('utf-8'))
-        except:
-            metrics['logistic'] = None
-        
-        if not metrics['xgboost'] and not metrics['logistic']:
+            metrics = json.loads(obj['Body'].read().decode('utf-8'))
+            
+            return {
+                "success": True,
+                "model_type": "XGBoost",
+                "preprocessing": "one-hot encoding + raw feature preservation",
+                "metrics": metrics
+            }
+        except s3_client.exceptions.NoSuchKey:
             raise HTTPException(
                 status_code=404,
-                detail="No model metrics found. Please train the models first."
+                detail="No model metrics found. Please train the model first using the admin panel."
             )
-        
-        return {
-            "success": True,
-            "metrics": metrics
-        }
         
     except HTTPException:
         raise
