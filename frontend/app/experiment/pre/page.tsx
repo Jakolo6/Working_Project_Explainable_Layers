@@ -90,6 +90,11 @@ export default function PreExperimentPage() {
       }
 
       setStatus('success')
+      
+      // Redirect to personas hub after 2 seconds
+      setTimeout(() => {
+        router.push('/experiment/personas')
+      }, 2000)
     } catch (error) {
       console.error('Pre-experiment submission failed:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Unable to submit responses. Please try again later.')
@@ -197,9 +202,9 @@ export default function PreExperimentPage() {
 
           {status === 'success' && (
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800">
-              <p className="font-semibold mb-2">Thank you! Your pre-experiment responses were recorded.</p>
+              <p className="font-semibold mb-2">✓ Thank you! Your pre-experiment responses were recorded.</p>
               <p>
-                Continue to the persona-based experiment flow when instructed. Remember to keep your session ID handy.
+                Redirecting you to the personas hub...
               </p>
             </div>
           )}
