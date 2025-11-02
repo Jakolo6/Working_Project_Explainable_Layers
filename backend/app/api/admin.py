@@ -352,7 +352,7 @@ async def get_model_metrics():
                 Key='models/xgboost_metrics.json'
             )
             metrics['xgboost'] = json.loads(obj['Body'].read().decode('utf-8'))
-        except s3_client.exceptions.NoSuchKey:
+        except Exception:
             metrics['xgboost'] = None
         
         # Load Logistic Regression metrics
@@ -362,7 +362,7 @@ async def get_model_metrics():
                 Key='models/logistic_metrics.json'
             )
             metrics['logistic'] = json.loads(obj['Body'].read().decode('utf-8'))
-        except s3_client.exceptions.NoSuchKey:
+        except Exception:
             metrics['logistic'] = None
         
         if not metrics['xgboost'] and not metrics['logistic']:
