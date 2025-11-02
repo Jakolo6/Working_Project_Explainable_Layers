@@ -65,7 +65,7 @@ export default function AdminPage() {
 
   const handleTrainModel = async () => {
     setLoading({ ...loading, train: true })
-    setTrainStatus('Training XGBoost and Logistic Regression models...')
+    setTrainStatus('Training XGBoost model with one-hot encoding...')
     
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -224,10 +224,10 @@ export default function AdminPage() {
         {/* Model Training Section */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            3. Train Models
+            3. Train Model
           </h2>
           <p className="text-gray-700 mb-6">
-            Train both XGBoost and Logistic Regression models with bias-free preprocessing and upload to R2 storage.
+            Train XGBoost model with new one-hot encoding preprocessing (preserves raw + scaled features for interpretability) and upload to R2 storage.
           </p>
           
           <div className="space-y-4">
@@ -236,7 +236,7 @@ export default function AdminPage() {
               <ul className="list-disc list-inside text-gray-700 space-y-1">
                 <li>Dataset must be downloaded first (Step 1)</li>
                 <li>Python dependencies installed on backend</li>
-                <li>Sufficient compute resources (training takes 3-7 minutes)</li>
+                <li>Sufficient compute resources (training takes 2-5 minutes)</li>
               </ul>
             </div>
 
@@ -244,10 +244,11 @@ export default function AdminPage() {
               <h3 className="font-semibold text-gray-900 mb-2">Training Process:</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
                 <li>Load dataset from R2</li>
+                <li>Apply one-hot encoding for categorical features</li>
+                <li>Preserve raw + scaled features for interpretability</li>
                 <li>Exclude bias features (personal_status, foreign_worker)</li>
-                <li>Train XGBoost classifier with SHAP</li>
-                <li>Train Logistic Regression classifier</li>
-                <li>Upload both models to R2 storage</li>
+                <li>Train XGBoost classifier (~60 features after encoding)</li>
+                <li>Upload model + metrics to R2 storage</li>
               </ul>
             </div>
 
@@ -260,7 +261,7 @@ export default function AdminPage() {
                   : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              {loading.train ? 'Training Models...' : 'Train Both Models (XGBoost + Logistic)'}
+              {loading.train ? 'Training Model...' : 'Train XGBoost Model (New Preprocessing)'}
             </button>
 
             {trainStatus && (
