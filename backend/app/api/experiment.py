@@ -375,22 +375,121 @@ async def predict_persona(request: PersonaPredictionRequest):
         # Convert application data to model input format
         app_data = request.application_data.dict()
         
-        # Map categorical values to model format (if needed)
-        # The model expects specific format for categorical variables
-        input_dict = {
-            'Age': app_data['age'],
-            'Sex': app_data['sex'],
-            'Job': app_data['job'],
-            'Housing': app_data['housing'],
-            'Saving accounts': app_data['savings_account'],
-            'Checking account': app_data['checking_account_status'],
-            'Credit amount': app_data['credit_amount'],
-            'Duration': app_data['duration_months'],
-            'Purpose': app_data['purpose'],
-        }
+        # Helper function to map frontend string values to backend expected format
+        def map_frontend_to_backend(app_data):
+            """Map frontend field values to backend FeatureMappings expected format"""
+            
+            # Map credit history
+            credit_history_map = {
+                'no credits taken/all paid back': 'no_credits',
+                'all credits paid back duly': 'all_paid',
+                'existing credits paid back duly': 'existing_paid',
+                'delay in paying off in the past': 'delay',
+                'critical account': 'critical'
+            }
+            
+            # Map purpose
+            purpose_map = {
+                'car (new)': 'car_new',
+                'car (used)': 'car_used',
+                'furniture/equipment': 'furniture',
+                'radio/television': 'radio_tv',
+                'domestic appliances': 'appliances',
+                'repairs': 'repairs',
+                'education': 'education',
+                'retraining': 'retraining',
+                'business': 'business',
+                'others': 'others'
+            }
+            
+            # Map housing
+            housing_map = {
+                'rent': 'rent',
+                'own': 'own',
+                'for free': 'free'
+            }
+            
+            # Map job
+            job_map = {
+                'unemployed/unskilled - non-resident': 'unemployed',
+                'unskilled - resident': 'unskilled',
+                'skilled employee': 'skilled',
+                'management/self-employed': 'management'
+            }
+            
+            # Map other debtors
+            other_debtors_map = {
+                'none': 'none',
+                'co-applicant': 'co_applicant',
+                'guarantor': 'guarantor'
+            }
+            
+            # Map other installment plans
+            other_plans_map = {
+                'none': 'none',
+                'bank': 'bank',
+                'stores': 'stores'
+            }
+            
+            # Map property
+            property_map = {
+                'real estate': 'real_estate',
+                'building society savings/life insurance': 'savings_insurance',
+                'car or other': 'car',
+                'unknown/no property': 'none'
+            }
+            
+            # Map employment status to years (approximate)
+            employment_map = {
+                'unemployed': 0,
+                'less than 1 year': 0.5,
+                '1 to 4 years': 2.5,
+                '4 to 7 years': 5.5,
+                '7 years or more': 10
+            }
+            
+            # Map checking account status to balance
+            checking_map = {
+                'less than 0 DM': -100,
+                '0 to 200 DM': 100,
+                '200 DM or more': 500,
+                'no checking account': None
+            }
+            
+            # Map savings account to balance
+            savings_map = {
+                'less than 100 DM': 50,
+                '100 to 500 DM': 300,
+                '500 to 1000 DM': 750,
+                '1000 DM or more': 2000,
+                'unknown/no savings': None
+            }
+            
+            return {
+                'age': app_data['age'],
+                'credit_amount': app_data['credit_amount'],
+                'duration_months': app_data['duration_months'],
+                'installment_rate': app_data['installment_rate'],
+                'residence_years': app_data['present_residence_since'],
+                'existing_credits': app_data['existing_credits'],
+                'dependents': app_data['num_dependents'],
+                'credit_history': credit_history_map.get(app_data['credit_history'], 'existing_paid'),
+                'purpose': purpose_map.get(app_data['purpose'], 'others'),
+                'housing': housing_map.get(app_data['housing'], 'own'),
+                'job': job_map.get(app_data['job'], 'skilled'),
+                'other_debtors': other_debtors_map.get(app_data['other_debtors'], 'none'),
+                'other_plans': other_plans_map.get(app_data['other_installment_plans'], 'none'),
+                'property': property_map.get(app_data['property'], 'none'),
+                'employment_years': employment_map.get(app_data['employment_status'], 2.5),
+                'telephone': app_data['telephone'] == 'yes',
+                'checking_balance': checking_map.get(app_data['checking_account_status']),
+                'savings_balance': savings_map.get(app_data['savings_account']),
+            }
         
-        # Make prediction
-        prediction_result = model.predict(input_dict)
+        input_dict = map_frontend_to_backend(app_data)
+        
+        # Make prediction (is_human_readable=True so it will map the values)
+        prediction_result = model.predict(input_dict, is_human_readable=True)
         decision = prediction_result['decision']
         probability = prediction_result['probability']
         
