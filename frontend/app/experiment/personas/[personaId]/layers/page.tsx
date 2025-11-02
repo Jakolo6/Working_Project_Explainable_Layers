@@ -7,7 +7,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
 import Layer1Minimal from '@/components/layers/Layer1Minimal'
+import Layer2ShortText from '@/components/layers/Layer2ShortText'
 import Layer3Visual from '@/components/layers/Layer3Visual'
+import Layer4Contextual from '@/components/layers/Layer4Contextual'
+import Layer5Counterfactual from '@/components/layers/Layer5Counterfactual'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
 
@@ -36,11 +39,13 @@ interface LayerRating {
 
 const LAYER_NAMES = [
   'Layer 1: Minimal',
-  'Layer 2: Short Text (GPT-4)',
+  'Layer 2: Short Text',
   'Layer 3: Visual SHAP',
   'Layer 4: Contextual',
   'Layer 5: Counterfactual'
 ]
+
+const TOTAL_LAYERS = 5
 
 export default function LayersPage() {
   const params = useParams()
@@ -133,7 +138,7 @@ export default function LayersPage() {
       }
 
       // Move to next layer or complete
-      if (currentLayerIndex < 1) { // We only have 2 layers for now (0 and 1)
+      if (currentLayerIndex < TOTAL_LAYERS - 1) {
         setCurrentLayerIndex(currentLayerIndex + 1)
         setLayerStartTime(Date.now())
         setRatings({
@@ -196,16 +201,16 @@ export default function LayersPage() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              Layer {currentLayerIndex + 1} of 2
+              Layer {currentLayerIndex + 1} of {TOTAL_LAYERS}
             </h2>
             <span className="text-sm text-gray-600">
-              {Math.round(((currentLayerIndex + 1) / 2) * 100)}% Complete
+              {Math.round(((currentLayerIndex + 1) / TOTAL_LAYERS) * 100)}% Complete
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentLayerIndex + 1) / 2) * 100}%` }}
+              style={{ width: `${((currentLayerIndex + 1) / TOTAL_LAYERS) * 100}%` }}
             />
           </div>
         </div>
@@ -235,7 +240,28 @@ export default function LayersPage() {
             />
           )}
           {currentLayerIndex === 1 && (
+            <Layer2ShortText
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
+          {currentLayerIndex === 2 && (
             <Layer3Visual
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
+          {currentLayerIndex === 3 && (
+            <Layer4Contextual
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
+          {currentLayerIndex === 4 && (
+            <Layer5Counterfactual
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
@@ -382,7 +408,7 @@ export default function LayersPage() {
             >
               {isSubmitting 
                 ? 'Submitting...' 
-                : currentLayerIndex < 1 
+                : currentLayerIndex < TOTAL_LAYERS - 1
                   ? 'Next Explanation →' 
                   : 'Complete This Persona →'}
             </button>
