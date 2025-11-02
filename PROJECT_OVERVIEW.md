@@ -41,6 +41,11 @@
 - [x] Post-experiment questionnaire API (`POST /api/v1/experiment/post_response`)
 - [x] Layer feedback API (`POST /api/v1/experiment/layer_feedback`)
 - [x] Prediction API with persona support (`POST /api/v1/experiment/predict`)
+- [x] **Persona Prediction API** (`POST /api/v1/experiment/predict_persona`) - NEW!
+  - Takes persona application data
+  - Runs XGBoost model prediction
+  - Calculates top 10 SHAP values
+  - Returns decision + probability + SHAP features
 - [x] Session retrieval API (`GET /api/v1/experiment/session/{session_id}`)
 - [x] Feature options API (`GET /api/v1/experiment/feature-options`)
 - [x] Railway deployment configuration
@@ -102,10 +107,28 @@
 - [ ] Results page - Researcher dashboard
 - [x] Registration page (`/experiment/start`)
 - [x] Pre-experiment questionnaire page (`/experiment/pre`)
-- [ ] Persona cycle implementation (3 personas × 4 layers)
+- [x] **Personas hub page** (`/experiment/personas`) - NEW!
+  - Maria (67, retired): €4,000 home renovation
+  - Jonas (27, employee): €12,000 business start-up
+  - Sofia (44, single parent): €20,000 debt consolidation
+  - Bank clerk role-play introduction
+- [x] **Persona detail pages** (`/experiment/personas/[personaId]`) - NEW!
+  - Prefilled application forms
+  - 2 adjustable fields (loan amount, duration)
+  - Submit to AI for prediction
+  - Display decision + probability
+  - Lock form after submission
+- [ ] **Explanation layers** (5 layers per persona) - IN PROGRESS
+  - [ ] Layer 1: Minimal (single key driver)
+  - [ ] Layer 2: Short text (GPT-4 generated)
+  - [ ] Layer 3: Visual SHAP bars
+  - [ ] Layer 4: Contextual thresholds
+  - [ ] Layer 5: Counterfactual what-if
+- [ ] Layer rating system (Likert scales)
+- [ ] Layer sequence manager (randomization + progress)
 - [ ] Post-experiment questionnaire page (`/experiment/post`)
 - [ ] Thank you page (`/experiment/complete`)
-- [ ] Session state management (localStorage)
+- [x] Session state management (localStorage)
 - [ ] Progress tracking UI
 
 ## 3. Next Steps / Tasks
