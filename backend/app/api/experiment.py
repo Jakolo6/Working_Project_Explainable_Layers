@@ -374,6 +374,7 @@ async def predict_persona(request: PersonaPredictionRequest):
         
         # Convert application data to model input format
         app_data = request.application_data.dict()
+        print(f"Received application data: {app_data}")
         
         # Helper function to map frontend string values to backend expected format
         def map_frontend_to_backend(app_data):
@@ -448,7 +449,7 @@ async def predict_persona(request: PersonaPredictionRequest):
                 '7 years or more': 10
             }
             
-            # Map checking account status to balance
+            # Map checking account status to balance (exact frontend values)
             checking_map = {
                 'less than 0 DM': -100,
                 '0 to 200 DM': 100,
@@ -456,7 +457,7 @@ async def predict_persona(request: PersonaPredictionRequest):
                 'no checking account': None
             }
             
-            # Map savings account to balance
+            # Map savings account to balance (exact frontend values)
             savings_map = {
                 'less than 100 DM': 50,
                 '100 to 500 DM': 300,
