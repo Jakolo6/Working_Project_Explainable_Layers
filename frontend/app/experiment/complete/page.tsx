@@ -200,11 +200,11 @@ export default function CompletePage() {
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select an explanation style...</option>
-                <option value="Layer 1: Minimal">Layer 1: Minimal (single key factor)</option>
-                <option value="Layer 2: Short Text">Layer 2: Short Text (natural language)</option>
-                <option value="Layer 3: Visual SHAP">Layer 3: Visual SHAP (bar chart)</option>
-                <option value="Layer 4: Contextual">Layer 4: Contextual (thresholds & ranges)</option>
-                <option value="Layer 5: Counterfactual">Layer 5: Counterfactual (what-if scenarios)</option>
+                <option value="Minimal">Minimal (single key factor)</option>
+                <option value="Feature Importance">Feature Importance (natural language summary)</option>
+                <option value="Detailed SHAP">Detailed SHAP (visual bar chart)</option>
+                <option value="Visual">Visual (contextual benchmarking)</option>
+                <option value="Counterfactual">Counterfactual (what-if scenarios)</option>
               </select>
             </div>
 
