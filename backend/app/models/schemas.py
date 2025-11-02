@@ -149,3 +149,37 @@ class PersonaPredictionResponse(BaseModel):
     probability: float = Field(..., ge=0, le=1)
     shap_features: List[SHAPFeature] = Field(..., description="Top SHAP features")
     prediction_id: str
+
+class LayerRatingRequest(BaseModel):
+    """Request to submit rating for an explanation layer"""
+    session_id: str
+    persona_id: str
+    layer_number: int = Field(..., ge=1, le=5)
+    layer_name: str
+    trust_rating: int = Field(..., ge=1, le=5, description="Trust in explanation (1-5)")
+    understanding_rating: int = Field(..., ge=1, le=5, description="Understanding (1-5)")
+    usefulness_rating: int = Field(..., ge=1, le=5, description="Usefulness (1-5)")
+    mental_effort_rating: int = Field(..., ge=1, le=5, description="Mental effort (1-5)")
+    comment: Optional[str] = Field(default="", description="Optional comment")
+    time_spent_seconds: int = Field(..., ge=0, description="Time spent on layer")
+
+class LayerRatingResponse(BaseModel):
+    """Response after submitting layer rating"""
+    success: bool
+    message: str
+    rating_id: Optional[str] = None
+
+class PostQuestionnaireRequest(BaseModel):
+    """Request to submit post-experiment questionnaire"""
+    session_id: str
+    overall_experience: int = Field(..., ge=1, le=5)
+    explanation_helpfulness: int = Field(..., ge=1, le=5)
+    preferred_layer: str
+    would_trust_ai: int = Field(..., ge=1, le=5)
+    comments: Optional[str] = Field(default="")
+
+class PostQuestionnaireResponse(BaseModel):
+    """Response after submitting post-questionnaire"""
+    success: bool
+    message: str
+    questionnaire_id: Optional[str] = None

@@ -15,7 +15,11 @@ from app.models.schemas import (
     LayerFeedbackResponse,
     PersonaPredictionRequest,
     PersonaPredictionResponse,
-    SHAPFeature
+    SHAPFeature,
+    LayerRatingRequest,
+    LayerRatingResponse,
+    PostQuestionnaireRequest,
+    PostQuestionnaireResponse
 )
 from app.services.xgboost_model import CreditModel
 from app.services.shap_service import SHAPExplainer
@@ -446,4 +450,102 @@ async def predict_persona(request: PersonaPredictionRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate prediction: {str(e)}"
+        )
+
+@router.post("/submit_layer_rating", response_model=LayerRatingResponse)
+async def submit_layer_rating(
+    rating: LayerRatingRequest,
+    supabase: SupabaseService = Depends(lambda: SupabaseService())
+):
+    """
+    Submit rating for an explanation layer.
+    Stores participant's ratings and feedback for a specific layer.
+    """
+    try:
+        # Create rating record
+        rating_id = str(uuid.uuid4())
+        rating_data = {
+            "id": rating_id,
+            "session_id": rating.session_id,
+            "persona_id": rating.persona_id,
+            "layer_number": rating.layer_number,
+            "layer_name": rating.layer_name,
+            "trust_rating": rating.trust_rating,
+            "understanding_rating": rating.understanding_rating,
+            "usefulness_rating": rating.usefulness_rating,
+            "mental_effort_rating": rating.mental_effort_rating,
+            "comment": rating.comment,
+            "time_spent_seconds": rating.time_spent_seconds,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        # Store in Supabase
+        result = supabase.client.table("layer_ratings").insert(rating_data).execute()
+        
+        if not result.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store rating in database"
+            )
+        
+        return LayerRatingResponse(
+            success=True,
+            message="Rating submitted successfully",
+            rating_id=rating_id
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error submitting layer rating: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit rating: {str(e)}"
+        )
+
+@router.post("/submit_post_questionnaire", response_model=PostQuestionnaireResponse)
+async def submit_post_questionnaire(
+    questionnaire: PostQuestionnaireRequest,
+    supabase: SupabaseService = Depends(lambda: SupabaseService())
+):
+    """
+    Submit post-experiment questionnaire.
+    Stores participant's overall feedback after completing all personas.
+    """
+    try:
+        # Create questionnaire record
+        questionnaire_id = str(uuid.uuid4())
+        questionnaire_data = {
+            "id": questionnaire_id,
+            "session_id": questionnaire.session_id,
+            "overall_experience": questionnaire.overall_experience,
+            "explanation_helpfulness": questionnaire.explanation_helpfulness,
+            "preferred_layer": questionnaire.preferred_layer,
+            "would_trust_ai": questionnaire.would_trust_ai,
+            "comments": questionnaire.comments,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        # Store in Supabase
+        result = supabase.client.table("post_questionnaires").insert(questionnaire_data).execute()
+        
+        if not result.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store questionnaire in database"
+            )
+        
+        return PostQuestionnaireResponse(
+            success=True,
+            message="Questionnaire submitted successfully",
+            questionnaire_id=questionnaire_id
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error submitting post-questionnaire: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit questionnaire: {str(e)}"
         )
