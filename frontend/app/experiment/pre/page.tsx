@@ -2,8 +2,9 @@
 
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 type LikertOption = 1 | 2 | 3 | 4 | 5
 
@@ -17,8 +18,10 @@ interface PreForm {
 type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
 
 const likertOptions: LikertOption[] = [1, 2, 3, 4, 5]
+const SESSION_STORAGE_KEY = 'experiment_session_id'
 
 export default function PreExperimentPage() {
+  const router = useRouter()
   const [form, setForm] = useState<PreForm>({
     session_id: '',
     expectation_ai_decision: '',
@@ -29,6 +32,16 @@ export default function PreExperimentPage() {
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+  // Load session ID from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSessionId = window.localStorage.getItem(SESSION_STORAGE_KEY)
+      if (savedSessionId) {
+        setForm((prev) => ({ ...prev, session_id: savedSessionId }))
+      }
+    }
+  }, [])
 
   const handleInputChange = (
     field: keyof PreForm,
