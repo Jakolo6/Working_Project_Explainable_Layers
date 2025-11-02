@@ -362,3 +362,81 @@ async def get_model_metrics():
         import traceback
         error_detail = f"Failed to retrieve model metrics: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
         raise HTTPException(status_code=500, detail=error_detail)
+
+
+@router.get("/dashboard-stats")
+async def get_dashboard_stats():
+    """
+    Retrieve aggregated statistics for the researcher dashboard.
+    Aggregates data from experiment_sessions, layer_ratings, and post_questionnaires tables.
+    """
+    try:
+        from app.services.supabase_service import get_supabase_client
+        
+        supabase = get_supabase_client()
+        
+        # Get total and completed sessions
+        sessions_response = supabase.table('experiment_sessions').select('session_id, completed_at').execute()
+        total_sessions = len(sessions_response.data)
+        completed_sessions = len([s for s in sessions_response.data if s.get('completed_at')])
+        
+        # Get all layer ratings
+        ratings_response = supabase.table('layer_ratings').select('trust, understanding, usefulness, mental_effort').execute()
+        ratings = ratings_response.data
+        total_ratings = len(ratings)
+        
+        # Calculate average ratings
+        if total_ratings > 0:
+            avg_trust = sum(r['trust'] for r in ratings) / total_ratings
+            avg_understanding = sum(r['understanding'] for r in ratings) / total_ratings
+            avg_usefulness = sum(r['usefulness'] for r in ratings) / total_ratings
+            avg_mental_effort = sum(r['mental_effort'] for r in ratings) / total_ratings
+        else:
+            avg_trust = avg_understanding = avg_usefulness = avg_mental_effort = 0.0
+        
+        # Get post-questionnaire data
+        post_response = supabase.table('post_questionnaires').select(
+            'overall_experience, explanation_helpfulness, would_trust_ai, preferred_layer'
+        ).execute()
+        post_data = post_response.data
+        
+        # Calculate post-questionnaire averages
+        if len(post_data) > 0:
+            avg_overall_experience = sum(p['overall_experience'] for p in post_data) / len(post_data)
+            avg_explanation_helpfulness = sum(p['explanation_helpfulness'] for p in post_data) / len(post_data)
+            avg_would_trust_ai = sum(p['would_trust_ai'] for p in post_data) / len(post_data)
+            
+            # Count layer preferences
+            layer_preferences = {}
+            for p in post_data:
+                layer = p.get('preferred_layer')
+                if layer:
+                    layer_preferences[layer] = layer_preferences.get(layer, 0) + 1
+        else:
+            avg_overall_experience = avg_explanation_helpfulness = avg_would_trust_ai = 0.0
+            layer_preferences = {}
+        
+        # Ensure all layers are represented (even with 0 votes)
+        all_layers = ['Minimal', 'Feature Importance', 'Detailed SHAP', 'Visual', 'Counterfactual']
+        for layer in all_layers:
+            if layer not in layer_preferences:
+                layer_preferences[layer] = 0
+        
+        return {
+            "total_sessions": total_sessions,
+            "completed_sessions": completed_sessions,
+            "total_ratings": total_ratings,
+            "avg_trust": round(avg_trust, 2),
+            "avg_understanding": round(avg_understanding, 2),
+            "avg_usefulness": round(avg_usefulness, 2),
+            "avg_mental_effort": round(avg_mental_effort, 2),
+            "layer_preferences": layer_preferences,
+            "avg_overall_experience": round(avg_overall_experience, 2),
+            "avg_explanation_helpfulness": round(avg_explanation_helpfulness, 2),
+            "avg_would_trust_ai": round(avg_would_trust_ai, 2)
+        }
+        
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to retrieve dashboard stats: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
