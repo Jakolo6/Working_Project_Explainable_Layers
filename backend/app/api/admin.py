@@ -329,6 +329,21 @@ async def get_eda_images():
         raise HTTPException(status_code=500, detail=error_detail)
 
 
+def sanitize_metrics(metrics):
+    """Replace inf, -inf, and nan values with None for JSON serialization"""
+    import math
+    
+    if isinstance(metrics, dict):
+        return {k: sanitize_metrics(v) for k, v in metrics.items()}
+    elif isinstance(metrics, list):
+        return [sanitize_metrics(item) for item in metrics]
+    elif isinstance(metrics, float):
+        if math.isinf(metrics) or math.isnan(metrics):
+            return None
+        return metrics
+    else:
+        return metrics
+
 @router.get("/model-metrics")
 async def get_model_metrics():
     """
@@ -351,7 +366,8 @@ async def get_model_metrics():
                 Bucket=config.r2_bucket_name,
                 Key='models/xgboost_metrics.json'
             )
-            metrics['xgboost'] = json.loads(obj['Body'].read().decode('utf-8'))
+            xgb_metrics = json.loads(obj['Body'].read().decode('utf-8'))
+            metrics['xgboost'] = sanitize_metrics(xgb_metrics)
         except Exception:
             metrics['xgboost'] = None
         
@@ -361,7 +377,8 @@ async def get_model_metrics():
                 Bucket=config.r2_bucket_name,
                 Key='models/logistic_metrics.json'
             )
-            metrics['logistic'] = json.loads(obj['Body'].read().decode('utf-8'))
+            lr_metrics = json.loads(obj['Body'].read().decode('utf-8'))
+            metrics['logistic'] = sanitize_metrics(lr_metrics)
         except Exception:
             metrics['logistic'] = None
         
