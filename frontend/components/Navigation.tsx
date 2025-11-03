@@ -14,7 +14,7 @@ export default function Navigation() {
     { href: '/model', label: 'Model' },
     { href: '/experiment', label: 'Experiment' },
     { href: '/results', label: 'Results' },
-    { href: '/admin', label: 'Admin' },
+    // { href: '/admin', label: 'Admin' }, // Hidden - accessible via direct URL
     { href: '/about', label: 'About' },
   ]
   
