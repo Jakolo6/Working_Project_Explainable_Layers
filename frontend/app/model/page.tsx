@@ -151,7 +151,7 @@ const ConfusionMatrix = ({ matrix }: { matrix: number[][] }) => (
 )
 
 const CostAnalysis = ({ metrics }: { metrics: ModelMetrics }) => {
-  if (!metrics.total_cost && !metrics.avg_cost_per_prediction) return null
+  if (metrics.total_cost === undefined && metrics.avg_cost_per_prediction === undefined) return null
   
   const fp = metrics.false_positives || 0
   const fn = metrics.false_negatives || 0
@@ -209,6 +209,7 @@ export default function ModelPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showCode, setShowCode] = useState(false)
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -233,12 +234,25 @@ export default function ModelPage() {
           <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
             ← Back to Home
           </Link>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Model Performance & Metrics
-          </h1>
-          <p className="text-xl text-gray-600">
-            Real training results from XGBoost and Logistic Regression models
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Model Performance & Metrics
+              </h1>
+              <p className="text-xl text-gray-600">
+                Real training results from XGBoost and Logistic Regression models
+              </p>
+            </div>
+            <button
+              onClick={() => setShowCode(true)}
+              className="bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition font-semibold flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              View Training Code
+            </button>
+          </div>
         </div>
 
         {loading && (
@@ -361,6 +375,157 @@ export default function ModelPage() {
             Start Experiment →
           </Link>
         </div>
+
+        {/* Training Code Modal */}
+        {showCode && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowCode(false)}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+                <h3 className="text-xl font-bold">Model Training Code</h3>
+                <button onClick={() => setShowCode(false)} className="text-white hover:text-gray-300 transition">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <div className="mb-4">
+                  <p className="text-gray-700 mb-2">
+                    This is the actual Python code used to train both XGBoost and Logistic Regression models.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    File: <code className="bg-gray-100 px-2 py-1 rounded">backend/scripts/train_both_models.py</code>
+                  </p>
+                </div>
+                <pre className="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed">
+{`# Script to train both XGBoost and Logistic Regression models
+
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent))
+
+from app.services.xgboost_model import CreditModel
+from app.services.logistic_model import LogisticCreditModel
+from app.config import get_settings
+
+load_dotenv()
+
+def train_xgboost(config, df):
+    """Train XGBoost model with preprocessing"""
+    print("="*60)
+    print("TRAINING XGBOOST MODEL")
+    print("="*60)
+    
+    model_service = CreditModel(config)
+    
+    print("🔧 Preprocessing data for XGBoost...")
+    X_scaled, y, X_raw = model_service.preprocess_data(df, fit_preprocessor=True)
+    print(f"✓ Features (after one-hot encoding): {X_scaled.shape[1]} columns")
+    print(f"✓ Target distribution: {y.value_counts().to_dict()}")
+    print(f"✓ Raw features preserved for interpretability")
+    
+    print("🎯 Training XGBoost model...")
+    model_service.train_model(X_scaled, y, X_raw)
+    
+    print("☁️  Uploading XGBoost model to R2...")
+    model_service.save_model_to_r2()
+    print("✓ XGBoost model saved successfully")
+    
+    return model_service
+
+def train_logistic(config, df):
+    """Train Logistic Regression model with preprocessing"""
+    print("="*60)
+    print("TRAINING LOGISTIC REGRESSION MODEL")
+    print("="*60)
+    
+    model_service = LogisticCreditModel(config)
+    
+    print("🔧 Preprocessing data for Logistic Regression...")
+    X_scaled, y, X_raw = model_service.preprocess_data(df, fit_preprocessor=True)
+    print(f"✓ Features (after one-hot encoding): {X_scaled.shape[1]} columns")
+    print(f"✓ Target distribution: {y.value_counts().to_dict()}")
+    print(f"✓ Raw features preserved for interpretability")
+    
+    print("🎯 Training Logistic Regression model...")
+    model_service.train_model(X_scaled, y, X_raw)
+    
+    print("☁️  Uploading Logistic Regression model to R2...")
+    model_service.save_model_to_r2()
+    print("✓ Logistic Regression model saved successfully")
+    
+    return model_service
+
+def main():
+    """Train both models with one-hot encoding preprocessing"""
+    print("="*60)
+    print("COMPREHENSIVE MODEL TRAINING PIPELINE")
+    print("Training XGBoost and Logistic Regression")
+    print("New Preprocessing: One-hot encoding + raw feature preservation")
+    print("Excluding bias features: personal_status, foreign_worker")
+    print("="*60)
+    
+    try:
+        # Load configuration
+        config = get_settings()
+        
+        # Load dataset from R2 (only once)
+        print("📥 Loading dataset from R2...")
+        xgb_service = CreditModel(config)
+        df = xgb_service.load_dataset_from_r2()
+        print(f"✓ Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+        
+        # Train XGBoost
+        xgb_model = train_xgboost(config, df.copy())
+        
+        # Train Logistic Regression
+        lr_model = train_logistic(config, df.copy())
+        
+        # Summary
+        print("="*60)
+        print("✓ ALL MODELS TRAINED SUCCESSFULLY!")
+        print("="*60)
+        print("\\nTrained Models:")
+        print("  1. XGBoost Classifier")
+        print("  2. Logistic Regression Classifier")
+        print("\\nBoth models:")
+        print("  - Use one-hot encoding for categorical features")
+        print("  - Preserve raw + scaled features for interpretability")
+        print("  - Exclude bias features (personal_status, foreign_worker)")
+        print("  - Use same preprocessing pipeline for fair comparison")
+        print("  - Saved to Cloudflare R2")
+        print("  - Ready for predictions and benchmarking")
+        print("="*60)
+        
+    except Exception as e:
+        print("="*60)
+        print(f"✗ Training failed: {e}")
+        print("="*60)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()`}
+                </pre>
+                <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <h4 className="font-semibold text-blue-900 mb-2">Key Features:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• <strong>One-hot encoding</strong> for categorical features</li>
+                    <li>• <strong>Bias prevention:</strong> Excludes personal_status and foreign_worker</li>
+                    <li>• <strong>Feature preservation:</strong> Keeps raw features for interpretability</li>
+                    <li>• <strong>Cloud storage:</strong> Models saved to Cloudflare R2</li>
+                    <li>• <strong>Fair comparison:</strong> Same preprocessing for both models</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
