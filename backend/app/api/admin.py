@@ -379,21 +379,21 @@ async def get_dashboard_stats():
         supabase = supabase_service.client
         
         # Get total and completed sessions
-        sessions_response = supabase.table('experiment_sessions').select('session_id, completed_at').execute()
+        sessions_response = supabase.table('sessions').select('session_id, completed_at').execute()
         total_sessions = len(sessions_response.data)
         completed_sessions = len([s for s in sessions_response.data if s.get('completed_at')])
         
         # Get all layer ratings
-        ratings_response = supabase.table('layer_ratings').select('trust, understanding, usefulness, mental_effort').execute()
+        ratings_response = supabase.table('layer_ratings').select('trust_rating, understanding_rating, usefulness_rating, mental_effort_rating').execute()
         ratings = ratings_response.data
         total_ratings = len(ratings)
         
         # Calculate average ratings
         if total_ratings > 0:
-            avg_trust = sum(r['trust'] for r in ratings) / total_ratings
-            avg_understanding = sum(r['understanding'] for r in ratings) / total_ratings
-            avg_usefulness = sum(r['usefulness'] for r in ratings) / total_ratings
-            avg_mental_effort = sum(r['mental_effort'] for r in ratings) / total_ratings
+            avg_trust = sum(r['trust_rating'] for r in ratings) / total_ratings
+            avg_understanding = sum(r['understanding_rating'] for r in ratings) / total_ratings
+            avg_usefulness = sum(r['usefulness_rating'] for r in ratings) / total_ratings
+            avg_mental_effort = sum(r['mental_effort_rating'] for r in ratings) / total_ratings
         else:
             avg_trust = avg_understanding = avg_usefulness = avg_mental_effort = 0.0
         
