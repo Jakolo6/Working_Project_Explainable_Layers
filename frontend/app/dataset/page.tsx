@@ -73,12 +73,26 @@ export default function DatasetPage() {
   }, [apiUrl])
 
   const fetchImages = useCallback(async () => {
-    const res = await fetch(`${apiUrl}/api/v1/admin/eda-images`)
-    if (!res.ok) {
-      throw new Error('Failed to load EDA visualizations')
-    }
-    const data = await res.json()
-    return (data?.images ?? []) as EdaImage[]
+    // Define all expected EDA images from eda_local.py
+    const imageFilenames = [
+      'target_distribution.png',
+      'numerical_distributions.png',
+      'categorical_distributions.png',
+      'correlation_heatmap.png',
+      'feature_importance.png',
+      'age_distribution.png',
+      'credit_amount_distribution.png',
+      'duration_distribution.png'
+    ]
+    
+    // Create image objects with URLs pointing to the new API endpoint
+    return imageFilenames.map(filename => ({
+      filename,
+      key: filename,
+      url: `${apiUrl}/api/v1/admin/eda-image/${filename}`,
+      size: 0, // Size not available without listing
+      last_modified: new Date().toISOString() // Placeholder
+    }))
   }, [apiUrl])
 
   const refreshAllData = useCallback(async () => {

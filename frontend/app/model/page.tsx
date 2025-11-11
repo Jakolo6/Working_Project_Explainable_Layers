@@ -266,7 +266,7 @@ export default function ModelPage() {
       })
     
     // Fetch training documentation
-    fetch(`${apiUrl}/api/v1/admin/training-docs`)
+    fetch(`${apiUrl}/api/v1/admin/training-code`)
       .then(res => res.json())
       .then(data => {
         setTrainingDocs(data)
