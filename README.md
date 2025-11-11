@@ -1,60 +1,135 @@
-# Working Project Explainable Layers
+# XAI Credit Risk Research Platform
 
-Minimal full-stack research platform studying how different explanation styles influence human perception of AI-powered credit decisions.
+> **Master's Thesis Project**: Studying how different explanation styles influence human perception of AI-powered credit decisions.
 
-## Project Overview
+---
 
-- **Goal:** Evaluate trust, fairness, and usefulness of layered explanations around a credit-risk model trained on the German Credit dataset.
-- **Architecture:**
-  - Frontend &mdash; Next.js 14 (TypeScript, TailwindCSS)
-  - Backend &mdash; FastAPI (Python 3.11) with Supabase/PostgreSQL
-  - Storage &mdash; Cloudflare R2 for datasets, models, and EDA outputs
-  - Deployment &mdash; Netlify (frontend) and Railway (backend)
-- **Key Features:**
-  - Participant experiment flow (registration, pre/post questionnaires, persona-based explanation cycles)
-  - Real EDA visualizations and model performance metrics pulled from Cloudflare R2
-  - Supabase persistence for sessions, questionnaire responses, predictions, and feedback
+## 🎯 **Project Goal**
 
-## Repository Structure
+Evaluate trust, fairness, and usefulness of layered explanations around a credit-risk model trained on the German Credit dataset.
+
+---
+
+## 🏗️ **Architecture**
+
+| Component | Technology |
+|-----------|-----------|
+| **Frontend** | Next.js 14 + TypeScript + TailwindCSS |
+| **Backend** | FastAPI + Python 3.11 |
+| **Database** | Supabase (PostgreSQL) |
+| **Storage** | Cloudflare R2 |
+| **Deployment** | Netlify (frontend) + Railway (backend) |
+
+---
+
+## 📁 **Repository Structure**
 
 ```
-backend/   FastAPI application, Supabase service layer, scripts (EDA, training)
-frontend/  Next.js application delivering research experience and dashboards
-PROJECT_OVERVIEW.md  Single source of truth for architecture, progress, and next steps
+├── frontend/          Next.js application (experiment UI, dashboards)
+├── backend/           FastAPI application (API, model services)
+├── eda_local.py       Local EDA generation script
+├── train_models_local.py  Local model training script
+└── PROJECT_OVERVIEW.md    📌 Single source of truth
 ```
 
-Refer to the per-service guides for local setup and deployment workflows:
+---
 
-- [`frontend/README.md`](frontend/README.md)
-- [`backend/README.md`](backend/README.md)
+## 🚀 **Quick Start**
 
-## Quick Start
+### **For Developers**
+1. Read [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) - Current status & architecture
+2. Read [`LOCAL_SCRIPTS_README.md`](LOCAL_SCRIPTS_README.md) - How to run local scripts
+3. Setup: [`frontend/README.md`](frontend/README.md) + [`backend/README.md`](backend/README.md)
 
-1. **Install prerequisites**
-   - Node.js 18+ and npm (frontend)
-   - Python 3.11 with Poetry or pip (backend)
+### **For Researchers/Professor**
+1. Read [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) - Project status
+2. Check deployed app: [https://novaxai.netlify.app](https://novaxai.netlify.app)
+3. Review training code: `models/training_code.json` in R2 bucket
 
-2. **Configure environment variables**
-   - Frontend: copy `frontend/.env.template` → `frontend/.env.local`
-   - Backend: copy `backend/.env.template` → `backend/.env`
+---
 
-3. **Run services locally**
+## 📚 **Documentation**
+
+**Main Reference**: [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) - Complete documentation guide
+
+**Key Documents**:
+- [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) ⭐ - Architecture, features, status
+- [`LOCAL_SCRIPTS_README.md`](LOCAL_SCRIPTS_README.md) - Local workflow guide
+- [`ADMIN_PAGE_GUIDE.md`](ADMIN_PAGE_GUIDE.md) - Admin panel usage
+
+---
+
+## ✨ **Key Features**
+
+- ✅ **Local-First Workflow** - Run EDA and training locally, upload manually
+- ✅ **Real Model Metrics** - XGBoost & Logistic Regression on German Credit data
+- ✅ **Interactive Experiment** - Participant flow with pre/post questionnaires
+- ✅ **Layered Explanations** - Multiple explanation styles (visual, textual, interactive)
+- ✅ **Data Persistence** - Supabase for sessions, responses, predictions
+
+---
+
+## 🔗 **Live Deployment**
+
+- **Frontend**: [https://novaxai.netlify.app](https://novaxai.netlify.app)
+- **Backend API**: [https://workingprojectexplainablelayers-production.up.railway.app](https://workingprojectexplainablelayers-production.up.railway.app)
+
+---
+
+## 📊 **Project Status**
+
+**Current Phase**: ✅ Production Ready  
+**Last Updated**: November 12, 2025  
+**Workflow**: Local-First (run scripts locally, manual R2 upload)
+
+See [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) for detailed status.
+
+---
+
+## 📖 **Learn More**
+
+- **Full Documentation**: [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md)
+- **Code Review**: [`CODE_REVIEW_SUMMARY.md`](CODE_REVIEW_SUMMARY.md)
+- **Implementation Details**: [`IMPLEMENTATION_COMPLETE.md`](IMPLEMENTATION_COMPLETE.md)
+
+---
+
+## 💻 **Local Development**
+
+### **Prerequisites**
+- Node.js 18+ and npm (frontend)
+- Python 3.11+ (backend)
+
+### **Setup**
+
+1. **Configure environment variables**
    ```bash
    # Frontend
+   cp frontend/.env.template frontend/.env.local
+   
+   # Backend
+   cp backend/.env.template backend/.env
+   ```
+
+2. **Run services**
+   ```bash
+   # Frontend (terminal 1)
    cd frontend
    npm install
    npm run dev
-
-   # Backend (in a separate shell)
+   
+   # Backend (terminal 2)
    cd backend
    pip install -r requirements.txt
    uvicorn app.main:app --reload
    ```
 
-4. **Access the app**
+3. **Access locally**
+   - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
-   - Frontend UI: http://localhost:3000
 
-## Documentation & Status Tracking
+**Detailed setup**: See [`frontend/README.md`](frontend/README.md) + [`backend/README.md`](backend/README.md)
 
-All project planning, architecture notes, and task progress live in [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md). Update this file whenever features change to keep the research narrative accurate.
+---
+
+**Questions?** Check [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) for the right guide! 📚

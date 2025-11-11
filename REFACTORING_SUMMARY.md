@@ -1,5 +1,12 @@
 # Backend Refactoring Summary
 
+> ⚠️ **ARCHIVED DOCUMENT**  
+> This document describes an older refactoring (Axx code removal).  
+> For the current local-first refactoring, see [`IMPLEMENTATION_COMPLETE.md`](IMPLEMENTATION_COMPLETE.md)  
+> Kept for historical reference only.
+
+---
+
 ## 🎯 **Objective**
 Refactor backend to use notebook-trained models with cleaned dataset format. Remove all Axx mapping logic and ensure experiment pipeline matches Model_Training.ipynb exactly.
 
