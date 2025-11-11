@@ -72,7 +72,7 @@ export default function DatasetPage() {
     return res.json()
   }, [apiUrl])
 
-  const fetchImages = useCallback(async () => {
+  const fetchImages = useCallback(() => {
     // Define all expected EDA images from eda_local.py
     const imageFilenames = [
       'target_distribution.png',
