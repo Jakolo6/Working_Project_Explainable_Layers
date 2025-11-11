@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import experiment, admin
+from app.api import experiment_clean as experiment, admin
 import os
 
 app = FastAPI(

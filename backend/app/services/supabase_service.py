@@ -116,3 +116,33 @@ class SupabaseService:
         except Exception as e:
             print(f"Error retrieving session: {e}")
             return None
+    
+    def store_layer_rating(self, rating_data: Dict) -> bool:
+        """Store layer rating from experiment"""
+        try:
+            self.client.table('layer_ratings').insert(rating_data).execute()
+            return True
+        except Exception as e:
+            print(f"Error storing layer rating: {e}")
+            return False
+    
+    def store_post_questionnaire(self, questionnaire_data: Dict) -> bool:
+        """Store post-experiment questionnaire"""
+        try:
+            self.client.table('post_questionnaires').insert(questionnaire_data).execute()
+            return True
+        except Exception as e:
+            print(f"Error storing post questionnaire: {e}")
+            return False
+    
+    def complete_session(self, session_id: str) -> bool:
+        """Mark session as completed"""
+        try:
+            self.client.table('sessions').update({
+                'completed': True,
+                'completed_at': datetime.utcnow().isoformat()
+            }).eq('session_id', session_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error completing session: {e}")
+            return False
