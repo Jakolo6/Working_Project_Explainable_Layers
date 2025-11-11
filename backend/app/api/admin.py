@@ -104,13 +104,51 @@ async def clear_r2_bucket():
         )
 
 
+@router.post("/clean-dataset")
+async def clean_dataset():
+    """
+    Clean the raw dataset (map Axx codes to readable values) and upload to R2
+    """
+    try:
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "clean_and_upload_dataset.py"
+        
+        if not script_path.exists():
+            raise HTTPException(status_code=404, detail="Cleaning script not found")
+        
+        # Run the cleaning script
+        result = subprocess.run(
+            ["python3", str(script_path)],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minutes timeout
+        )
+        
+        if result.returncode == 0:
+            return {
+                "success": True,
+                "message": "Dataset cleaned and uploaded successfully",
+                "output": result.stdout
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cleaning failed: {result.stderr}"
+            )
+            
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="Cleaning timeout (>5 minutes)")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/generate-eda")
 async def generate_eda():
     """
-    Generate EDA (Exploratory Data Analysis) and upload to R2
+    Generate EDA (Exploratory Data Analysis) from cleaned dataset and upload to R2.
+    Uses german_credit_clean.csv from R2 bucket.
     """
     try:
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "generate_eda.py"
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "generate_eda_clean.py"
         
         if not script_path.exists():
             raise HTTPException(status_code=404, detail=f"EDA script not found at {script_path}")
@@ -126,7 +164,7 @@ async def generate_eda():
         if result.returncode == 0:
             return {
                 "success": True,
-                "message": "EDA generated successfully",
+                "message": "EDA generated successfully from cleaned dataset",
                 "output": result.stdout
             }
         else:
@@ -442,4 +480,44 @@ async def get_dashboard_stats():
     except Exception as e:
         import traceback
         error_detail = f"Failed to retrieve dashboard stats: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
+
+
+@router.get("/training-docs")
+async def get_training_documentation():
+    """
+    Get model training documentation (methodology, hyperparameters, insights)
+    """
+    try:
+        from app.core.config import get_settings
+        import json
+        
+        config = get_settings()
+        
+        # Try to fetch from R2 first
+        try:
+            s3 = create_r2_client(config)
+            response = s3.get_object(
+                Bucket=config.r2_bucket_name,
+                Key='models/training_documentation.json'
+            )
+            training_docs = json.loads(response['Body'].read().decode('utf-8'))
+            return training_docs
+        except Exception as r2_error:
+            # Fallback to local file
+            local_path = Path(__file__).parent.parent.parent.parent / 'models' / 'training_documentation.json'
+            if local_path.exists():
+                with open(local_path, 'r') as f:
+                    training_docs = json.load(f)
+                return training_docs
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Training documentation not found in R2 or locally"
+                )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to retrieve training documentation: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
         raise HTTPException(status_code=500, detail=error_detail)
