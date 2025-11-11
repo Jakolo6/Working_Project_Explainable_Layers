@@ -38,6 +38,42 @@ interface MetricsResponse {
   }
 }
 
+interface TrainingDocs {
+  title: string
+  overview: {
+    description: string
+    techniques: string[]
+    models: string[]
+  }
+  methodology: Array<{
+    step: number
+    title: string
+    description: string
+    key_points: string[]
+  }>
+  feature_engineering: {
+    description: string
+    features: Array<{
+      name: string
+      formula: string
+      purpose: string
+      interpretation: string
+    }>
+  }
+  hyperparameters: {
+    logistic_regression: Record<string, any>
+    xgboost: Record<string, any>
+  }
+  key_insights: Array<{
+    title: string
+    description: string
+  }>
+  preprocessing_pipeline: {
+    logistic_regression: string[]
+    xgboost: string[]
+  }
+}
+
 const MetricCard = ({ label, value, format = 'percent' }: { label: string; value: number; format?: 'percent' | 'number' }) => (
   <div className="bg-gray-50 rounded-lg p-4">
     <div className="text-sm text-gray-600 mb-1">{label}</div>
@@ -207,13 +243,16 @@ const CostAnalysis = ({ metrics }: { metrics: ModelMetrics }) => {
 
 export default function ModelPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
+  const [trainingDocs, setTrainingDocs] = useState<TrainingDocs | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCode, setShowCode] = useState(false)
+  const [activeTab, setActiveTab] = useState<'metrics' | 'training'>('metrics')
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   useEffect(() => {
+    // Fetch metrics
     fetch(`${apiUrl}/api/v1/admin/model-metrics`)
       .then(res => res.json())
       .then(data => {
@@ -224,6 +263,16 @@ export default function ModelPage() {
         console.error('Failed to load model metrics:', err)
         setError('Model metrics not yet available')
         setLoading(false)
+      })
+    
+    // Fetch training documentation
+    fetch(`${apiUrl}/api/v1/admin/training-docs`)
+      .then(res => res.json())
+      .then(data => {
+        setTrainingDocs(data)
+      })
+      .catch(err => {
+        console.error('Failed to load training docs:', err)
       })
   }, [apiUrl])
 
@@ -237,10 +286,10 @@ export default function ModelPage() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Model Performance & Metrics
+                Model Performance & Training
               </h1>
               <p className="text-xl text-gray-600">
-                Real training results from XGBoost and Logistic Regression models
+                Complete training process and performance metrics
               </p>
             </div>
             <button
@@ -253,15 +302,41 @@ export default function ModelPage() {
               View Training Code
             </button>
           </div>
+          
+          {/* Tab Navigation */}
+          <div className="mt-6 border-b border-gray-200">
+            <div className="flex gap-8">
+              <button
+                onClick={() => setActiveTab('metrics')}
+                className={`pb-4 px-2 font-semibold transition ${
+                  activeTab === 'metrics'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Performance Metrics
+              </button>
+              <button
+                onClick={() => setActiveTab('training')}
+                className={`pb-4 px-2 font-semibold transition ${
+                  activeTab === 'training'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Training Process
+              </button>
+            </div>
+          </div>
         </div>
 
-        {loading && (
+        {loading && activeTab === 'metrics' && (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <p className="text-gray-600">Loading model metrics...</p>
           </div>
         )}
 
-        {error && (
+        {error && activeTab === 'metrics' && (
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
             <p className="text-gray-700 mb-4">{error}</p>
             <p className="text-sm text-gray-600 mb-4">
@@ -276,7 +351,8 @@ export default function ModelPage() {
           </div>
         )}
 
-        {metrics?.metrics.xgboost && (
+        {/* Performance Metrics Tab */}
+        {activeTab === 'metrics' && metrics?.metrics.xgboost && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">XGBoost Model</h2>
             
@@ -309,7 +385,7 @@ export default function ModelPage() {
           </div>
         )}
 
-        {metrics?.metrics.logistic && (
+        {activeTab === 'metrics' && metrics?.metrics.logistic && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Logistic Regression Model</h2>
             
@@ -343,23 +419,159 @@ export default function ModelPage() {
           </div>
         )}
 
-        <div className="bg-blue-50 rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">About the Models</h2>
-          <div className="space-y-4 text-gray-700">
-            <p>
-              <strong>XGBoost:</strong> Gradient Boosted Decision Trees with SHAP explanations. 
-              Captures complex non-linear patterns while maintaining interpretability.
-            </p>
-            <p>
-              <strong>Logistic Regression:</strong> Linear model providing baseline performance 
-              and direct feature importance through coefficients.
-            </p>
-            <p className="text-sm text-gray-600">
-              All metrics calculated on held-out test set (20% of data). Models trained on 
-              German Credit Dataset with bias features (gender, nationality) excluded.
-            </p>
+        {activeTab === 'metrics' && (
+          <div className="bg-blue-50 rounded-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">About the Models</h2>
+            <div className="space-y-4 text-gray-700">
+              <p>
+                <strong>XGBoost:</strong> Gradient Boosted Decision Trees with SHAP explanations. 
+                Captures complex non-linear patterns while maintaining interpretability.
+              </p>
+              <p>
+                <strong>Logistic Regression:</strong> Linear model providing baseline performance 
+                and direct feature importance through coefficients.
+              </p>
+              <p className="text-sm text-gray-600">
+                All metrics calculated on held-out test set (20% of data). Models trained on 
+                German Credit Dataset with bias features (gender, nationality) excluded.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Training Process Tab */}
+        {activeTab === 'training' && trainingDocs && (
+          <div className="space-y-8">
+            {/* Overview */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{trainingDocs.title}</h2>
+              <p className="text-lg text-gray-700 mb-6">{trainingDocs.overview.description}</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Techniques Applied:</h3>
+                  <ul className="space-y-1">
+                    {trainingDocs.overview.techniques.map((tech, idx) => (
+                      <li key={idx} className="text-gray-700 flex items-start">
+                        <span className="text-blue-600 mr-2">✓</span>
+                        {tech}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Models Trained:</h3>
+                  <ul className="space-y-1">
+                    {trainingDocs.overview.models.map((model, idx) => (
+                      <li key={idx} className="text-gray-700 flex items-start">
+                        <span className="text-indigo-600 mr-2">•</span>
+                        {model}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Methodology Steps */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Training Methodology</h2>
+              <div className="space-y-6">
+                {trainingDocs.methodology.map((step) => (
+                  <div key={step.step} className="border-l-4 border-blue-500 pl-6 py-2">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center text-sm">
+                        {step.step}
+                      </span>
+                      <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
+                    </div>
+                    <p className="text-gray-700 mb-3">{step.description}</p>
+                    <ul className="space-y-1">
+                      {step.key_points.map((point, idx) => (
+                        <li key={idx} className="text-sm text-gray-600 flex items-start">
+                          <span className="text-blue-500 mr-2">→</span>
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Feature Engineering */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Feature Engineering</h2>
+              <p className="text-gray-700 mb-6">{trainingDocs.feature_engineering.description}</p>
+              <div className="grid md:grid-cols-2 gap-6">
+                {trainingDocs.feature_engineering.features.map((feature, idx) => (
+                  <div key={idx} className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg p-6 border border-gray-200">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2">{feature.name}</h3>
+                    <div className="bg-white rounded px-3 py-2 mb-3 font-mono text-sm text-indigo-700 border border-indigo-200">
+                      {feature.formula}
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2"><strong>Purpose:</strong> {feature.purpose}</p>
+                    <p className="text-sm text-gray-600"><strong>Interpretation:</strong> {feature.interpretation}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hyperparameters */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Hyperparameters</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Logistic Regression */}
+                <div className="bg-blue-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Logistic Regression</h3>
+                  <div className="space-y-2">
+                    {Object.entries(trainingDocs.hyperparameters.logistic_regression)
+                      .filter(([key]) => key !== 'notes')
+                      .map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-sm font-mono text-gray-700">{key}:</span>
+                          <span className="text-sm font-bold text-gray-900">{String(value)}</span>
+                        </div>
+                      ))}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-4 italic">
+                    {trainingDocs.hyperparameters.logistic_regression.notes}
+                  </p>
+                </div>
+
+                {/* XGBoost */}
+                <div className="bg-green-50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">XGBoost</h3>
+                  <div className="space-y-2">
+                    {Object.entries(trainingDocs.hyperparameters.xgboost)
+                      .filter(([key]) => key !== 'notes')
+                      .map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-sm font-mono text-gray-700">{key}:</span>
+                          <span className="text-sm font-bold text-gray-900">{String(value)}</span>
+                        </div>
+                      ))}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-4 italic">
+                    {trainingDocs.hyperparameters.xgboost.notes}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Insights */}
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Insights</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {trainingDocs.key_insights.map((insight, idx) => (
+                  <div key={idx} className="bg-white rounded-lg p-6 shadow-md">
+                    <h3 className="font-bold text-lg text-indigo-900 mb-2">{insight.title}</h3>
+                    <p className="text-gray-700">{insight.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between items-center">
           <Link 

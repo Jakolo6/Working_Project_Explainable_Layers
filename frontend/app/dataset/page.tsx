@@ -1,4 +1,4 @@
-// Dataset page - Real EDA statistics from German Credit Dataset
+// Dataset Transparency - Narrative-driven EDA with causal analysis
 
 'use client'
 
@@ -60,6 +60,7 @@ export default function DatasetPage() {
   const [loading, setLoading] = useState(true)
   const [loadingImages, setLoadingImages] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'numeric' | 'categorical' | 'causal'>('overview')
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -128,9 +129,9 @@ export default function DatasetPage() {
             <Link href="/" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
               ← Back to Home
             </Link>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Dataset Transparency</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Understanding Credit Risk</h1>
             <p className="text-xl text-gray-600">
-              Comprehensive exploratory data analysis of the German Credit Risk Dataset
+              A data-driven journey through what makes creditworthy applicants
             </p>
           </div>
           <button
@@ -149,6 +150,24 @@ export default function DatasetPage() {
           </div>
         )}
 
+        {/* Introduction - Why This Matters */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 mb-8 border border-blue-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">📊 Why Creditworthiness Prediction Matters</h2>
+          <p className="text-gray-700 mb-4 leading-relaxed">
+            Every day, millions of people apply for loans to buy homes, start businesses, or handle emergencies. 
+            Banks must decide: <strong>who can repay, and who might default?</strong> This decision affects lives.
+          </p>
+          <p className="text-gray-700 mb-4 leading-relaxed">
+            The German Credit Risk Dataset contains <strong>1,000 real credit applications</strong> with 20 financial 
+            and personal attributes. By analyzing patterns in this data, we can build AI models that make 
+            <strong className="text-blue-700"> fair, explainable, and accurate</strong> credit decisions.
+          </p>
+          <p className="text-gray-700 leading-relaxed">
+            This page takes you through a <strong>data-driven story</strong>: from understanding risk patterns → 
+            identifying key drivers → ensuring fairness → preparing for model training.
+          </p>
+        </div>
+
         {error && !loading && (
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
             <p className="text-gray-700 mb-4">{error}</p>
@@ -166,7 +185,10 @@ export default function DatasetPage() {
 
         {stats?.dataset_info && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dataset Overview</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">📋 Dataset Overview</h2>
+            <p className="text-gray-600 mb-6 italic">
+              "Before we dive into patterns, let's understand what data we're working with."
+            </p>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <p className="text-gray-700 mb-2">
@@ -205,7 +227,10 @@ export default function DatasetPage() {
 
         {stats?.target_distribution && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Target Distribution</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">⚖️ The Risk Balance</h2>
+            <p className="text-gray-600 mb-6 italic">
+              "Not all applicants are equal. Understanding the balance between good and bad credit is crucial for fair AI."
+            </p>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6">
                 <div className="text-sm text-green-700 mb-2">Good Credit ({stats.target_distribution.good_credit.label})</div>
@@ -233,13 +258,20 @@ export default function DatasetPage() {
               <p className="text-sm text-yellow-800 mt-2">
                 {stats.target_distribution.cost_matrix_note}
               </p>
+              <p className="text-sm text-yellow-800 mt-3 font-semibold">
+                💡 What this means: The dataset reflects real-world lending — most applicants are creditworthy, 
+                but the model must carefully identify the 30% who might default.
+              </p>
             </div>
           </div>
         )}
 
         {stats?.feature_insights && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Feature Insights</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔍 Key Feature Patterns</h2>
+            <p className="text-gray-600 mb-6 italic">
+              "Three critical dimensions shape creditworthiness: age (experience), credit amount (risk size), and duration (time exposure)."
+            </p>
             <div className="grid md:grid-cols-3 gap-6">
               {stats.feature_insights.age && (
                 <div className="border-l-4 border-blue-600 pl-4">
@@ -301,49 +333,247 @@ export default function DatasetPage() {
 
         {!loading && !error && images.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Exploratory Data Analysis Visualizations</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">📈 Visual Data Story</h2>
             <p className="text-gray-600 mb-6">
-              Generated directly from the German Credit Dataset (1,000 credit applications, 20 attributes). Use the
-              refresh button above if the images expire.
+              Explore patterns through interactive visualizations. Each chart reveals insights about what drives credit decisions.
             </p>
-            <div className="grid gap-6 md:grid-cols-2">
-              {images.map((image) => (
-                <figure key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                  <figcaption className="mb-3 text-lg font-semibold text-gray-800">
-                    {humanizeFilename(image.filename)}
-                  </figcaption>
-                  <div className="overflow-hidden rounded border bg-white">
-                    <img
-                      src={image.url}
-                      alt={humanizeFilename(image.filename)}
-                      className="h-auto w-full"
-                      loading="lazy"
-                      onError={(event) => {
-                        const target = event.currentTarget
-                        target.alt = 'Visualization unavailable. Please refresh or regenerate from the admin panel.'
-                        target.src = ''
-                      }}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-gray-500">
-                    Generated: {new Date(image.last_modified).toLocaleString()} • Size: {(image.size / 1024).toFixed(2)} KB
-                  </p>
-                </figure>
-              ))}
+            
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 font-semibold transition ${
+                  activeTab === 'overview'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('numeric')}
+                className={`px-4 py-2 font-semibold transition ${
+                  activeTab === 'numeric'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Numeric Features
+              </button>
+              <button
+                onClick={() => setActiveTab('categorical')}
+                className={`px-4 py-2 font-semibold transition ${
+                  activeTab === 'categorical'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Categorical Features
+              </button>
+              <button
+                onClick={() => setActiveTab('causal')}
+                className={`px-4 py-2 font-semibold transition ${
+                  activeTab === 'causal'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Causal Analysis
+              </button>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>💡 Overview Insight:</strong> The dataset shows clear patterns — applicants with stable 
+                    employment, higher savings, and shorter loan durations are more likely to be approved.
+                  </p>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  {images.map((image) => (
+                    <figure key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                      <figcaption className="mb-3 text-lg font-semibold text-gray-800">
+                        {humanizeFilename(image.filename)}
+                      </figcaption>
+                      <div className="overflow-hidden rounded border bg-white">
+                        <img
+                          src={image.url}
+                          alt={humanizeFilename(image.filename)}
+                          className="h-auto w-full"
+                          loading="lazy"
+                          onError={(event) => {
+                            const target = event.currentTarget
+                            target.alt = 'Visualization unavailable. Please refresh or regenerate from the admin panel.'
+                            target.src = ''
+                          }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500">
+                        Generated: {new Date(image.last_modified).toLocaleString()} • Size: {(image.size / 1024).toFixed(2)} KB
+                      </p>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'numeric' && (
+              <div className="space-y-6">
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+                  <p className="text-sm text-green-900">
+                    <strong>💡 Numeric Insight:</strong> Shorter loan durations and lower credit amounts correlate with approval. 
+                    Older applicants (more experience) show better repayment patterns.
+                  </p>
+                </div>
+                {images.filter(img => img.filename.includes('numerical')).map((image) => (
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'categorical' && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-4">
+                  <p className="text-sm text-purple-900">
+                    <strong>💡 Categorical Insight:</strong> Checking account status and credit history are the strongest 
+                    categorical predictors. Having savings and stable employment dramatically increases approval odds.
+                  </p>
+                </div>
+                {images.filter(img => img.filename.includes('categorical')).map((image) => (
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'causal' && (
+              <div className="space-y-6">
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                  <p className="text-sm text-red-900">
+                    <strong>💡 Causal Insight:</strong> Statistical tests (Chi-square, Point-biserial correlation) reveal 
+                    which features <em>truly drive</em> credit outcomes vs. those that merely correlate.
+                  </p>
+                </div>
+                {images.filter(img => img.filename.includes('importance') || img.filename.includes('outcome')).map((image) => (
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  </div>
+                ))}
+                
+                {/* Top Drivers Summary */}
+                <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">🎯 Top 5 Statistical Drivers</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <p className="text-gray-700"><strong>Checking Status:</strong> Direct proof of financial stability</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <p className="text-gray-700"><strong>Credit History:</strong> Past behavior predicts future behavior</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <p className="text-gray-700"><strong>Duration:</strong> Longer loans = more risk exposure</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <p className="text-gray-700"><strong>Credit Amount:</strong> Larger amounts = harder to repay</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <p className="text-gray-700"><strong>Savings Status:</strong> Proxy for financial discipline</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="bg-blue-50 rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Dataset</h2>
-          <p className="text-gray-700 mb-4">
-            The German Credit Risk Dataset is a widely-used benchmark in financial machine learning research. 
-            Originally compiled by Professor Hans Hofmann at the University of Hamburg, it contains 1,000 
-            credit applications with 20 attributes describing applicants' financial and personal characteristics.
+        {/* Fairness Guardrails */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 mb-8 border border-green-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🛡️ Fairness Guardrails</h2>
+          <p className="text-gray-700 mb-4 leading-relaxed">
+            <strong>Responsible AI requires excluding biased features.</strong> We removed attributes that could lead to 
+            discriminatory decisions:
           </p>
-          <p className="text-gray-700">
-            To ensure fairness, we excluded sensitive attributes (gender, nationality) from model training 
-            to prevent discriminatory predictions.
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white rounded-lg p-4 border border-green-300">
+              <p className="font-semibold text-gray-900 mb-2">❌ Excluded: Personal Status & Sex</p>
+              <p className="text-sm text-gray-600">Gender should not influence creditworthiness</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-green-300">
+              <p className="font-semibold text-gray-900 mb-2">❌ Excluded: Foreign Worker Status</p>
+              <p className="text-sm text-gray-600">Nationality should not determine credit access</p>
+            </div>
+          </div>
+          <p className="text-gray-700 leading-relaxed">
+            By focusing on <strong className="text-green-700">financial behavior</strong> (savings, employment, credit history) 
+            rather than demographics, we ensure the model makes fair, merit-based decisions.
+          </p>
+        </div>
+
+        {/* Model Readiness Preview */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-8 border border-indigo-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🚀 Preparing for Model Training</h2>
+          <p className="text-gray-700 mb-6 leading-relaxed">
+            With patterns identified and fairness ensured, the dataset is ready for machine learning. 
+            Here's how we prepare the data:
+          </p>
+          
+          <div className="bg-white rounded-lg p-6 mb-4 border border-indigo-300">
+            <h3 className="font-semibold text-lg text-gray-900 mb-4">Preprocessing Pipeline</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">1️⃣</span>
+                <div>
+                  <p className="font-semibold text-gray-900">Categorical Encoding</p>
+                  <p className="text-sm text-gray-600">One-hot encoding for categorical features (checking_status, credit_history, etc.)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">2️⃣</span>
+                <div>
+                  <p className="font-semibold text-gray-900">Numerical Scaling</p>
+                  <p className="text-sm text-gray-600">StandardScaler for numerical features (age, credit_amount, duration)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">3️⃣</span>
+                <div>
+                  <p className="font-semibold text-gray-900">Feature Preservation</p>
+                  <p className="text-sm text-gray-600">Raw features kept for SHAP explainability</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Link 
+            href="/model"
+            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold"
+          >
+            Next: Model Performance →
+          </Link>
+        </div>
+
+        {/* Human Takeaway */}
+        <div className="bg-gray-900 text-white rounded-xl p-8 mb-8">
+          <h2 className="text-2xl font-bold mb-4">📖 The Human Takeaway</h2>
+          <p className="text-gray-300 leading-relaxed text-lg">
+            The analysis reveals that <strong className="text-blue-400">financial stability indicators</strong> — such as 
+            savings balance, employment length, and loan size — are the strongest predictors of creditworthiness. 
+            These insights guide the features used in the upcoming model training step, ensuring our AI makes 
+            <strong className="text-green-400"> fair, transparent, and accurate</strong> credit decisions based on 
+            what truly matters: <em>financial behavior, not demographics</em>.
           </p>
         </div>
 
