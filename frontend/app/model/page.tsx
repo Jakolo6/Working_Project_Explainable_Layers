@@ -379,7 +379,7 @@ export default function ModelPage() {
                 data={metrics.feature_importance_top15?.slice(0, 10)?.map((item: any) => ({
                   feature: item.feature,
                   value: item.importance,
-                }))}}
+                }))}
                 title="Top 10 Feature Importances"
               />
             </div>
