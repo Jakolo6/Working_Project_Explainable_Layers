@@ -31,11 +31,12 @@ interface ModelMetrics {
 }
 
 interface MetricsResponse {
-  success: boolean
-  metrics: {
-    xgboost: ModelMetrics | null
-    logistic: ModelMetrics | null
-  }
+  logistic_regression: any
+  xgboost: any
+  training_info: any
+  features: any
+  feature_importance_top15: any
+  model_comparison: any
 }
 
 interface TrainingDocs {
@@ -352,63 +353,63 @@ export default function ModelPage() {
         )}
 
         {/* Performance Metrics Tab */}
-        {activeTab === 'metrics' && metrics?.metrics.xgboost && (
+        {activeTab === 'metrics' && metrics?.xgboost && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">XGBoost Model</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <MetricCard label="Test Accuracy" value={metrics.metrics.xgboost.test_accuracy} />
-              <MetricCard label="ROC-AUC Score" value={metrics.metrics.xgboost.roc_auc} />
-              <MetricCard label="Precision" value={metrics.metrics.xgboost.precision} />
-              <MetricCard label="Recall" value={metrics.metrics.xgboost.recall} />
-              <MetricCard label="F1 Score" value={metrics.metrics.xgboost.f1_score} />
-              <MetricCard label="Train Accuracy" value={metrics.metrics.xgboost.train_accuracy} />
-              <MetricCard label="Train Size" value={metrics.metrics.xgboost.train_size} format="number" />
-              <MetricCard label="Test Size" value={metrics.metrics.xgboost.test_size} format="number" />
+              <MetricCard label="Accuracy" value={metrics.xgboost.accuracy} />
+              <MetricCard label="ROC-AUC Score" value={metrics.xgboost.auc_roc} />
+              <MetricCard label="Precision" value={metrics.xgboost.precision} />
+              <MetricCard label="Recall" value={metrics.xgboost.recall} />
+              <MetricCard label="F1 Score" value={metrics.xgboost.f1_score} />
+              <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
+              <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
+              <MetricCard label="Features" value={metrics.features.total_features} format="number" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <ConfusionMatrix matrix={metrics.metrics.xgboost.confusion_matrix} />
-              <CostAnalysis metrics={metrics.metrics.xgboost} />
+              <ConfusionMatrix matrix={metrics.xgboost.confusion_matrix} />
+              <CostAnalysis metrics={metrics.xgboost} />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <RocCurveChart data={metrics.metrics.xgboost.roc_curve} />
+              <RocCurveChart data={metrics.xgboost.roc_curve} />
               <FeatureImportanceBars
-                data={metrics.metrics.xgboost.feature_importance?.slice(0, 10)?.map((item) => ({
+                data={metrics.feature_importance_top15?.slice(0, 10)?.map((item: any) => ({
                   feature: item.feature,
                   value: item.importance,
-                }))}
+                }))}}
                 title="Top 10 Feature Importances"
               />
             </div>
           </div>
         )}
 
-        {activeTab === 'metrics' && metrics?.metrics.logistic && (
+        {activeTab === 'metrics' && metrics?.logistic_regression && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Logistic Regression Model</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <MetricCard label="Test Accuracy" value={metrics.metrics.logistic.test_accuracy} />
-              <MetricCard label="ROC-AUC Score" value={metrics.metrics.logistic.roc_auc} />
-              <MetricCard label="Precision" value={metrics.metrics.logistic.precision} />
-              <MetricCard label="Recall" value={metrics.metrics.logistic.recall} />
-              <MetricCard label="F1 Score" value={metrics.metrics.logistic.f1_score} />
-              <MetricCard label="Train Accuracy" value={metrics.metrics.logistic.train_accuracy} />
-              <MetricCard label="Train Size" value={metrics.metrics.logistic.train_size} format="number" />
-              <MetricCard label="Test Size" value={metrics.metrics.logistic.test_size} format="number" />
+              <MetricCard label="Accuracy" value={metrics.logistic_regression.accuracy} />
+              <MetricCard label="ROC-AUC Score" value={metrics.logistic_regression.auc_roc} />
+              <MetricCard label="Precision" value={metrics.logistic_regression.precision} />
+              <MetricCard label="Recall" value={metrics.logistic_regression.recall} />
+              <MetricCard label="F1 Score" value={metrics.logistic_regression.f1_score} />
+              <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
+              <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
+              <MetricCard label="Features" value={metrics.features.total_features} format="number" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <ConfusionMatrix matrix={metrics.metrics.logistic.confusion_matrix} />
-              <CostAnalysis metrics={metrics.metrics.logistic} />
+              <ConfusionMatrix matrix={metrics.logistic_regression.confusion_matrix} />
+              <CostAnalysis metrics={metrics.logistic_regression} />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <RocCurveChart data={metrics.metrics.logistic.roc_curve} />
+              <RocCurveChart data={metrics.logistic_regression.roc_curve} />
               <FeatureImportanceBars
-                data={metrics.metrics.logistic.top_features?.map((feat) => ({
+                data={metrics.logistic_regression.top_features?.map((feat) => ({
                   feature: feat.feature,
                   value: feat.coefficient,
                 }))}
