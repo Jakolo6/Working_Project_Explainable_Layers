@@ -7,14 +7,18 @@ import Link from 'next/link'
 
 export default function AdminPage() {
   const [downloadStatus, setDownloadStatus] = useState<string>('')
+  const [cleanStatus, setCleanStatus] = useState<string>('')
   const [edaStatus, setEdaStatus] = useState<string>('')
   const [trainStatus, setTrainStatus] = useState<string>('')
+  const [testStatus, setTestStatus] = useState<string>('')
   const [clearStatus, setClearStatus] = useState<string>('')
   const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false)
-  const [loading, setLoading] = useState<{ download: boolean; eda: boolean; train: boolean; clear: boolean }>({
+  const [loading, setLoading] = useState<{ download: boolean; clean: boolean; eda: boolean; train: boolean; test: boolean; clear: boolean }>({
     download: false,
+    clean: false,
     eda: false,
     train: false,
+    test: false,
     clear: false,
   })
 
@@ -39,6 +43,30 @@ export default function AdminPage() {
       setDownloadStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
     } finally {
       setLoading({ ...loading, download: false })
+    }
+  }
+
+  const handleCleanDataset = async () => {
+    setLoading({ ...loading, clean: true })
+    setCleanStatus('Cleaning dataset (mapping Axx codes to readable values)...')
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/admin/clean-dataset`, {
+        method: 'POST',
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setCleanStatus(`✅ Success: ${data.message}`)
+      } else {
+        setCleanStatus(`❌ Error: ${data.detail || 'Failed to clean dataset'}`)
+      }
+    } catch (error) {
+      setCleanStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setLoading({ ...loading, clean: false })
     }
   }
 
@@ -87,6 +115,28 @@ export default function AdminPage() {
       setTrainStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
     } finally {
       setLoading({ ...loading, train: false })
+    }
+  }
+
+  const handleTestModels = async () => {
+    setLoading({ ...loading, test: true })
+    setTestStatus('Testing notebook-trained models...')
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/experiment/health`)
+      
+      const data = await response.json()
+      
+      if (response.ok && data.status === 'healthy') {
+        setTestStatus(`✅ Models Ready:\n- XGBoost: ${data.xgboost_loaded ? '✓' : '✗'}\n- Logistic: ${data.logistic_loaded ? '✓' : '✗'}\n- Database: ${data.database_connected ? '✓' : '✗'}`)
+      } else {
+        setTestStatus(`❌ Error: ${data.error || 'Models not loaded'}`)
+      }
+    } catch (error) {
+      setTestStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setLoading({ ...loading, test: false })
     }
   }
 
@@ -268,10 +318,64 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Clean Dataset Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            2. Clean Dataset
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Map Axx symbolic codes to human-readable values (e.g., A11 → negative_balance). Creates german_credit_clean.csv in R2.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Requirements:</h3>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>Dataset must be downloaded first (Step 1)</li>
+                <li>Cleaning script in backend/scripts/</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">✨ Transformations:</h3>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>Attribute1 → checking_status (negative_balance, 0_to_200_dm, etc.)</li>
+                <li>Attribute3 → credit_history (no_credits, all_paid, delay, etc.)</li>
+                <li>Attribute4 → purpose (car_new, furniture, education, etc.)</li>
+                <li>All 20 attributes mapped to readable column names</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={handleCleanDataset}
+              disabled={loading.clean}
+              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition ${
+                loading.clean
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {loading.clean ? 'Cleaning Dataset...' : 'Clean Dataset (Map Axx Codes)'}
+            </button>
+
+            {cleanStatus && (
+              <div className={`p-4 rounded-lg ${
+                cleanStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800' 
+                  : cleanStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-blue-50 text-blue-800'
+              }`}>
+                {cleanStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* EDA Generation Section */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            2. Generate EDA
+            3. Generate EDA
           </h2>
           <p className="text-gray-700 mb-6">
             Generate Exploratory Data Analysis with visualizations and statistics, then upload to R2 storage.
@@ -327,7 +431,7 @@ export default function AdminPage() {
         {/* Model Training Section */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            3. Train Models
+            4. Train Models
           </h2>
           <p className="text-gray-700 mb-6">
             Train both XGBoost and Logistic Regression models with new one-hot encoding preprocessing (preserves raw + scaled features) for fair benchmarking.
@@ -377,6 +481,52 @@ export default function AdminPage() {
                   : 'bg-blue-50 text-blue-800'
               }`}>
                 {trainStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Test Models Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            5. Test Notebook Models
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Test if the notebook-trained models are loaded correctly and ready for predictions. Checks XGBoost, Logistic Regression, and database connectivity.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">What This Tests:</h3>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>XGBoost model loaded from R2 (models/xgboost_model.pkl)</li>
+                <li>Logistic Regression model loaded from R2 (models/logistic_model.pkl)</li>
+                <li>Preprocessor fitted on cleaned dataset</li>
+                <li>Database connection active</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={handleTestModels}
+              disabled={loading.test}
+              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition ${
+                loading.test
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
+              {loading.test ? 'Testing Models...' : 'Test Notebook Models'}
+            </button>
+
+            {testStatus && (
+              <div className={`p-4 rounded-lg whitespace-pre-line ${
+                testStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800' 
+                  : testStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800'
+                  : 'bg-blue-50 text-blue-800'
+              }`}>
+                {testStatus}
               </div>
             )}
           </div>
