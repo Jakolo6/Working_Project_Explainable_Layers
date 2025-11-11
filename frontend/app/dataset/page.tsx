@@ -207,24 +207,24 @@ export default function DatasetPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <p className="text-gray-700 mb-2">
-                  <strong>Name:</strong> {stats.dataset_info.name}
+                  <strong>Name:</strong> {stats.dataset_info.name || 'German Credit Dataset'}
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Source:</strong> {stats.dataset_info.source}
+                  <strong>Source:</strong> {stats.dataset_info.source || 'UCI Machine Learning Repository'}
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Total Records:</strong> {stats.dataset_info.total_records.toLocaleString()}
+                  <strong>Total Records:</strong> {stats.dataset_info.total_records?.toLocaleString() || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-700 mb-2">
-                  <strong>Total Attributes:</strong> {stats.dataset_info.total_attributes}
+                  <strong>Total Features:</strong> {stats.dataset_info.total_features || 'N/A'}
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Numerical:</strong> {stats.dataset_info.numerical_attributes} attributes
+                  <strong>Numerical:</strong> {stats.dataset_info.numerical_features || 0} features
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Categorical:</strong> {stats.dataset_info.categorical_attributes} attributes
+                  <strong>Categorical:</strong> {stats.dataset_info.categorical_features || 0} features
                 </p>
               </div>
             </div>
@@ -248,30 +248,30 @@ export default function DatasetPage() {
             </p>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6">
-                <div className="text-sm text-green-700 mb-2">Good Credit ({stats.target_distribution.good_credit.label})</div>
+                <div className="text-sm text-green-700 mb-2">Good Credit</div>
                 <div className="text-3xl font-bold text-green-900">
-                  {stats.target_distribution.good_credit.count.toLocaleString()}
+                  {stats.target_distribution.good_credit?.toLocaleString() || 'N/A'}
                 </div>
                 <div className="text-sm text-green-700 mt-1">
-                  {stats.target_distribution.good_credit.percentage.toFixed(1)}% of total
+                  {stats.target_distribution.good_credit_rate ? (stats.target_distribution.good_credit_rate * 100).toFixed(1) : 'N/A'}% of total
                 </div>
               </div>
               <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
-                <div className="text-sm text-red-700 mb-2">Bad Credit ({stats.target_distribution.bad_credit.label})</div>
+                <div className="text-sm text-red-700 mb-2">Bad Credit</div>
                 <div className="text-3xl font-bold text-red-900">
-                  {stats.target_distribution.bad_credit.count.toLocaleString()}
+                  {stats.target_distribution.bad_credit?.toLocaleString() || 'N/A'}
                 </div>
                 <div className="text-sm text-red-700 mt-1">
-                  {stats.target_distribution.bad_credit.percentage.toFixed(1)}% of total
+                  {stats.target_distribution.bad_credit_rate ? (stats.target_distribution.bad_credit_rate * 100).toFixed(1) : 'N/A'}% of total
                 </div>
               </div>
             </div>
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4">
               <p className="text-sm text-yellow-800">
-                <strong>Imbalance Ratio:</strong> {stats.target_distribution.imbalance_ratio.toFixed(2)}:1
+                <strong>Imbalance Ratio:</strong> {stats.target_distribution.good_credit && stats.target_distribution.bad_credit ? (stats.target_distribution.good_credit / stats.target_distribution.bad_credit).toFixed(2) : 'N/A'}:1
               </p>
               <p className="text-sm text-yellow-800 mt-2">
-                {stats.target_distribution.cost_matrix_note}
+                Class imbalance reflects real-world lending patterns
               </p>
               <p className="text-sm text-yellow-800 mt-3 font-semibold">
                 💡 What this means: The dataset reflects real-world lending — most applicants are creditworthy, 
@@ -281,70 +281,46 @@ export default function DatasetPage() {
           </div>
         )}
 
-        {stats?.feature_insights && (
+        {stats?.key_insights && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔍 Key Feature Patterns</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">📊 Key Insights</h2>
             <p className="text-gray-600 mb-6 italic">
-              "Three critical dimensions shape creditworthiness: age (experience), credit amount (risk size), and duration (time exposure)."
+              "Understanding the differences between good and bad credit applicants."
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              {stats.feature_insights.age && (
-                <div className="border-l-4 border-blue-600 pl-4">
-                  <h3 className="font-semibold text-lg mb-3">Age Distribution</h3>
-                  <p className="text-gray-700 text-sm mb-1">
-                    <strong>Range:</strong> {stats.feature_insights.age.youngest} - {stats.feature_insights.age.oldest} years
-                  </p>
-                  <p className="text-gray-700 text-sm">
-                    <strong>Average:</strong> {stats.feature_insights.age.average.toFixed(1)} years
-                  </p>
-                </div>
-              )}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="border-l-4 border-blue-600 pl-4">
+                <h3 className="font-semibold text-lg mb-3">Average Age</h3>
+                <p className="text-gray-700 text-sm mb-1">
+                  <strong>Good Credit:</strong> {stats.key_insights?.avg_age_good?.toFixed(1) || 'N/A'} years
+                </p>
+                <p className="text-gray-700 text-sm">
+                  <strong>Bad Credit:</strong> {stats.key_insights?.avg_age_bad?.toFixed(1) || 'N/A'} years
+                </p>
+              </div>
               
-              {stats.feature_insights.credit_amount && (
-                <div className="border-l-4 border-green-600 pl-4">
-                  <h3 className="font-semibold text-lg mb-3">Credit Amount</h3>
-                  <p className="text-gray-700 text-sm mb-1">
-                    <strong>Range:</strong> {stats.feature_insights.credit_amount.smallest_dm.toLocaleString()} - {stats.feature_insights.credit_amount.largest_dm.toLocaleString()} DM
-                  </p>
-                  <p className="text-gray-700 text-sm mb-1">
-                    <strong>Average:</strong> {stats.feature_insights.credit_amount.average_dm.toLocaleString()} DM
-                  </p>
-                  <p className="text-gray-700 text-sm">
-                    <strong>Median:</strong> {stats.feature_insights.credit_amount.median_dm.toLocaleString()} DM
-                  </p>
-                </div>
-              )}
+              <div className="border-l-4 border-green-600 pl-4">
+                <h3 className="font-semibold text-lg mb-3">Average Credit Amount</h3>
+                <p className="text-gray-700 text-sm mb-1">
+                  <strong>Good Credit:</strong> {stats.key_insights?.avg_amount_good?.toLocaleString() || 'N/A'} DM
+                </p>
+                <p className="text-gray-700 text-sm">
+                  <strong>Bad Credit:</strong> {stats.key_insights?.avg_amount_bad?.toLocaleString() || 'N/A'} DM
+                </p>
+              </div>
               
-              {stats.feature_insights.duration && (
-                <div className="border-l-4 border-purple-600 pl-4">
-                  <h3 className="font-semibold text-lg mb-3">Loan Duration</h3>
-                  <p className="text-gray-700 text-sm mb-1">
-                    <strong>Range:</strong> {stats.feature_insights.duration.shortest_months} - {stats.feature_insights.duration.longest_months} months
-                  </p>
-                  <p className="text-gray-700 text-sm">
-                    <strong>Average:</strong> {stats.feature_insights.duration.average_months.toFixed(1)} months
-                  </p>
-                </div>
-              )}
+              <div className="border-l-4 border-purple-600 pl-4">
+                <h3 className="font-semibold text-lg mb-3">Average Duration</h3>
+                <p className="text-gray-700 text-sm mb-1">
+                  <strong>Good Credit:</strong> {stats.key_insights?.avg_duration_good?.toFixed(1) || 'N/A'} months
+                </p>
+                <p className="text-gray-700 text-sm">
+                  <strong>Bad Credit:</strong> {stats.key_insights?.avg_duration_bad?.toFixed(1) || 'N/A'} months
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {stats?.data_quality && (
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Data Quality</h2>
-            <div className="space-y-3">
-              <p className="text-gray-700">
-                <strong>Missing Values:</strong> {typeof stats.data_quality.missing_values === 'string' 
-                  ? stats.data_quality.missing_values 
-                  : 'Some missing values detected'}
-              </p>
-              <p className="text-gray-700">
-                <strong>Duplicate Records:</strong> {stats.data_quality.duplicates}
-              </p>
-            </div>
-          </div>
-        )}
 
         {!loading && !error && images.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
