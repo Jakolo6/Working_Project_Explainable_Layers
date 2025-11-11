@@ -229,7 +229,7 @@ export default function DatasetPage() {
               </div>
             </div>
             
-            {stats.dataset_info.bias_features_excluded.length > 0 && (
+            {stats.dataset_info.bias_features_excluded?.length > 0 && (
               <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4">
                 <p className="text-sm font-semibold text-blue-900 mb-2">Bias Prevention</p>
                 <p className="text-sm text-blue-800">
