@@ -1,8 +1,31 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: 100% COMPLETE & REFACTORED**  
-> ✅ Backend refactored to use cleaned dataset | ✅ No Axx mappings | ✅ Notebook-trained models  
-> 📅 Last Updated: November 11, 2025
+> 🎉 **PROJECT STATUS: LOCAL-FIRST REFACTORING COMPLETE**  
+> ✅ Local-first workflow | ✅ Manual R2 upload | ✅ Simplified backend | ✅ Clean codebase  
+> 📅 Last Updated: November 11, 2025 (11:52 PM)
+
+---
+
+## 🔄 **Major Update: Local-First Approach** (Nov 11, 2025)
+
+**What Changed:**
+- ❌ Removed all backend upload scripts (download, clean, generate-eda, train)
+- ✅ Added local scripts: `eda_local.py` and `train_models_local.py`
+- ✅ Simplified admin API to only serve data from R2
+- ✅ Updated admin page with manual upload instructions
+- ✅ Cleaner, more transparent, professor-friendly workflow
+
+**New Workflow:**
+1. Run `python eda_local.py` locally (~30 seconds)
+2. Run `python train_models_local.py` locally (~2-3 minutes)
+3. Manually upload `data/eda/*` and `data/models/*` to R2
+4. Frontend automatically loads from R2
+
+**Benefits:**
+- Reproducible (same inputs = same outputs)
+- Transparent (review all files before upload)
+- No cloud dependencies (run offline)
+- Source code included in JSON for professor review
 
 ---
 
@@ -13,7 +36,10 @@
 **Storage:** Cloudflare R2  
 **Deployment:** Railway (backend) + Netlify (frontend)
 
-**Data Pipeline:**
+**Data Pipeline (Local-First):**
+- Local scripts generate EDA and train models
+- Manual upload to R2 bucket
+- Backend serves data from R2
 - Cleaned dataset with human-readable column names (no Axx codes)
 - Notebook-trained models (XGBoost + Logistic Regression)
 - Preprocessing matches Model_Training.ipynb exactly
