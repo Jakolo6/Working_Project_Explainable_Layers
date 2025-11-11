@@ -441,7 +441,7 @@ export default function ModelPage() {
         )}
 
         {/* Training Process Tab */}
-        {activeTab === 'training' && trainingDocs && (
+        {activeTab === 'training' && trainingDocs?.overview && (
           <div className="space-y-8">
             {/* Overview */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8">
