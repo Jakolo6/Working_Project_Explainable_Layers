@@ -99,7 +99,8 @@ export default function DatasetPage() {
     try {
       setLoading(true)
       setError(null)
-      const [statsData, imagesData] = await Promise.all([fetchStats(), fetchImages()])
+      const statsData = await fetchStats()
+      const imagesData = fetchImages() // Not async, just returns array
       setStats(statsData)
       setImages(imagesData)
     } catch (err) {
