@@ -1,17 +1,23 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: 100% COMPLETE & PRODUCTION READY**  
-> ✅ All features implemented | ✅ Deployed to production | ✅ Ready for data collection  
-> 📅 Completed: November 2, 2025
+> 🎉 **PROJECT STATUS: 100% COMPLETE & REFACTORED**  
+> ✅ Backend refactored to use cleaned dataset | ✅ No Axx mappings | ✅ Notebook-trained models  
+> 📅 Last Updated: November 11, 2025
 
 ---
 
 ## 1. Architecture Summary
 **Frontend:** Next.js 14 + TypeScript + TailwindCSS  
-**Backend:** FastAPI + Python 3.13  
+**Backend:** FastAPI + Python 3.11  
 **Database:** Supabase (PostgreSQL)  
 **Storage:** Cloudflare R2  
 **Deployment:** Railway (backend) + Netlify (frontend)
+
+**Data Pipeline:**
+- Cleaned dataset with human-readable column names (no Axx codes)
+- Notebook-trained models (XGBoost + Logistic Regression)
+- Preprocessing matches Model_Training.ipynb exactly
+- Feature engineering: 7 base + 5 engineered numerical features + 11 categorical features
 
 **Experimental Design:**
 - 3 Personas (Maria, Jonas, Sofia)
@@ -22,20 +28,30 @@
 
 ## 2. Implemented Features
 
-### Backend (Complete)
-- [x] **Preprocessing Pipeline** - `GermanCreditPreprocessor` class
-  - Excludes bias features (personal_status, foreign_worker)
-  - Handles categorical encoding with LabelEncoder
-  - Standardizes numerical features with StandardScaler
-  - Remaps target labels [1,2] → [0,1] for sklearn compatibility
-  - Reusable for both training and prediction
-- [x] **Feature Mapping System** - `FeatureMappings` class
-  - Translates human-readable inputs to symbolic codes (A11, A12, etc.)
-  - Threshold-based mappings (e.g., 150 DM → A12)
-  - Validation logic for all 18 features
-  - Provides feature options for frontend forms
-- [x] **XGBoost Model** - Credit risk classifier with SHAP explanations
-- [x] **Logistic Regression Model** - Alternative classifier for comparison
+### Backend (Complete & Refactored - Nov 11, 2025)
+- [x] **Notebook Preprocessing Pipeline** - `NotebookPreprocessor` class
+  - Matches Model_Training.ipynb exactly
+  - 7 base numerical features (duration, credit_amount, installment_commitment, residence_since, age, existing_credits, num_dependents)
+  - 5 engineered features (monthly_burden, stability_score, risk_ratio, credit_to_income_proxy, duration_risk)
+  - 11 categorical features (checking_status, credit_history, purpose, savings_status, employment, housing, job, other_debtors, property_magnitude, other_payment_plans, own_telephone)
+  - Logistic: StandardScaler + OneHotEncoder(drop='first')
+  - XGBoost: Passthrough + OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+- [x] **Clean Dataset Pipeline** - `clean_and_upload_dataset.py`
+  - Maps Axx symbolic codes to human-readable values
+  - Creates german_credit_clean.csv in R2
+  - All 20 attributes with readable column names
+- [x] **XGBoost Service** - `xgboost_service.py`
+  - Uses notebook-trained model from R2
+  - SHAP explanations with cleaned feature names
+  - No Axx mapping logic
+- [x] **Logistic Regression Service** - `logistic_service.py`
+  - Uses notebook-trained model from R2
+  - Coefficient-based explanations
+  - No Axx mapping logic
+- [x] **Clean Experiment API** - `experiment_clean.py`
+  - Accepts cleaned input format directly
+  - No Axx code conversion
+  - Feature schema endpoint for frontend
 - [x] **Model Training Scripts**
   - `train_model.py` - Train XGBoost
   - `train_logistic.py` - Train Logistic Regression
@@ -70,12 +86,20 @@
   - Feature importance (Logistic Regression coefficients)
   - Train/test split sizes and performance comparison
 - [x] **Admin API Endpoints**
-  - `/api/v1/admin/download-dataset` - Download German Credit data
+  - `/api/v1/admin/download-dataset` - Download German Credit data from UCI
+  - `/api/v1/admin/clean-dataset` - Clean dataset (map Axx codes to readable values)
   - `/api/v1/admin/generate-eda` - Generate EDA visualizations
   - `/api/v1/admin/train-model` - Train both models
   - `/api/v1/admin/eda-stats` - Serve EDA statistics JSON
   - `/api/v1/admin/model-metrics` - Serve model training metrics
   - `/api/v1/admin/dashboard-stats` - Aggregate experiment results for dashboard
+- [x] **Experiment API Endpoints** (Clean Format)
+  - `/api/v1/experiment/feature-schema` - Get feature schema for frontend
+  - `/api/v1/experiment/session` - Create experiment session
+  - `/api/v1/experiment/predict` - Make prediction with explanation
+  - `/api/v1/experiment/rate-layer` - Submit layer rating
+  - `/api/v1/experiment/post-questionnaire` - Submit questionnaire
+  - `/api/v1/experiment/health` - Check model status
 
 ### Database (Complete)
 - [x] `sessions` table - participant demographics and session tracking
@@ -105,10 +129,13 @@
   - Train/test performance comparison
   - Fetches real data from `/api/v1/admin/model-metrics`
 - [x] About page - Research ethics and contact information
-- [x] **Admin page** - Setup buttons for project initialization
-  - Download dataset from UCI (not Kaggle)
-  - Generate EDA visualizations
-  - Train both models (XGBoost + Logistic Regression)
+- [x] **Admin page** - Complete setup and testing interface
+  - 0. Clear R2 Bucket (danger zone with confirmation)
+  - 1. Download dataset from UCI
+  - 2. Clean dataset (map Axx codes)
+  - 3. Generate EDA visualizations
+  - 4. Train both models
+  - 5. Test notebook models (health check)
 - [x] **EDA Visualizations Display** - Show 7 charts on dataset page
 - [x] **Results Dashboard** - Researcher analytics page
   - Total sessions and completion rates
@@ -144,7 +171,20 @@
 
 ## 3. Project Status
 
-### ✅ COMPLETED (Nov 2, 2025)
+### ✅ REFACTORING COMPLETED (Nov 11, 2025)
+- ✅ **Backend refactored** to use cleaned dataset format
+- ✅ **Removed all Axx mapping logic** (~1,500 lines)
+- ✅ **New preprocessing module** matching Model_Training.ipynb
+- ✅ **New model services** (XGBoost + Logistic) using notebook models
+- ✅ **New experiment API** with clean input format
+- ✅ **Admin page updated** with clean dataset and test models buttons
+- ✅ **Database methods added** for new API endpoints
+- ✅ **Main router updated** to use clean experiment API
+- ✅ **Documentation created**:
+  - REFACTORING_SUMMARY.md (complete refactoring guide)
+  - ADMIN_PAGE_GUIDE.md (admin panel usage)
+
+### ✅ ORIGINAL COMPLETION (Nov 2, 2025)
 - ✅ Database schema deployed to Supabase (all 6 tables)
 - ✅ Backend deployed to Railway with all environment variables
 - ✅ Frontend deployed to Netlify and live
@@ -174,12 +214,15 @@
 8. ✅ Thank you page
 
 **Admin Tools:**
-1. ✅ Download dataset from UCI
-2. ✅ Generate EDA visualizations
-3. ✅ Train both models (XGBoost + Logistic Regression)
-4. ✅ View dataset statistics
-5. ✅ View model metrics
-6. ✅ View aggregated results dashboard
+1. ✅ Clear R2 bucket (danger zone)
+2. ✅ Download dataset from UCI
+3. ✅ Clean dataset (map Axx codes)
+4. ✅ Generate EDA visualizations
+5. ✅ Train both models (XGBoost + Logistic Regression)
+6. ✅ Test notebook models (health check)
+7. ✅ View dataset statistics
+8. ✅ View model metrics
+9. ✅ View aggregated results dashboard
 
 **Data Collection:**
 - ✅ All responses stored in Supabase
