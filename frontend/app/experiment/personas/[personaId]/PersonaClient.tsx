@@ -165,6 +165,11 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
         own_telephone: mapValue(application.telephone)
       }
       
+      console.log('=== MAPPING DEBUG ===')
+      console.log('Original application:', application)
+      console.log('Mapped application:', mappedApplication)
+      console.log('Data types:', Object.entries(mappedApplication).map(([k, v]) => `${k}: ${typeof v} = ${v}`))
+      
       const payload = {
         session_id: sessionId,
         persona_id: personaId,
