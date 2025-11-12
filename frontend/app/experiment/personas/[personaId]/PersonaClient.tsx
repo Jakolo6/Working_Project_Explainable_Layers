@@ -59,16 +59,16 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
   // Map frontend values to exact backend expected values
   const VALUE_MAPPING: Record<string, string> = {
     // Checking account status
-    'less than 0 DM': 'negative_balance',
-    '0 to 200 DM': '0_to_200_dm',
-    '200 DM or more': '200_or_more_dm',
+    'less than 0 dm': 'negative_balance',
+    '0 to 200 dm': '0_to_200_dm',
+    '200 dm or more': '200_or_more_dm',
     'no checking account': 'no_checking_account',
     
     // Savings account
-    'less than 100 DM': 'lt_100_dm',
-    '100 to 500 DM': '100_to_500_dm',
-    '500 to 1000 DM': '500_to_1000_dm',
-    '1000 DM or more': 'ge_1000_dm',
+    'less than 100 dm': 'lt_100_dm',
+    '100 to 500 dm': '100_to_500_dm',
+    '500 to 1000 dm': '500_to_1000_dm',
+    '1000 dm or more': 'ge_1000_dm',
     'unknown': 'unknown_no_savings',
     
     // Credit history
