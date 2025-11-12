@@ -348,35 +348,40 @@ async def rate_explanation_layer(request: dict):
     try:
         print(f"[DEBUG] Received rating data: {request}")
         
-        # Validate required fields
-        required_fields = ['session_id', 'layer_type', 'trust', 'understanding', 'usefulness', 'mental_effort']
-        missing_fields = [f for f in required_fields if f not in request]
-        if missing_fields:
-            raise HTTPException(
-                status_code=422, 
-                detail=f"Missing required fields: {missing_fields}. Received: {list(request.keys())}"
-            )
-        
-        _, _, db = get_services()
-        
+        # Map frontend fields to backend fields
         rating_record = {
-            'session_id': request['session_id'],
-            'layer_type': request['layer_type'],
-            'trust': int(request['trust']),
-            'understanding': int(request['understanding']),
-            'usefulness': int(request['usefulness']),
-            'mental_effort': int(request['mental_effort']),
-            'created_at': datetime.utcnow().isoformat()
+            'session_id': request.get('session_id'),
+            'persona_id': request.get('persona_id'),
+            'layer_number': request.get('layer_number'),
+            'layer_name': request.get('layer_name'),
+            'trust_rating': int(request.get('trust_rating', 0)),
+            'understanding_rating': int(request.get('understanding_rating', 0)),
+            'usefulness_rating': int(request.get('usefulness_rating', 0)),
+            'mental_effort_rating': int(request.get('mental_effort_rating', 0)),
+            'comment': request.get('comment', ''),
+            'time_spent_seconds': int(request.get('time_spent_seconds', 0)),
+            'timestamp': datetime.utcnow().isoformat()
         }
         
+        # Validate required fields
+        if not rating_record['session_id']:
+            raise HTTPException(status_code=422, detail="session_id is required")
+        
+        _, _, db = get_services()
         result = db.store_layer_rating(rating_record)
         
-        return {"success": True, "message": "Rating submitted"}
+        if result:
+            print(f"[INFO] Rating stored successfully for session {rating_record['session_id']}")
+            return {"success": True, "message": "Rating submitted"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to store rating")
         
     except HTTPException:
         raise
     except Exception as e:
         print(f"[ERROR] Rating submission failed: {e}")
+        import traceback
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Rating submission failed: {e}")
 
 
