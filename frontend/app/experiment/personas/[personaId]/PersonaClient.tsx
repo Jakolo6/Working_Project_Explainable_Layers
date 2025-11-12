@@ -83,22 +83,22 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
       // Map frontend field names to backend field names and normalize values
       const mappedApplication = {
         checking_status: normalizeValue(application.checking_account_status),
-        duration: application.duration_months,
+        duration: Number(application.duration_months),
         credit_history: normalizeValue(application.credit_history),
         purpose: normalizeValue(application.purpose),
-        credit_amount: application.credit_amount,
+        credit_amount: Number(application.credit_amount),
         savings_status: normalizeValue(application.savings_account),
         employment: normalizeValue(application.employment_status),
-        installment_commitment: application.installment_rate,
+        installment_commitment: Number(application.installment_rate),
         other_debtors: normalizeValue(application.other_debtors),
-        residence_since: application.present_residence_since,
+        residence_since: Number(application.present_residence_since),
         property_magnitude: normalizeValue(application.property),
-        age: application.age,
+        age: Number(application.age),
         other_payment_plans: normalizeValue(application.other_installment_plans),
         housing: normalizeValue(application.housing),
-        existing_credits: application.existing_credits,
+        existing_credits: Number(application.existing_credits),
         job: normalizeValue(application.job),
-        num_dependents: application.num_dependents,
+        num_dependents: Number(application.num_dependents),
         own_telephone: normalizeValue(application.telephone)
       }
       
