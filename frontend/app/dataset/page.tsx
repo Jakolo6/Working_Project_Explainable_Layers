@@ -419,9 +419,11 @@ export default function DatasetPage() {
                   </p>
                 </div>
                 {images.filter(img => img.filename.includes('numerical')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
+                    </a>
                   </div>
                 ))}
               </div>
@@ -436,9 +438,11 @@ export default function DatasetPage() {
                   </p>
                 </div>
                 {images.filter(img => img.filename.includes('categorical')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
+                    </a>
                   </div>
                 ))}
               </div>
@@ -453,9 +457,11 @@ export default function DatasetPage() {
                   </p>
                 </div>
                 {images.filter(img => img.filename.includes('importance') || img.filename.includes('outcome')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded" />
+                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
+                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
+                    </a>
                   </div>
                 ))}
                 
