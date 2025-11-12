@@ -313,8 +313,7 @@ async def predict_persona(request: dict):
         prediction_id = str(uuid.uuid4())
         
         # Store prediction
-        prediction_record = {
-            'session_id': session_id,
+        prediction_data = {
             'persona_id': persona_id,
             'application_data': application_data,
             'prediction': prediction_result['decision'],
@@ -322,7 +321,7 @@ async def predict_persona(request: dict):
             'prediction_id': prediction_id,
             'created_at': datetime.utcnow().isoformat()
         }
-        db.store_prediction(prediction_record)
+        db.store_prediction(session_id, prediction_data)
         
         return {
             'decision': prediction_result['decision'],
