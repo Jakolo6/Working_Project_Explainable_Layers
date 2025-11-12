@@ -30,6 +30,32 @@ class XGBoostService:
             'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
             '4_to_7_years': 5.5, 'ge_7_years': 10
         }
+        # Human-readable feature names
+        self.FEATURE_NAMES = {
+            'duration': 'Loan Duration (months)',
+            'credit_amount': 'Credit Amount',
+            'installment_commitment': 'Installment Rate',
+            'residence_since': 'Years at Residence',
+            'age': 'Age',
+            'existing_credits': 'Existing Credits',
+            'num_dependents': 'Number of Dependents',
+            'monthly_burden': 'Monthly Payment Burden',
+            'stability_score': 'Financial Stability Score',
+            'risk_ratio': 'Credit Risk Ratio',
+            'credit_to_income_proxy': 'Credit to Income Ratio',
+            'duration_risk': 'Duration Risk Score',
+            'checking_status': 'Checking Account Status',
+            'credit_history': 'Credit History',
+            'purpose': 'Loan Purpose',
+            'savings_status': 'Savings Account Status',
+            'employment': 'Employment Duration',
+            'other_debtors': 'Other Debtors/Guarantors',
+            'property_magnitude': 'Property Ownership',
+            'other_payment_plans': 'Other Payment Plans',
+            'housing': 'Housing Status',
+            'job': 'Job Type',
+            'own_telephone': 'Telephone Registration'
+        }
         
     def _create_s3_client(self):
         """Create S3 client for R2"""
@@ -133,12 +159,15 @@ class XGBoostService:
         if self.model is None:
             raise ValueError("Model not loaded")
         
-        # Engineer features
-        df = self._engineer_features(user_input)
+        # Engineer features and keep original values
+        df_engineered = self._engineer_features(user_input)
+        
+        # Store original values for display
+        original_values = df_engineered.iloc[0].to_dict()
         
         # Transform using model's pipeline preprocessor
-        X_transformed = self.model.named_steps['preprocess'].transform(df)
-        X_transformed = pd.DataFrame(
+        X_transformed = self.model.named_steps['preprocess'].transform(df_engineered)
+        X_transformed_df = pd.DataFrame(
             X_transformed,
             columns=self.model.named_steps['preprocess'].get_feature_names_out()
         )
@@ -148,10 +177,10 @@ class XGBoostService:
             self.explainer = shap.TreeExplainer(self.model.named_steps['model'])
         
         # Calculate SHAP values
-        shap_values = self.explainer.shap_values(X_transformed)
+        shap_values = self.explainer.shap_values(X_transformed_df)
         
-        # Get feature names
-        feature_names = list(X_transformed.columns)
+        # Get encoded feature names
+        encoded_feature_names = list(X_transformed_df.columns)
         
         # Get SHAP values for bad credit class (class 1)
         if isinstance(shap_values, list):
@@ -159,22 +188,23 @@ class XGBoostService:
         else:
             shap_values_bad = shap_values[0]
         
-        # Create feature contributions
+        # Create feature contributions with human-readable names and original values
         contributions = []
-        for i, (feat, shap_val) in enumerate(zip(feature_names, shap_values_bad)):
-            try:
-                feat_val = X_transformed.iloc[0, i]
-                feat_val_float = float(feat_val)
-            except (ValueError, TypeError) as e:
-                print(f"[ERROR] Cannot convert feature '{feat}' value '{feat_val}' (type: {type(feat_val)}) to float: {e}")
-                print(f"[DEBUG] X_transformed dtypes: {X_transformed.dtypes.to_dict()}")
-                print(f"[DEBUG] X_transformed values: {X_transformed.iloc[0].to_dict()}")
-                raise
+        for i, (encoded_feat, shap_val) in enumerate(zip(encoded_feature_names, shap_values_bad)):
+            # Extract original feature name (remove 'num__' or 'cat__' prefix)
+            original_feat = encoded_feat.replace('num__', '').replace('cat__', '')
+            
+            # Get human-readable name
+            display_name = self.FEATURE_NAMES.get(original_feat, original_feat)
+            
+            # Get original value (before encoding)
+            original_value = original_values.get(original_feat, X_transformed_df.iloc[0, i])
             
             contributions.append({
-                'feature': feat,
+                'feature': display_name,
+                'feature_key': original_feat,
                 'shap_value': float(shap_val),
-                'feature_value': feat_val_float,
+                'feature_value': original_value,
                 'impact': 'increases_risk' if shap_val > 0 else 'decreases_risk'
             })
         
