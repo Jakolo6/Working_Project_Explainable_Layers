@@ -304,7 +304,7 @@ async def predict_persona(request: dict):
         for feat in shap_explanation['top_features']:
             shap_features.append({
                 'feature': feat['feature'],
-                'value': str(feat['value']),
+                'value': str(feat['feature_value']),
                 'shap_value': feat['shap_value'],
                 'impact': 'positive' if feat['shap_value'] > 0 else 'negative'
             })
