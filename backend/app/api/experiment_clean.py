@@ -136,6 +136,14 @@ class PostQuestionnaire(BaseModel):
     comments: Optional[str] = None
 
 
+class PreExperimentResponse(BaseModel):
+    """Pre-experiment questionnaire"""
+    session_id: str
+    expectation_ai_decision: int = Field(..., ge=1, le=5)
+    expectation_fair_explanation: int = Field(..., ge=1, le=5)
+    expectation_role_explanations: str
+
+
 # ============================================================================
 # ENDPOINTS
 # ============================================================================
@@ -356,18 +364,86 @@ async def submit_post_questionnaire(questionnaire: PostQuestionnaire):
             'would_trust_ai': questionnaire.would_trust_ai,
             'preferred_layer': questionnaire.preferred_layer,
             'comments': questionnaire.comments,
-            'created_at': datetime.utcnow().isoformat()
+            'submitted_at': datetime.utcnow().isoformat()
         }
         
         result = db.store_post_questionnaire(questionnaire_record)
-        
-        # Mark session as completed
-        db.complete_session(questionnaire.session_id)
         
         return {"success": True, "message": "Questionnaire submitted"}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Questionnaire submission failed: {e}")
+
+
+@router.post("/pre_response")
+async def submit_pre_experiment_response(response: PreExperimentResponse):
+    """Submit pre-experiment questionnaire"""
+    try:
+        _, _, db = get_services()
+        
+        response_data = {
+            'id': str(uuid.uuid4()),
+            'session_id': response.session_id,
+            'expectation_ai_decision': response.expectation_ai_decision,
+            'expectation_fair_explanation': response.expectation_fair_explanation,
+            'expectation_role_explanations': response.expectation_role_explanations,
+            'submitted_at': datetime.utcnow().isoformat()
+        }
+        
+        result = db.store_pre_experiment_response(response_data)
+        
+        return {"success": True, "message": "Pre-experiment response stored successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pre-experiment submission failed: {str(e)}")
+
+
+@router.get("/session/{session_id}")
+async def get_session(session_id: str):
+    """Retrieve session data and progress"""
+    try:
+        _, _, db = get_services()
+        
+        session_data = db.get_session(session_id)
+        
+        if not session_data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return session_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve session: {str(e)}")
+
+
+@router.post("/generate_explanation")
+async def generate_natural_language_explanation(request: dict):
+    """Generate natural language explanation (template-based, no GPT)"""
+    try:
+        decision = request.get('decision', 'unknown')
+        probability = request.get('probability', 0)
+        top_features = request.get('top_features', [])
+        
+        # Template-based explanation (no GPT API call)
+        if len(top_features) >= 3:
+            feature_names = [f['feature'].replace('_', ' ') for f in top_features[:3]]
+            explanation = f"This {decision} decision was primarily influenced by the applicant's {feature_names[0]}, {feature_names[1]}, and {feature_names[2]}. "
+            explanation += f"The model has {int(probability * 100)}% confidence in this assessment."
+        else:
+            explanation = f"The decision was {decision} with {int(probability * 100)}% confidence based on the available information."
+        
+        return {
+            "success": True,
+            "explanation": explanation
+        }
+        
+    except Exception as e:
+        # Return fallback on error
+        return {
+            "success": False,
+            "explanation": "The decision was based on multiple factors from the credit application."
+        }
 
 
 @router.get("/health")
