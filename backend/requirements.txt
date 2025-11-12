@@ -13,7 +13,7 @@ boto3==1.29.7
 # Core scientific computing (numpy first, others depend on it)
 numpy==1.26.4
 pandas==2.2.3
-scikit-learn==1.5.2
+scikit-learn==1.7.2
 joblib==1.4.2
 
 # ML models (heavy packages, install after dependencies)
