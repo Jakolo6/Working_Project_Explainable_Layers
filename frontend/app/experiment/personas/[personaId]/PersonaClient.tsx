@@ -65,10 +65,33 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      
+      // Map frontend field names to backend field names
+      const mappedApplication = {
+        checking_status: application.checking_account_status,
+        duration: application.duration_months,
+        credit_history: application.credit_history,
+        purpose: application.purpose,
+        credit_amount: application.credit_amount,
+        savings_status: application.savings_account,
+        employment: application.employment_status,
+        installment_commitment: application.installment_rate,
+        other_debtors: application.other_debtors,
+        residence_since: application.present_residence_since,
+        property_magnitude: application.property,
+        age: application.age,
+        other_payment_plans: application.other_installment_plans,
+        housing: application.housing,
+        existing_credits: application.existing_credits,
+        job: application.job,
+        num_dependents: application.num_dependents,
+        own_telephone: application.telephone
+      }
+      
       const payload = {
         session_id: sessionId,
         persona_id: personaId,
-        application_data: application
+        application_data: mappedApplication
       }
       console.log('Sending prediction request:', payload)
       
