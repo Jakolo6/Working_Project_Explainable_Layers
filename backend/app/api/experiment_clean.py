@@ -348,7 +348,7 @@ async def rate_explanation_layer(request: dict):
     try:
         print(f"[DEBUG] Received rating data: {request}")
         
-        # Map frontend fields to backend fields
+        # Map frontend fields to backend fields (Supabase will auto-generate created_at)
         rating_record = {
             'session_id': request.get('session_id'),
             'persona_id': request.get('persona_id'),
@@ -359,8 +359,7 @@ async def rate_explanation_layer(request: dict):
             'usefulness_rating': int(request.get('usefulness_rating', 0)),
             'mental_effort_rating': int(request.get('mental_effort_rating', 0)),
             'comment': request.get('comment', ''),
-            'time_spent_seconds': int(request.get('time_spent_seconds', 0)),
-            'timestamp': datetime.utcnow().isoformat()
+            'time_spent_seconds': int(request.get('time_spent_seconds', 0))
         }
         
         # Validate required fields
