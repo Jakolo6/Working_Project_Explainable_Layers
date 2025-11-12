@@ -82,6 +82,17 @@ class NotebookPreprocessor:
         """
         df = df.copy()
         
+        # Debug: Check data types before engineering
+        print(f"[DEBUG] Data types before engineering: {df.dtypes.to_dict()}")
+        print(f"[DEBUG] Sample values: {df.iloc[0].to_dict()}")
+        
+        # Ensure numerical columns are numeric
+        num_cols = ['duration', 'credit_amount', 'installment_commitment', 'residence_since', 
+                    'age', 'existing_credits', 'num_dependents']
+        for col in num_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
         # Map employment to years
         df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
         
