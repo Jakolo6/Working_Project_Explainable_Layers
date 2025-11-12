@@ -242,16 +242,17 @@ async def predict_credit(request: PredictionRequest):
                 ]
             }
         
-        # Store prediction in database
-        prediction_record = {
-            'session_id': request.session_id,
-            'application_data': user_input,
-            'prediction': prediction_result['decision'],
-            'confidence': prediction_result['confidence'],
+        # Store prediction in database with correct keys
+        prediction_data = {
+            'decision': prediction_result['decision'],
+            'probability': prediction_result['confidence'],
             'explanation_layer': request.explanation_layer,
-            'created_at': datetime.utcnow().isoformat()
+            'explanation': {
+                'explanation_data': explanation,
+                'application_data': user_input
+            }
         }
-        db.store_prediction(prediction_record)
+        db.store_prediction(request.session_id, prediction_data)
         
         return PredictionResponse(
             decision=prediction_result['decision'],
@@ -312,14 +313,17 @@ async def predict_persona(request: dict):
         # Generate prediction ID
         prediction_id = str(uuid.uuid4())
         
-        # Store prediction
+        # Store prediction with correct keys matching Supabase schema
         prediction_data = {
-            'persona_id': persona_id,
-            'application_data': application_data,
-            'prediction': prediction_result['decision'],
-            'confidence': prediction_result['confidence'],
-            'prediction_id': prediction_id,
-            'created_at': datetime.utcnow().isoformat()
+            'decision': prediction_result['decision'],
+            'probability': prediction_result['confidence'],
+            'explanation_layer': 'shap',  # Default layer for XGBoost predictions
+            'explanation': {
+                'shap_features': shap_features,
+                'prediction_id': prediction_id,
+                'persona_id': persona_id,
+                'application_data': application_data
+            }
         }
         db.store_prediction(session_id, prediction_data)
         

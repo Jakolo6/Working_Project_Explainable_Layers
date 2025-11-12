@@ -26,6 +26,14 @@ class SupabaseService:
     
     def store_prediction(self, session_id: str, prediction_data: Dict) -> bool:
         """Store prediction results for a session"""
+        # Validate required keys
+        required_keys = ['decision', 'probability', 'explanation_layer', 'explanation']
+        missing_keys = [key for key in required_keys if key not in prediction_data]
+        if missing_keys:
+            print(f"[ERROR] Missing required keys in prediction_data: {missing_keys}")
+            print(f"[ERROR] Received prediction_data: {prediction_data}")
+            return False
+        
         data = {
             'session_id': session_id,
             'decision': prediction_data['decision'],
@@ -37,9 +45,11 @@ class SupabaseService:
         
         try:
             self.client.table('predictions').insert(data).execute()
+            print(f"[INFO] Prediction stored successfully for session {session_id}")
             return True
         except Exception as e:
-            print(f"Error storing prediction: {e}")
+            print(f"[ERROR] Error storing prediction: {e}")
+            print(f"[ERROR] Data attempted to store: {data}")
             return False
     
     def store_participant_response(self, response_data: Dict) -> Optional[str]:
