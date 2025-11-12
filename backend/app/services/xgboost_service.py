@@ -161,10 +161,19 @@ class XGBoostService:
         # Create feature contributions
         contributions = []
         for i, (feat, shap_val) in enumerate(zip(feature_names, shap_values_bad)):
+            try:
+                feat_val = X_transformed.iloc[0, i]
+                feat_val_float = float(feat_val)
+            except (ValueError, TypeError) as e:
+                print(f"[ERROR] Cannot convert feature '{feat}' value '{feat_val}' (type: {type(feat_val)}) to float: {e}")
+                print(f"[DEBUG] X_transformed dtypes: {X_transformed.dtypes.to_dict()}")
+                print(f"[DEBUG] X_transformed values: {X_transformed.iloc[0].to_dict()}")
+                raise
+            
             contributions.append({
                 'feature': feat,
                 'shap_value': float(shap_val),
-                'feature_value': float(X_transformed.iloc[0, i]),
+                'feature_value': feat_val_float,
                 'impact': 'increases_risk' if shap_val > 0 else 'decreases_risk'
             })
         
