@@ -343,18 +343,29 @@ async def predict_persona(request: dict):
 
 
 @router.post("/rate-layer")
-async def rate_explanation_layer(rating: LayerRating):
+async def rate_explanation_layer(request: dict):
     """Submit rating for explanation layer"""
     try:
+        print(f"[DEBUG] Received rating data: {request}")
+        
+        # Validate required fields
+        required_fields = ['session_id', 'layer_type', 'trust', 'understanding', 'usefulness', 'mental_effort']
+        missing_fields = [f for f in required_fields if f not in request]
+        if missing_fields:
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Missing required fields: {missing_fields}. Received: {list(request.keys())}"
+            )
+        
         _, _, db = get_services()
         
         rating_record = {
-            'session_id': rating.session_id,
-            'layer_type': rating.layer_type,
-            'trust': rating.trust,
-            'understanding': rating.understanding,
-            'usefulness': rating.usefulness,
-            'mental_effort': rating.mental_effort,
+            'session_id': request['session_id'],
+            'layer_type': request['layer_type'],
+            'trust': int(request['trust']),
+            'understanding': int(request['understanding']),
+            'usefulness': int(request['usefulness']),
+            'mental_effort': int(request['mental_effort']),
             'created_at': datetime.utcnow().isoformat()
         }
         
@@ -362,7 +373,10 @@ async def rate_explanation_layer(rating: LayerRating):
         
         return {"success": True, "message": "Rating submitted"}
         
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"[ERROR] Rating submission failed: {e}")
         raise HTTPException(status_code=500, detail=f"Rating submission failed: {e}")
 
 
