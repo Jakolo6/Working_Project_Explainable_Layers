@@ -22,8 +22,12 @@ class LogisticService:
     
     def __init__(self, config):
         self.config = config
-        self.model = None
-        self.preprocessor = NotebookPreprocessor(model_type='logistic')
+        self.model = None  # This is a Pipeline with preprocessing built-in
+        # Employment mapping for feature engineering
+        self.EMPLOYMENT_YEARS_MAP = {
+            'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
+            '4_to_7_years': 5.5, 'ge_7_years': 10
+        }
         
     def _create_s3_client(self):
         """Create S3 client for R2"""
@@ -37,30 +41,20 @@ class LogisticService:
     def load_model_from_r2(self):
         """
         Load notebook-trained Logistic Regression model from R2.
-        Model was trained with NotebookPreprocessor pipeline.
+        Model is a Pipeline with preprocessing built-in.
         """
         s3 = self._create_s3_client()
         
         try:
-            # Load model
+            # Load model (it's a Pipeline with preprocessing)
             obj = s3.get_object(
                 Bucket=self.config.r2_bucket_name,
                 Key='models/logistic_model.pkl'
             )
             self.model = joblib.load(BytesIO(obj['Body'].read()))
             
-            # Load cleaned dataset to fit preprocessor
-            obj = s3.get_object(
-                Bucket=self.config.r2_bucket_name,
-                Key='data/german_credit_clean.csv'
-            )
-            df = pd.read_csv(BytesIO(obj['Body'].read()))
-            
-            # Fit preprocessor on full dataset (same as notebook)
-            self.preprocessor.fit(df)
-            
             print("✓ Logistic Regression model loaded from R2")
-            print(f"✓ Preprocessor fitted on {len(df)} samples")
+            print(f"  Model type: {type(self.model).__name__}")
             
         except Exception as e:
             raise RuntimeError(f"Failed to load Logistic Regression model: {e}")
@@ -103,12 +97,12 @@ class LogisticService:
         if errors:
             raise ValueError(f"Invalid input: {errors}")
         
-        # Preprocess input
-        X_transformed = self.preprocessor.prepare_single_input(user_input)
+        # Engineer features (model pipeline will handle encoding)
+        df = self._engineer_features(user_input)
         
-        # Make prediction
-        prediction = self.model.predict(X_transformed)[0]
-        probabilities = self.model.predict_proba(X_transformed)[0]
+        # Make prediction (model is a Pipeline, will preprocess internally)
+        prediction = self.model.predict(df)[0]
+        probabilities = self.model.predict_proba(df)[0]
         
         # Map prediction (0 = good credit, 1 = bad credit)
         decision = "approved" if prediction == 0 else "rejected"
@@ -123,6 +117,25 @@ class LogisticService:
             'model': 'logistic'
         }
     
+    def _engineer_features(self, user_input: Dict[str, Any]) -> pd.DataFrame:
+        """
+        Engineer features from user input.
+        Model pipeline will handle encoding.
+        """
+        df = pd.DataFrame([user_input])
+        
+        # Map employment to years
+        df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
+        
+        # Create engineered features
+        df['monthly_burden'] = df['credit_amount'] / df['duration']
+        df['stability_score'] = df['age'] * df['employment_years']
+        df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
+        df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
+        df['duration_risk'] = df['duration'] * df['credit_amount']
+        
+        return df
+    
     def get_coefficients(self, top_n: int = 15) -> Dict[str, float]:
         """
         Get model coefficients (feature importance for linear models).
@@ -136,8 +149,9 @@ class LogisticService:
         if self.model is None:
             raise ValueError("Model not loaded")
         
-        feature_names = self.preprocessor.get_feature_names()
-        coefficients = self.model.coef_[0]  # Get coefficients for bad credit class
+        # Get feature names from pipeline
+        feature_names = list(self.model.named_steps['preprocess'].get_feature_names_out())
+        coefficients = self.model.named_steps['model'].coef_[0]  # Get coefficients for bad credit class
         
         # Create sorted dictionary by absolute value
         coef_dict = dict(zip(feature_names, coefficients))
@@ -161,12 +175,19 @@ class LogisticService:
         if self.model is None:
             raise ValueError("Model not loaded")
         
-        # Preprocess input
-        X_transformed = self.preprocessor.prepare_single_input(user_input)
+        # Engineer features
+        df = self._engineer_features(user_input)
+        
+        # Transform using model's pipeline preprocessor
+        X_transformed = self.model.named_steps['preprocess'].transform(df)
+        X_transformed = pd.DataFrame(
+            X_transformed.toarray() if hasattr(X_transformed, 'toarray') else X_transformed,
+            columns=self.model.named_steps['preprocess'].get_feature_names_out()
+        )
         
         # Get feature names and coefficients
-        feature_names = self.preprocessor.get_feature_names()
-        coefficients = self.model.coef_[0]
+        feature_names = list(X_transformed.columns)
+        coefficients = self.model.named_steps['model'].coef_[0]
         
         # Calculate contributions (coefficient * feature_value)
         contributions = []
@@ -186,7 +207,7 @@ class LogisticService:
         contributions.sort(key=lambda x: abs(x['contribution']), reverse=True)
         
         # Get intercept
-        intercept = float(self.model.intercept_[0])
+        intercept = float(self.model.named_steps['model'].intercept_[0])
         
         return {
             'top_features': contributions[:num_features],
