@@ -130,10 +130,15 @@ class SupabaseService:
     def store_layer_rating(self, rating_data: Dict) -> bool:
         """Store layer rating from experiment"""
         try:
-            self.client.table('layer_ratings').insert(rating_data).execute()
+            print(f"[DEBUG] Attempting to store layer rating: {rating_data}")
+            response = self.client.table('layer_ratings').insert(rating_data).execute()
+            print(f"[INFO] Layer rating stored successfully")
             return True
         except Exception as e:
-            print(f"Error storing layer rating: {e}")
+            print(f"[ERROR] Error storing layer rating: {e}")
+            print(f"[ERROR] Rating data: {rating_data}")
+            import traceback
+            print(f"[ERROR] Traceback: {traceback.format_exc()}")
             return False
     
     def store_post_questionnaire(self, questionnaire_data: Dict) -> bool:
