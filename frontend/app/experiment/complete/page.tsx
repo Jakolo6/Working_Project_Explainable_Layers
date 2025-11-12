@@ -50,7 +50,7 @@ export default function CompletePage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const response = await fetch(`${apiUrl}/api/v1/experiment/submit_post_questionnaire`, {
+      const response = await fetch(`${apiUrl}/api/v1/experiment/post-questionnaire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

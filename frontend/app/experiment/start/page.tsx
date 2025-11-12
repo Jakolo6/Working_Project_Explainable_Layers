@@ -66,7 +66,7 @@ export default function ExperimentStartPage() {
     setSessionId('')
 
     try {
-      const response = await fetch(`${apiUrl}/api/v1/experiment/create_session`, {
+      const response = await fetch(`${apiUrl}/api/v1/experiment/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
