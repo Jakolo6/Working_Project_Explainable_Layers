@@ -56,6 +56,20 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     setApplication(prev => prev ? { ...prev, [field]: value } : null)
   }
 
+  // Normalize categorical values to backend format
+  const normalizeValue = (value: string): string => {
+    return value
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[()]/g, '')
+      .replace(/</g, 'lt_')
+      .replace(/>/g, 'gt_')
+      .replace(/≥/g, 'ge_')
+      .replace(/≤/g, 'le_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!application || !sessionId || isLocked) return
@@ -66,26 +80,26 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       
-      // Map frontend field names to backend field names
+      // Map frontend field names to backend field names and normalize values
       const mappedApplication = {
-        checking_status: application.checking_account_status,
+        checking_status: normalizeValue(application.checking_account_status),
         duration: application.duration_months,
-        credit_history: application.credit_history,
-        purpose: application.purpose,
+        credit_history: normalizeValue(application.credit_history),
+        purpose: normalizeValue(application.purpose),
         credit_amount: application.credit_amount,
-        savings_status: application.savings_account,
-        employment: application.employment_status,
+        savings_status: normalizeValue(application.savings_account),
+        employment: normalizeValue(application.employment_status),
         installment_commitment: application.installment_rate,
-        other_debtors: application.other_debtors,
+        other_debtors: normalizeValue(application.other_debtors),
         residence_since: application.present_residence_since,
-        property_magnitude: application.property,
+        property_magnitude: normalizeValue(application.property),
         age: application.age,
-        other_payment_plans: application.other_installment_plans,
-        housing: application.housing,
+        other_payment_plans: normalizeValue(application.other_installment_plans),
+        housing: normalizeValue(application.housing),
         existing_credits: application.existing_credits,
-        job: application.job,
+        job: normalizeValue(application.job),
         num_dependents: application.num_dependents,
-        own_telephone: application.telephone
+        own_telephone: normalizeValue(application.telephone)
       }
       
       const payload = {
