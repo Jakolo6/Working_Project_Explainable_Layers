@@ -290,10 +290,14 @@ async def predict_persona(request: dict):
         print(f"[DEBUG] Data types: {[(k, type(v).__name__) for k, v in application_data.items()]}")
         
         # Make prediction
+        print("[DEBUG] Starting prediction...")
         prediction_result = xgb_service.predict(application_data)
+        print(f"[DEBUG] Prediction successful: {prediction_result}")
         
         # Get SHAP explanation
+        print("[DEBUG] Starting SHAP explanation...")
         shap_explanation = xgb_service.explain_prediction(application_data, num_features=10)
+        print(f"[DEBUG] SHAP explanation successful")
         
         # Transform SHAP features to match frontend expectation
         shap_features = []
@@ -328,6 +332,10 @@ async def predict_persona(request: dict):
         }
         
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] Prediction failed with exception: {str(e)}")
+        print(f"[ERROR] Full traceback:\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
