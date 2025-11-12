@@ -285,6 +285,10 @@ async def predict_persona(request: dict):
         if not all([session_id, persona_id, application_data]):
             raise HTTPException(status_code=400, detail="Missing required fields")
         
+        # Log incoming data for debugging
+        print(f"[DEBUG] Received application_data: {application_data}")
+        print(f"[DEBUG] Data types: {[(k, type(v).__name__) for k, v in application_data.items()]}")
+        
         # Make prediction
         prediction_result = xgb_service.predict(application_data)
         

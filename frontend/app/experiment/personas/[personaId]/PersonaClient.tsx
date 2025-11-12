@@ -56,18 +56,81 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     setApplication(prev => prev ? { ...prev, [field]: value } : null)
   }
 
-  // Normalize categorical values to backend format
-  const normalizeValue = (value: string): string => {
-    return value
-      .toLowerCase()
-      .replace(/\s+/g, '_')
-      .replace(/[()]/g, '')
-      .replace(/</g, 'lt_')
-      .replace(/>/g, 'gt_')
-      .replace(/≥/g, 'ge_')
-      .replace(/≤/g, 'le_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '')
+  // Map frontend values to exact backend expected values
+  const VALUE_MAPPING: Record<string, string> = {
+    // Checking account status
+    'less than 0 DM': 'negative_balance',
+    '0 to 200 DM': '0_to_200_dm',
+    '200 DM or more': '200_or_more_dm',
+    'no checking account': 'no_checking_account',
+    
+    // Savings account
+    'less than 100 DM': 'lt_100_dm',
+    '100 to 500 DM': '100_to_500_dm',
+    '500 to 1000 DM': '500_to_1000_dm',
+    '1000 DM or more': 'ge_1000_dm',
+    'unknown': 'unknown_no_savings',
+    
+    // Credit history
+    'no credits taken': 'no_credits',
+    'all credits paid back duly': 'all_paid',
+    'existing credits paid back duly': 'existing_paid',
+    'delay in paying off': 'delay',
+    'critical account': 'critical',
+    
+    // Employment
+    'unemployed': 'unemployed',
+    'less than 1 year': 'lt_1_year',
+    '1 to 4 years': '1_to_4_years',
+    '4 to 7 years': '4_to_7_years',
+    '7 years or more': 'ge_7_years',
+    
+    // Job
+    'unemployed / unskilled': 'unemployed_or_unskilled_non_resident',
+    'unskilled': 'unskilled_resident',
+    'skilled employee': 'skilled_employee_official',
+    'management': 'management_self_employed_highly_qualified_officer',
+    
+    // Purpose
+    'car (new)': 'car_new',
+    'car (used)': 'car_used',
+    'furniture': 'furniture',
+    'radio/tv': 'radio_tv',
+    'appliances': 'appliances',
+    'repairs': 'repairs',
+    'education': 'education',
+    'retraining': 'retraining',
+    'business': 'business',
+    'others': 'others',
+    
+    // Property
+    'real estate': 'real_estate',
+    'savings agreement': 'savings_agreement_or_life_insurance',
+    'car or other': 'car_or_other',
+    'unknown / no property': 'unknown_no_property',
+    
+    // Housing
+    'rent': 'rent',
+    'own': 'own',
+    'for free': 'for_free',
+    
+    // Other debtors
+    'none': 'none',
+    'co-applicant': 'co_applicant',
+    'guarantor': 'guarantor',
+    
+    // Other payment plans
+    'bank': 'bank',
+    'stores': 'stores',
+    
+    // Telephone
+    'yes': 'yes_registered',
+    'no': 'none',
+  }
+  
+  const mapValue = (value: string): string => {
+    const normalized = value.toLowerCase().trim()
+    return VALUE_MAPPING[normalized] || normalized
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,26 +143,26 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       
-      // Map frontend field names to backend field names and normalize values
+      // Map frontend field names to backend field names and map values
       const mappedApplication = {
-        checking_status: normalizeValue(application.checking_account_status),
+        checking_status: mapValue(application.checking_account_status),
         duration: Number(application.duration_months),
-        credit_history: normalizeValue(application.credit_history),
-        purpose: normalizeValue(application.purpose),
+        credit_history: mapValue(application.credit_history),
+        purpose: mapValue(application.purpose),
         credit_amount: Number(application.credit_amount),
-        savings_status: normalizeValue(application.savings_account),
-        employment: normalizeValue(application.employment_status),
+        savings_status: mapValue(application.savings_account),
+        employment: mapValue(application.employment_status),
         installment_commitment: Number(application.installment_rate),
-        other_debtors: normalizeValue(application.other_debtors),
+        other_debtors: mapValue(application.other_debtors),
         residence_since: Number(application.present_residence_since),
-        property_magnitude: normalizeValue(application.property),
+        property_magnitude: mapValue(application.property),
         age: Number(application.age),
-        other_payment_plans: normalizeValue(application.other_installment_plans),
-        housing: normalizeValue(application.housing),
+        other_payment_plans: mapValue(application.other_installment_plans),
+        housing: mapValue(application.housing),
         existing_credits: Number(application.existing_credits),
-        job: normalizeValue(application.job),
+        job: mapValue(application.job),
         num_dependents: Number(application.num_dependents),
-        own_telephone: normalizeValue(application.telephone)
+        own_telephone: mapValue(application.telephone)
       }
       
       const payload = {
