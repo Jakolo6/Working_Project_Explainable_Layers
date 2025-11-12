@@ -260,6 +260,65 @@ async def predict_credit(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
 
 
+@router.post("/predict_persona")
+async def predict_persona(request: dict):
+    """
+    Predict for persona - returns SHAP features for all layers.
+    Frontend expects: { session_id, persona_id, application_data }
+    Returns: { decision, probability, shap_features, prediction_id }
+    """
+    try:
+        xgb_service, _, db = get_services()
+        
+        session_id = request.get('session_id')
+        persona_id = request.get('persona_id')
+        application_data = request.get('application_data')
+        
+        if not all([session_id, persona_id, application_data]):
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        # Make prediction
+        prediction_result = xgb_service.predict(application_data)
+        
+        # Get SHAP explanation
+        shap_explanation = xgb_service.explain_prediction(application_data, num_features=10)
+        
+        # Transform SHAP features to match frontend expectation
+        shap_features = []
+        for feat in shap_explanation['top_features']:
+            shap_features.append({
+                'feature': feat['feature'],
+                'value': str(feat['value']),
+                'shap_value': feat['shap_value'],
+                'impact': 'positive' if feat['shap_value'] > 0 else 'negative'
+            })
+        
+        # Generate prediction ID
+        prediction_id = str(uuid.uuid4())
+        
+        # Store prediction
+        prediction_record = {
+            'session_id': session_id,
+            'persona_id': persona_id,
+            'application_data': application_data,
+            'prediction': prediction_result['decision'],
+            'confidence': prediction_result['confidence'],
+            'prediction_id': prediction_id,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        db.store_prediction(prediction_record)
+        
+        return {
+            'decision': prediction_result['decision'],
+            'probability': prediction_result['confidence'],
+            'shap_features': shap_features,
+            'prediction_id': prediction_id
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
 @router.post("/rate-layer")
 async def rate_explanation_layer(rating: LayerRating):
     """Submit rating for explanation layer"""
