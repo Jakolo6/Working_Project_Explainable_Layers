@@ -50,8 +50,8 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
       } catch (error) {
         console.error('Error fetching GPT explanation:', error)
         // Fallback explanation
-        const fallback = `The decision was based on the applicant's ${top3Features.map(f => f.feature.toLowerCase()).join(', ')}.`
-        setGptExplanation(fallback)
+        const fallbackExplanation = `The AI ${decision} this loan application with ${(probability * 100).toFixed(1)}% confidence. The key factors were: ${top3Features.map(f => f.feature || 'Unknown Factor').join(', ')}.`
+        setGptExplanation(fallbackExplanation)
         setUseFallback(true)
       } finally {
         setIsLoading(false)

@@ -15,183 +15,92 @@ interface Layer1MinimalProps {
   shapFeatures: SHAPFeature[]
 }
 
-// Feature name mappings: technical → human-readable
+// Feature name mappings: backend names → display names
 const FEATURE_LABELS: Record<string, string> = {
-  // Checking account status
-  'Attribute1_A11': 'Checking account balance',
-  'Attribute1_A12': 'Checking account balance',
-  'Attribute1_A13': 'Checking account balance',
-  'Attribute1_A14': 'Checking account status',
-  
-  // Credit history
-  'Attribute3_A30': 'Credit history',
-  'Attribute3_A31': 'Credit history',
-  'Attribute3_A32': 'Credit history',
-  'Attribute3_A33': 'Credit history',
-  'Attribute3_A34': 'Credit history',
-  
-  // Purpose
-  'Attribute4_A40': 'Loan purpose',
-  'Attribute4_A41': 'Loan purpose',
-  'Attribute4_A42': 'Loan purpose',
-  'Attribute4_A43': 'Loan purpose',
-  'Attribute4_A44': 'Loan purpose',
-  'Attribute4_A45': 'Loan purpose',
-  'Attribute4_A46': 'Loan purpose',
-  'Attribute4_A48': 'Loan purpose',
-  'Attribute4_A49': 'Loan purpose',
-  'Attribute4_A410': 'Loan purpose',
-  
-  // Savings account
-  'Attribute6_A61': 'Savings account level',
-  'Attribute6_A62': 'Savings account level',
-  'Attribute6_A63': 'Savings account level',
-  'Attribute6_A64': 'Savings account level',
-  'Attribute6_A65': 'Savings account status',
-  
-  // Employment
-  'Attribute7_A71': 'Employment status',
-  'Attribute7_A72': 'Employment duration',
-  'Attribute7_A73': 'Employment duration',
-  'Attribute7_A74': 'Employment duration',
-  'Attribute7_A75': 'Employment duration',
-  
-  // Property
-  'Attribute12_A121': 'Property ownership',
-  'Attribute12_A122': 'Property ownership',
-  'Attribute12_A123': 'Property ownership',
-  'Attribute12_A124': 'Property status',
-  
-  // Housing
-  'Attribute15_A151': 'Housing situation',
-  'Attribute15_A152': 'Housing situation',
-  'Attribute15_A153': 'Housing situation',
-  
-  // Job
-  'Attribute17_A171': 'Employment type',
-  'Attribute17_A172': 'Employment type',
-  'Attribute17_A173': 'Employment type',
-  'Attribute17_A174': 'Employment type',
-  
-  // Numerical features
-  'Duration': 'Loan duration',
-  'Credit amount': 'Loan amount',
-  'Installment rate': 'Monthly payment burden',
-  'Present residence since': 'Residential stability',
+  // Backend returns human-readable names, map to consistent display names
+  'Loan Duration (months)': 'Loan Duration',
+  'Credit Amount': 'Credit Amount',
+  'Installment Rate': 'Monthly Payment Burden',
+  'Years at Residence': 'Residential Stability',
   'Age': 'Age',
-  'Number of existing credits': 'Existing loans',
-  'Number of people being liable to provide maintenance for': 'Number of dependents',
+  'Existing Credits': 'Existing Loans',
+  'Number of Dependents': 'Number of Dependents',
+  'Monthly Payment Burden': 'Monthly Payment Burden',
+  'Financial Stability Score': 'Financial Stability Score',
+  'Credit Risk Ratio': 'Credit Risk Ratio',
+  'Credit to Income Ratio': 'Credit to Income Ratio',
+  'Duration Risk Score': 'Duration Risk Score',
+  'Checking Account Status': 'Checking Account Status',
+  'Credit History': 'Credit History',
+  'Loan Purpose': 'Loan Purpose',
+  'Savings Account Status': 'Savings Account Status',
+  'Employment Duration': 'Employment Duration',
+  'Other Debtors/Guarantors': 'Other Debtors/Guarantors',
+  'Property Ownership': 'Property Ownership',
+  'Other Payment Plans': 'Other Payment Plans',
+  'Housing Status': 'Housing Status',
+  'Job Type': 'Job Type',
+  'Telephone Registration': 'Telephone Registration'
 }
 
-// Value descriptions: technical → human-readable
+// Value descriptions: backend values → human-readable descriptions
 const VALUE_DESCRIPTIONS: Record<string, string> = {
-  // Checking account
-  'Attribute1_A11': 'Negative balance',
-  'Attribute1_A12': 'Low balance (under 200 DM)',
-  'Attribute1_A13': 'Good balance (over 200 DM)',
-  'Attribute1_A14': 'No checking account',
-  
-  // Credit history
-  'Attribute3_A30': 'No previous credits',
-  'Attribute3_A31': 'All credits paid on time',
-  'Attribute3_A32': 'Current credits paid on time',
-  'Attribute3_A33': 'Past payment delays',
-  'Attribute3_A34': 'Critical account or other debts',
-  
-  // Purpose
-  'Attribute4_A40': 'New car purchase',
-  'Attribute4_A41': 'Used car purchase',
-  'Attribute4_A42': 'Furniture or equipment',
-  'Attribute4_A43': 'Radio or television',
-  'Attribute4_A44': 'Domestic appliances',
-  'Attribute4_A45': 'Repairs',
-  'Attribute4_A46': 'Education',
-  'Attribute4_A48': 'Retraining',
-  'Attribute4_A49': 'Business',
-  'Attribute4_A410': 'Other purposes',
-  
-  // Savings
-  'Attribute6_A61': 'Very low savings (under 100 DM)',
-  'Attribute6_A62': 'Low savings (100-500 DM)',
-  'Attribute6_A63': 'Moderate savings (500-1000 DM)',
-  'Attribute6_A64': 'Good savings (over 1000 DM)',
-  'Attribute6_A65': 'No savings account',
-  
-  // Employment
-  'Attribute7_A71': 'Unemployed',
-  'Attribute7_A72': 'Short employment (under 1 year)',
-  'Attribute7_A73': 'Stable employment (1-4 years)',
-  'Attribute7_A74': 'Long employment (4-7 years)',
-  'Attribute7_A75': 'Very stable employment (over 7 years)',
-  
-  // Property
-  'Attribute12_A121': 'Owns real estate',
-  'Attribute12_A122': 'Has savings agreement or life insurance',
-  'Attribute12_A123': 'Owns car or other property',
-  'Attribute12_A124': 'No property',
-  
-  // Housing
-  'Attribute15_A151': 'Renting',
-  'Attribute15_A152': 'Owns home',
-  'Attribute15_A153': 'Living rent-free',
-  
-  // Job
-  'Attribute17_A171': 'Unemployed or unskilled',
-  'Attribute17_A172': 'Unskilled resident',
-  'Attribute17_A173': 'Skilled employee',
-  'Attribute17_A174': 'Management or highly qualified',
+  // Categorical values are already human-readable from backend
+  // This is used for additional formatting if needed
 }
 
 // Contextual explanations for each feature category
 const FEATURE_CONTEXT: Record<string, string> = {
-  'Checking account balance': 'Banks view account balance as a sign of financial stability.',
-  'Checking account status': 'Having a checking account shows financial engagement.',
-  'Credit history': 'Past payment behavior is a strong indicator of future reliability.',
-  'Loan purpose': 'Different loan purposes carry different levels of risk.',
-  'Savings account level': 'Savings provide a financial cushion for unexpected situations.',
-  'Savings account status': 'Having savings demonstrates financial planning.',
-  'Employment status': 'Stable employment means reliable income.',
-  'Employment duration': 'Longer employment history suggests job security.',
-  'Property ownership': 'Property serves as collateral and shows financial stability.',
-  'Property status': 'Assets reduce lending risk.',
-  'Housing situation': 'Homeownership indicates financial responsibility.',
-  'Employment type': 'Job type affects income stability and repayment ability.',
-  'Loan duration': 'Longer loans carry more uncertainty.',
-  'Loan amount': 'Higher amounts mean greater risk for the lender.',
-  'Monthly payment burden': 'Higher monthly payments relative to income increase default risk.',
-  'Residential stability': 'Longer residence suggests stability.',
+  'Loan Duration': 'Longer loans carry more uncertainty and risk.',
+  'Credit Amount': 'Higher amounts mean greater risk for the lender.',
+  'Monthly Payment Burden': 'Higher monthly payments relative to income increase default risk.',
+  'Residential Stability': 'Longer residence suggests stability and reliability.',
   'Age': 'Age correlates with financial experience and stability.',
-  'Existing loans': 'Multiple loans can strain repayment capacity.',
-  'Number of dependents': 'More dependents mean higher financial obligations.',
+  'Existing Loans': 'Multiple loans can strain repayment capacity.',
+  'Number of Dependents': 'More dependents mean higher financial obligations.',
+  'Financial Stability Score': 'A composite measure of overall financial health.',
+  'Credit Risk Ratio': 'Measures the relationship between credit amount and borrower profile.',
+  'Credit to Income Ratio': 'Higher ratios indicate greater repayment burden.',
+  'Duration Risk Score': 'Combines loan duration with amount to assess risk.',
+  'Checking Account Status': 'Account balance indicates financial management skills.',
+  'Credit History': 'Past payment behavior is a strong indicator of future reliability.',
+  'Loan Purpose': 'Different loan purposes carry different levels of risk.',
+  'Savings Account Status': 'Savings provide a financial cushion for unexpected situations.',
+  'Employment Duration': 'Longer employment history suggests job security.',
+  'Other Debtors/Guarantors': 'Co-signers can reduce lending risk.',
+  'Property Ownership': 'Property serves as collateral and shows financial stability.',
+  'Other Payment Plans': 'Existing payment obligations affect repayment capacity.',
+  'Housing Status': 'Homeownership indicates financial responsibility.',
+  'Job Type': 'Job type affects income stability and repayment ability.',
+  'Telephone Registration': 'Having a registered phone shows stability and contactability.',
 }
 
 // Format numeric values with context
 function formatValue(feature: string, value: string): string {
-  // If it's a categorical feature, use the description
-  if (VALUE_DESCRIPTIONS[feature]) {
-    return VALUE_DESCRIPTIONS[feature]
-  }
-  
-  // Format numerical values
+  // Backend already provides human-readable values for categorical features
+  // Just format numerical values with appropriate units
   const numValue = parseFloat(value)
   if (!isNaN(numValue)) {
-    if (feature.includes('Duration')) {
+    if (feature.includes('Duration') || feature.includes('months')) {
       return `${numValue} months`
-    } else if (feature.includes('Credit amount')) {
+    } else if (feature.includes('Credit Amount') || feature.includes('Amount')) {
       return `${numValue.toLocaleString()} DM`
     } else if (feature.includes('Age')) {
       return `${numValue} years old`
-    } else if (feature.includes('rate')) {
+    } else if (feature.includes('Rate') || feature.includes('Burden')) {
       return `${numValue}% of income`
-    } else if (feature.includes('residence')) {
-      return `${numValue} years at current address`
-    } else if (feature.includes('credits')) {
-      return `${numValue} existing loan${numValue !== 1 ? 's' : ''}`
-    } else if (feature.includes('dependents')) {
+    } else if (feature.includes('Residence') || feature.includes('Years')) {
+      return `${numValue} years`
+    } else if (feature.includes('Credits') || feature.includes('Loans')) {
+      return `${numValue} loan${numValue !== 1 ? 's' : ''}`
+    } else if (feature.includes('Dependents')) {
       return `${numValue} dependent${numValue !== 1 ? 's' : ''}`
+    } else if (feature.includes('Score') || feature.includes('Ratio')) {
+      return numValue.toFixed(2)
     }
   }
   
+  // Return the value as-is (backend provides human-readable categorical values)
   return value
 }
 
