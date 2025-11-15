@@ -34,14 +34,22 @@ class SupabaseService:
             print(f"[ERROR] Received prediction_data: {prediction_data}")
             return False
         
+        # Extract explanation data
+        explanation = prediction_data['explanation']
+        
+        # Prepare data according to actual database schema
         data = {
             'session_id': session_id,
             'decision': prediction_data['decision'],
             'probability': prediction_data['probability'],
-            'explanation_layer': prediction_data['explanation_layer'],
-            'explanation_data': prediction_data['explanation'],
+            'shap_values': explanation.get('shap_features', []),
+            'input_features': explanation.get('application_data', {}),
             'timestamp': datetime.utcnow().isoformat()
         }
+        
+        # Add persona_id if available
+        if 'persona_id' in explanation:
+            data['persona_id'] = explanation['persona_id']
         
         try:
             self.client.table('predictions').insert(data).execute()
