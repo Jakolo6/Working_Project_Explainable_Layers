@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
+import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
 import Layer1Minimal from '@/components/layers/Layer1Minimal'
 import Layer2ShortText from '@/components/layers/Layer2ShortText'
 import Layer3Visual from '@/components/layers/Layer3Visual'
@@ -42,6 +43,7 @@ interface LayersClientProps {
 }
 
 const LAYER_NAMES = [
+  'Complete SHAP Analysis',
   'Minimal',
   'Feature Importance',
   'Detailed SHAP',
@@ -49,7 +51,7 @@ const LAYER_NAMES = [
   'Counterfactual'
 ]
 
-const TOTAL_LAYERS = 5
+const TOTAL_LAYERS = 6
 
 export default function LayersClient({ personaId }: LayersClientProps) {
   const router = useRouter()
@@ -249,34 +251,41 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         {/* Current Layer Display */}
         <div className="mb-8">
           {currentLayerIndex === 0 && (
-            <Layer1Minimal
+            <Layer0AllFeatures
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 1 && (
-            <Layer2ShortText
+            <Layer1Minimal
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 2 && (
-            <Layer3Visual
+            <Layer2ShortText
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 3 && (
-            <Layer4Contextual
+            <Layer3Visual
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 4 && (
+            <Layer4Contextual
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
+          {currentLayerIndex === 5 && (
             <Layer5Counterfactual
               decision={prediction.decision}
               probability={prediction.probability}

@@ -300,10 +300,20 @@ async def predict_persona(request: dict):
         shap_explanation = xgb_service.explain_prediction(application_data, num_features=10)
         print(f"[DEBUG] SHAP explanation successful")
         
-        # Transform SHAP features to match frontend expectation
+        # Transform ALL SHAP features to match frontend expectation
         shap_features = []
-        for feat in shap_explanation['top_features']:
+        for feat in shap_explanation['all_features']:  # Use all_features instead of top_features
             shap_features.append({
+                'feature': feat['feature'],
+                'value': str(feat['feature_value']),
+                'shap_value': feat['shap_value'],
+                'impact': 'positive' if feat['shap_value'] > 0 else 'negative'
+            })
+        
+        # Also create top features for backward compatibility
+        top_shap_features = []
+        for feat in shap_explanation['top_features']:
+            top_shap_features.append({
                 'feature': feat['feature'],
                 'value': str(feat['feature_value']),
                 'shap_value': feat['shap_value'],
