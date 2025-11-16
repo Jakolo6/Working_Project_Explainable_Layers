@@ -47,6 +47,26 @@ print(f"\n✓ Loaded dataset: {df.shape[0]} rows, {df.shape[1]} columns")
 class_map = {1: 'Good Credit', 2: 'Bad Credit'}
 df['class_label'] = df['class'].map(class_map)
 
+print("\n✓ Engineering derived features...")
+# Map employment to years for derived features
+df['employment_years'] = df['employment'].map({
+    'unemployed': 0,
+    'lt_1_year': 0.5,
+    '1_to_4_years': 2.5,
+    '4_to_7_years': 5.5,
+    'ge_7_years': 10
+})
+
+# Create derived features (matching backend feature engineering)
+df['monthly_burden'] = df['credit_amount'] / df['duration']
+df['stability_score'] = df['age'] * df['employment_years']
+df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
+df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
+df['duration_risk'] = df['duration'] * df['credit_amount']
+
+print(f"✓ Added 5 derived features")
+print(f"  Total features now: {df.shape[1]} columns")
+
 # ============================================================================
 # DEFINE FEATURES
 # ============================================================================
@@ -70,7 +90,22 @@ FEATURE_NAMES = {
     'other_payment_plans': 'Other Payment Plans',
     'housing': 'Housing Status',
     'job': 'Job Type',
-    'own_telephone': 'Telephone Registration'
+    'own_telephone': 'Telephone Registration',
+    # Derived features
+    'monthly_burden': 'Monthly Payment Burden',
+    'stability_score': 'Financial Stability Score',
+    'risk_ratio': 'Credit Risk Ratio',
+    'credit_to_income_proxy': 'Credit-to-Income Proxy',
+    'duration_risk': 'Duration Risk Score'
+}
+
+# Employment to years mapping (for derived features)
+EMPLOYMENT_YEARS_MAP = {
+    'unemployed': 0,
+    'lt_1_year': 0.5,
+    '1_to_4_years': 2.5,
+    '4_to_7_years': 5.5,
+    'ge_7_years': 10
 }
 
 # Original feature lists (for data access)
@@ -82,9 +117,14 @@ categorical_features_raw = ['checking_status', 'credit_history', 'purpose',
                            'property_magnitude', 'other_payment_plans', 'housing',
                            'job', 'own_telephone']
 
+# Derived features (to be calculated)
+derived_features_raw = ['monthly_burden', 'stability_score', 'risk_ratio', 
+                       'credit_to_income_proxy', 'duration_risk']
+
 # Human-readable feature names (for display)
 numerical_features = [FEATURE_NAMES[f] for f in numerical_features_raw]
 categorical_features = [FEATURE_NAMES[f] for f in categorical_features_raw]
+derived_features = [FEATURE_NAMES[f] for f in derived_features_raw]
 
 # ============================================================================
 # 1. TARGET DISTRIBUTION
@@ -184,9 +224,13 @@ print("\n" + "=" * 80)
 print("4. GENERATING CORRELATION HEATMAP")
 print("=" * 80)
 
-fig, ax = plt.subplots(figsize=(12, 10))
+# Include all numerical features (original + derived)
+all_numerical_raw = numerical_features_raw + derived_features_raw
+print(f"  Including {len(all_numerical_raw)} numerical features + target")
+
+fig, ax = plt.subplots(figsize=(14, 12))
 # Create correlation matrix with raw feature names, then rename for display
-corr_data = df[numerical_features_raw + ['class']].corr()
+corr_data = df[all_numerical_raw + ['class']].corr()
 # Rename index and columns to human-readable names
 corr_data.index = [FEATURE_NAMES.get(f, f) for f in corr_data.index]
 corr_data.columns = [FEATURE_NAMES.get(f, f) for f in corr_data.columns]
@@ -195,11 +239,12 @@ corr_data = corr_data.rename(index={'class': 'Credit Risk'}, columns={'class': '
 
 sns.heatmap(corr_data, annot=True, fmt='.2f', cmap='coolwarm', center=0,
             square=True, linewidths=1, cbar_kws={"shrink": 0.8}, ax=ax)
-ax.set_title('Feature Correlation Matrix', fontsize=14, fontweight='bold')
+ax.set_title('Feature Correlation Matrix (All Numerical Features)', fontsize=14, fontweight='bold')
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / 'correlation_heatmap.png', bbox_inches='tight')
 plt.close()
 print(f"✓ Saved: correlation_heatmap.png")
+print(f"  Matrix size: {len(all_numerical_raw) + 1} x {len(all_numerical_raw) + 1}")
 
 # ============================================================================
 # 5. FEATURE IMPORTANCE (CHI-SQUARE & POINT-BISERIAL)
@@ -217,9 +262,9 @@ for feature_raw in categorical_features_raw:
     feature_display = FEATURE_NAMES[feature_raw]
     chi_scores[feature_display] = chi2
 
-# Point-biserial for numerical
+# Point-biserial for numerical (including derived features)
 pb_scores = {}
-for feature_raw in numerical_features_raw:
+for feature_raw in all_numerical_raw:
     corr, p_value = pointbiserialr(df['class'], df[feature_raw])
     feature_display = FEATURE_NAMES[feature_raw]
     pb_scores[feature_display] = abs(corr)
@@ -387,8 +432,8 @@ statistics = {
     }
 }
 
-# Add numerical statistics
-for feature_raw in numerical_features_raw:
+# Add numerical statistics (including derived features)
+for feature_raw in all_numerical_raw:
     feature_display = FEATURE_NAMES[feature_raw]
     statistics["numerical_statistics"][feature_display] = {
         "mean": float(df[feature_raw].mean()),
