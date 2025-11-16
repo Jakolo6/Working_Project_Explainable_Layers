@@ -51,13 +51,40 @@ df['class_label'] = df['class'].map(class_map)
 # DEFINE FEATURES
 # ============================================================================
 
-numerical_features = ['duration', 'credit_amount', 'installment_commitment',
-                      'residence_since', 'age', 'existing_credits', 'num_dependents']
+# Feature name mapping (old -> human-readable)
+FEATURE_NAMES = {
+    'duration': 'Loan Duration (months)',
+    'credit_amount': 'Credit Amount',
+    'installment_commitment': 'Installment Rate',
+    'residence_since': 'Years at Residence',
+    'age': 'Age',
+    'existing_credits': 'Existing Credits',
+    'num_dependents': 'Number of Dependents',
+    'checking_status': 'Checking Account Status',
+    'credit_history': 'Credit History',
+    'purpose': 'Loan Purpose',
+    'savings_status': 'Savings Account Status',
+    'employment': 'Employment Duration',
+    'other_debtors': 'Other Debtors/Guarantors',
+    'property_magnitude': 'Property Ownership',
+    'other_payment_plans': 'Other Payment Plans',
+    'housing': 'Housing Status',
+    'job': 'Job Type',
+    'own_telephone': 'Telephone Registration'
+}
 
-categorical_features = ['checking_status', 'credit_history', 'purpose',
-                        'savings_status', 'employment', 'housing', 'job',
-                        'other_debtors', 'property_magnitude', 'other_payment_plans',
-                        'own_telephone']
+# Original feature lists (for data access)
+numerical_features_raw = ['duration', 'credit_amount', 'installment_commitment',
+                         'residence_since', 'age', 'existing_credits', 'num_dependents']
+
+categorical_features_raw = ['checking_status', 'credit_history', 'purpose',
+                           'savings_status', 'employment', 'other_debtors',
+                           'property_magnitude', 'other_payment_plans', 'housing',
+                           'job', 'own_telephone']
+
+# Human-readable feature names (for display)
+numerical_features = [FEATURE_NAMES[f] for f in numerical_features_raw]
+categorical_features = [FEATURE_NAMES[f] for f in categorical_features_raw]
 
 # ============================================================================
 # 1. TARGET DISTRIBUTION
@@ -98,17 +125,18 @@ print("=" * 80)
 fig, axes = plt.subplots(2, 4, figsize=(16, 8))
 axes = axes.flatten()
 
-for idx, feature in enumerate(numerical_features):
+for idx, feature_raw in enumerate(numerical_features_raw):
     ax = axes[idx]
+    feature_display = FEATURE_NAMES[feature_raw]
     
-    good = df[df['class'] == 1][feature]
-    bad = df[df['class'] == 2][feature]
+    good = df[df['class'] == 1][feature_raw]
+    bad = df[df['class'] == 2][feature_raw]
     
     ax.hist(good, bins=30, alpha=0.6, label='Good Credit', color='#2ecc71')
     ax.hist(bad, bins=30, alpha=0.6, label='Bad Credit', color='#e74c3c')
-    ax.set_xlabel(feature.replace('_', ' ').title(), fontsize=10)
+    ax.set_xlabel(feature_display, fontsize=10)
     ax.set_ylabel('Frequency', fontsize=10)
-    ax.set_title(f'{feature.replace("_", " ").title()}', fontsize=11, fontweight='bold')
+    ax.set_title(f'{feature_display}', fontsize=11, fontweight='bold')
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
 
@@ -156,8 +184,15 @@ print("4. GENERATING CORRELATION HEATMAP")
 print("=" * 80)
 
 fig, ax = plt.subplots(figsize=(12, 10))
-corr_matrix = df[numerical_features + ['class']].corr()
-sns.heatmap(corr_matrix, annot=True, fmt='.2f', cmap='coolwarm', center=0,
+# Create correlation matrix with raw feature names, then rename for display
+corr_data = df[numerical_features_raw + ['class']].corr()
+# Rename index and columns to human-readable names
+corr_data.index = [FEATURE_NAMES.get(f, f) for f in corr_data.index]
+corr_data.columns = [FEATURE_NAMES.get(f, f) for f in corr_data.columns]
+# Rename 'class' to 'Credit Risk'
+corr_data = corr_data.rename(index={'class': 'Credit Risk'}, columns={'class': 'Credit Risk'})
+
+sns.heatmap(corr_data, annot=True, fmt='.2f', cmap='coolwarm', center=0,
             square=True, linewidths=1, cbar_kws={"shrink": 0.8}, ax=ax)
 ax.set_title('Feature Correlation Matrix', fontsize=14, fontweight='bold')
 plt.tight_layout()
@@ -175,16 +210,18 @@ print("=" * 80)
 
 # Chi-square for categorical
 chi_scores = {}
-for feature in categorical_features:
-    ct = pd.crosstab(df[feature], df['class'])
+for feature_raw in categorical_features_raw:
+    ct = pd.crosstab(df[feature_raw], df['class'])
     chi2, p_value, dof, expected = chi2_contingency(ct)
-    chi_scores[feature] = chi2
+    feature_display = FEATURE_NAMES[feature_raw]
+    chi_scores[feature_display] = chi2
 
 # Point-biserial for numerical
 pb_scores = {}
-for feature in numerical_features:
-    corr, p_value = pointbiserialr(df['class'], df[feature])
-    pb_scores[feature] = abs(corr)
+for feature_raw in numerical_features_raw:
+    corr, p_value = pointbiserialr(df['class'], df[feature_raw])
+    feature_display = FEATURE_NAMES[feature_raw]
+    pb_scores[feature_display] = abs(corr)
 
 # Plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
