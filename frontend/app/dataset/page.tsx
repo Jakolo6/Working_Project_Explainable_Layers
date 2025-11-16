@@ -426,7 +426,7 @@ export default function DatasetPage() {
                   </p>
                 </div>
                 <div className="space-y-8">
-                  {images.filter(img => img.filename.includes('numerical')).map((image) => (
+                  {images.filter(img => img.filename.includes('numerical') || img.filename.includes('correlation')).map((image) => (
                     <div key={image.filename} className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
                       <div className="p-6 border-b border-gray-100">
                         <h3 className="text-2xl font-bold text-gray-900">{humanizeFilename(image.filename)}</h3>
