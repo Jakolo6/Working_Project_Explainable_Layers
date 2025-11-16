@@ -295,9 +295,9 @@ async def predict_persona(request: dict):
         prediction_result = xgb_service.predict(application_data)
         print(f"[DEBUG] Prediction successful: {prediction_result}")
         
-        # Get SHAP explanation
+        # Get SHAP explanation for ALL features
         print("[DEBUG] Starting SHAP explanation...")
-        shap_explanation = xgb_service.explain_prediction(application_data, num_features=10)
+        shap_explanation = xgb_service.explain_prediction(application_data, num_features=50)  # Get all features
         print(f"[DEBUG] SHAP explanation successful")
         
         # Transform ALL SHAP features to match frontend expectation
