@@ -3,6 +3,8 @@
 'use client'
 
 import React from 'react'
+import Tooltip from '@/components/ui/Tooltip'
+import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
 
 interface SHAPFeature {
   feature: string
@@ -144,7 +146,13 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
                     #{index + 1}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    <div className="font-medium">{feature.feature}</div>
+                    <Tooltip 
+                      content={getFeatureDescription(feature.feature)?.description || 'No description available'}
+                    >
+                      <span className="font-medium cursor-help border-b border-dotted border-gray-400">
+                        {feature.feature}
+                      </span>
+                    </Tooltip>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {formatValue(feature.feature, feature.value)}

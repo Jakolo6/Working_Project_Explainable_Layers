@@ -4,6 +4,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
+import { FEATURE_DESCRIPTIONS } from '@/lib/featureDescriptions'
 
 interface DatasetStats {
   dataset_info?: {
@@ -239,6 +240,52 @@ export default function DatasetPage() {
             )}
           </div>
         )}
+
+        {/* Feature Descriptions Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">📖 Feature Dictionary</h2>
+          <p className="text-gray-600 mb-6 italic">
+            "Understanding what each feature means is crucial for interpreting AI decisions. Here's your complete guide to every data point."
+          </p>
+          
+          <div className="grid gap-6">
+            {Object.entries(FEATURE_DESCRIPTIONS).map(([key, feature]) => (
+              <div key={key} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {feature.name}
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  {feature.description}
+                </p>
+                
+                {feature.values && (
+                  <div className="mt-3">
+                    <h4 className="text-sm font-medium text-gray-800 mb-2">Possible Values:</h4>
+                    <div className="space-y-1">
+                      {Object.entries(feature.values).map(([valueKey, valueDesc]) => (
+                        <div key={valueKey} className="text-sm">
+                          <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-800">
+                            {valueKey}
+                          </span>
+                          <span className="text-gray-600 ml-2">– {valueDesc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 How to Use This Information</h4>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p>• <strong>In Layer 0:</strong> Hover over any feature name to see its description</p>
+              <p>• <strong>In other layers:</strong> Feature names with dotted underlines have tooltips</p>
+              <p>• <strong>For research:</strong> Use this dictionary to understand what drives AI decisions</p>
+            </div>
+          </div>
+        </div>
 
         {stats?.target_distribution && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">

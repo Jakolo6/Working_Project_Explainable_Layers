@@ -1,6 +1,8 @@
 // Layer 1: Minimal - Single key driver explanation in plain language
 
 import React from 'react'
+import Tooltip from '@/components/ui/Tooltip'
+import { getFeatureDescription } from '@/lib/featureDescriptions'
 
 interface SHAPFeature {
   feature: string
@@ -163,7 +165,13 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
           <strong>Key Factor:</strong>
         </p>
         <p className="text-xl font-semibold text-blue-900 mb-3">
-          {featureLabel}
+          <Tooltip 
+            content={getFeatureDescription(topFeature.feature)?.description || 'No description available'}
+          >
+            <span className="cursor-help border-b border-dotted border-blue-400">
+              {featureLabel}
+            </span>
+          </Tooltip>
         </p>
         <p className="text-gray-700 mb-3">
           <span className="bg-white px-3 py-1.5 rounded border border-gray-200">
