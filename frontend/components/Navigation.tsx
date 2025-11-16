@@ -10,6 +10,7 @@ export default function Navigation() {
   
   const links = [
     { href: '/', label: 'Home' },
+    { href: '/process', label: 'Process' },
     { href: '/dataset', label: 'Dataset' },
     { href: '/model', label: 'Model' },
     { href: '/experiment', label: 'Experiment' },
