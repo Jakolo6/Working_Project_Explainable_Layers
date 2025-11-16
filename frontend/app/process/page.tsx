@@ -5,6 +5,7 @@ import { ArrowDown, Database, BarChart3, Settings, Brain, Upload, Server, Users,
 
 export default function ProcessPage() {
   const [expandedStep, setExpandedStep] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'phase1' | 'phase2' | 'phase3'>('phase1')
 
   const toggleStep = (step: string) => {
     setExpandedStep(expandedStep === step ? null : step)
@@ -22,20 +23,53 @@ export default function ProcessPage() {
             <p className="text-xl text-gray-600 mb-4">
               Technical Process Flow Diagram
             </p>
-            <div className="flex items-center justify-center gap-8 text-sm">
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab('phase1')}
+              className={`px-6 py-4 font-semibold transition-colors border-b-4 ${
+                activeTab === 'phase1'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span className="text-gray-600">Offline Training</span>
+                <Database className="w-5 h-5" />
+                <span>Phase 1: Offline Training</span>
               </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('phase2')}
+              className={`px-6 py-4 font-semibold transition-colors border-b-4 ${
+                activeTab === 'phase2'
+                  ? 'border-purple-500 text-purple-600 bg-purple-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-purple-500 rounded"></div>
-                <span className="text-gray-600">Deployment</span>
+                <Server className="w-5 h-5" />
+                <span>Phase 2: Deployment</span>
               </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('phase3')}
+              className={`px-6 py-4 font-semibold transition-colors border-b-4 ${
+                activeTab === 'phase3'
+                  ? 'border-green-500 text-green-600 bg-green-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-gray-600">Online Experiment</span>
+                <Users className="w-5 h-5" />
+                <span>Phase 3: Online Experiment</span>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -44,6 +78,7 @@ export default function ProcessPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* PHASE 1: OFFLINE TRAINING */}
+        {activeTab === 'phase1' && (
         <div className="mb-16">
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
             <h2 className="text-2xl font-bold text-blue-900 mb-2 flex items-center gap-2">
@@ -159,8 +194,10 @@ export default function ProcessPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* PHASE 2: DEPLOYMENT */}
+        {activeTab === 'phase2' && (
         <div className="mb-16">
           <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6 mb-6">
             <h2 className="text-2xl font-bold text-purple-900 mb-2 flex items-center gap-2">
@@ -210,8 +247,10 @@ export default function ProcessPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* PHASE 3: ONLINE EXPERIMENT */}
+        {activeTab === 'phase3' && (
         <div className="mb-16">
           <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
             <h2 className="text-2xl font-bold text-green-900 mb-2 flex items-center gap-2">
@@ -364,6 +403,7 @@ export default function ProcessPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Key Technical Insights */}
         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl p-8 text-white">
