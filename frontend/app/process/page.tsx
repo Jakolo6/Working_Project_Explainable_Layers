@@ -1,142 +1,10 @@
 'use client'
 
-// Process visualization page showing the complete XAI credit risk workflow
+// Visual flow diagram showing XAI credit risk system workflow
 
-import { useState } from 'react'
-import { ChevronRight, Database, Settings, Brain, Eye, Users, BarChart3, GitBranch, Upload, Download, Cpu, Target, Layers, MousePointer } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, ArrowDownLeft, Database, BarChart3, Settings, Brain, Eye, Layers, Users, Upload, RefreshCw } from 'lucide-react'
 
 export default function ProcessPage() {
-  const [activeStep, setActiveStep] = useState<number | null>(null)
-
-  const processSteps = [
-    {
-      id: 1,
-      title: "Data Acquisition & Cleaning",
-      icon: <Database className="w-8 h-8" />,
-      description: "Download and prepare the German Credit dataset",
-      details: [
-        "Download from UCI ML Repository (1000 samples, 20 features)",
-        "Map symbolic codes (A11, A12...) to human-readable values",
-        "Clean categorical variables (employment, housing, etc.)",
-        "Remove biased features (gender, foreign worker status)",
-        "Create german_credit_clean.csv with 18 final features"
-      ],
-      color: "bg-blue-500",
-      lightColor: "bg-blue-50 border-blue-200"
-    },
-    {
-      id: 2,
-      title: "Exploratory Data Analysis",
-      icon: <BarChart3 className="w-8 h-8" />,
-      description: "Comprehensive statistical analysis and visualization",
-      details: [
-        "Target distribution analysis (70% good, 30% bad credit)",
-        "Numerical feature distributions (age, amount, duration)",
-        "Categorical feature analysis (checking status, employment)",
-        "Correlation heatmap with human-readable feature names",
-        "Feature importance using Chi-square and point-biserial tests",
-        "Generate 8 visualization files + statistics.json"
-      ],
-      color: "bg-green-500",
-      lightColor: "bg-green-50 border-green-200"
-    },
-    {
-      id: 3,
-      title: "Feature Engineering",
-      icon: <Settings className="w-8 h-8" />,
-      description: "Create advanced risk metrics from raw features",
-      details: [
-        "Monthly Payment Burden = Credit Amount ÷ Duration",
-        "Financial Stability Score = Age × Employment Years",
-        "Credit Risk Ratio = Credit Amount ÷ (Age × 100)",
-        "Credit to Income Proxy = Credit Amount ÷ Age",
-        "Duration Risk Score = Duration × Credit Amount",
-        "Map employment categories to numerical years"
-      ],
-      color: "bg-purple-500",
-      lightColor: "bg-purple-50 border-purple-200"
-    },
-    {
-      id: 4,
-      title: "Model Training & Validation",
-      icon: <Brain className="w-8 h-8" />,
-      description: "Train XGBoost and Logistic Regression models",
-      details: [
-        "XGBoost: Passthrough numerical + OrdinalEncoder categorical",
-        "Logistic Regression: StandardScaler + OneHotEncoder (baseline)",
-        "80/20 train-test split with stratification",
-        "Hyperparameter tuning and cross-validation",
-        "Performance metrics: Accuracy, Precision, Recall, F1, AUC",
-        "Save trained models to R2 cloud storage"
-      ],
-      color: "bg-red-500",
-      lightColor: "bg-red-50 border-red-200"
-    },
-    {
-      id: 5,
-      title: "SHAP Explainability Integration",
-      icon: <Eye className="w-8 h-8" />,
-      description: "Implement model-agnostic explanations",
-      details: [
-        "SHAP TreeExplainer for XGBoost model interpretability",
-        "Calculate feature importance and individual predictions",
-        "Map transformed feature names back to human-readable labels",
-        "Generate explanation data for all 20+ features",
-        "Handle categorical encoding and numerical scaling",
-        "Provide both local and global explanations"
-      ],
-      color: "bg-yellow-500",
-      lightColor: "bg-yellow-50 border-yellow-200"
-    },
-    {
-      id: 6,
-      title: "Explanation Layer System",
-      icon: <Layers className="w-8 h-8" />,
-      description: "Multi-level XAI interface design",
-      details: [
-        "Layer 0: Complete SHAP feature table (all 20+ features)",
-        "Layer 1: Key features with values and impact direction",
-        "Layer 2: Natural language explanations of decisions",
-        "Layer 3: Visual charts and risk factor highlighting",
-        "Layer 4: Comparative analysis and what-if scenarios",
-        "Progressive disclosure from technical to intuitive"
-      ],
-      color: "bg-indigo-500",
-      lightColor: "bg-indigo-50 border-indigo-200"
-    },
-    {
-      id: 7,
-      title: "Persona-Based Experiment",
-      icon: <Users className="w-8 h-8" />,
-      description: "Structured user study with diverse profiles",
-      details: [
-        "5 diverse personas: Student, Professional, Retiree, etc.",
-        "Each persona represents different risk profiles",
-        "Randomized explanation layer assignment",
-        "Collect user perception and trust metrics",
-        "Measure comprehension across explanation styles",
-        "A/B testing framework for XAI effectiveness"
-      ],
-      color: "bg-teal-500",
-      lightColor: "bg-teal-50 border-teal-200"
-    },
-    {
-      id: 8,
-      title: "Full-Stack Deployment",
-      icon: <Upload className="w-8 h-8" />,
-      description: "Production-ready system architecture",
-      details: [
-        "Frontend: Next.js 14 + TypeScript + TailwindCSS (Netlify)",
-        "Backend: FastAPI + Python (Railway)",
-        "Database: Supabase PostgreSQL for experiment data",
-        "Storage: Cloudflare R2 for models and visualizations",
-        "Real-time predictions with SHAP explanations",
-        "Responsive design for desktop and mobile"
-      ],
-      color: "bg-orange-500",
-      lightColor: "bg-orange-50 border-orange-200"
-    }
-  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -148,179 +16,178 @@ export default function ProcessPage() {
               XAI Credit Risk System
             </h1>
             <p className="text-xl text-gray-600 mb-4">
-              Complete Process Workflow & Architecture
+              Visual Process Flow Diagram
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <GitBranch className="w-4 h-4" />
-              <span>End-to-End Explainable AI Pipeline</span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Process Flow */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Flow Diagram */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <Target className="w-6 h-6 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Research Goal</h3>
+        {/* Row 1: Data Pipeline */}
+        <div className="flex items-center justify-center mb-12">
+          {/* Step 1: Data */}
+          <div className="flex flex-col items-center">
+            <div className="bg-blue-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Database className="w-8 h-8" />
             </div>
-            <p className="text-gray-600">
-              Study how different XAI explanation styles influence human perception and trust in AI-based credit decisions.
-            </p>
+            <h3 className="font-semibold text-sm text-center">Raw Data</h3>
+            <p className="text-xs text-gray-600 text-center">German Credit<br/>UCI Dataset</p>
           </div>
           
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <Cpu className="w-6 h-6 text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Tech Stack</h3>
+          <ArrowRight className="w-6 h-6 text-gray-400 mx-4" />
+          
+          {/* Step 2: EDA */}
+          <div className="flex flex-col items-center">
+            <div className="bg-green-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <BarChart3 className="w-8 h-8" />
             </div>
-            <p className="text-gray-600">
-              Next.js + FastAPI + XGBoost + SHAP + Supabase + Cloudflare R2 for a complete ML-powered web application.
-            </p>
+            <h3 className="font-semibold text-sm text-center">EDA Analysis</h3>
+            <p className="text-xs text-gray-600 text-center">8 Visualizations<br/>Statistics</p>
           </div>
           
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <MousePointer className="w-6 h-6 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">User Experience</h3>
+          <ArrowRight className="w-6 h-6 text-gray-400 mx-4" />
+          
+          {/* Step 3: Feature Engineering */}
+          <div className="flex flex-col items-center">
+            <div className="bg-purple-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Settings className="w-8 h-8" />
             </div>
-            <p className="text-gray-600">
-              Progressive explanation layers from technical SHAP values to intuitive visual representations.
-            </p>
+            <h3 className="font-semibold text-sm text-center">Feature Eng.</h3>
+            <p className="text-xs text-gray-600 text-center">Risk Metrics<br/>Transformations</p>
+          </div>
+          
+          <ArrowRight className="w-6 h-6 text-gray-400 mx-4" />
+          
+          {/* Step 4: Model Training */}
+          <div className="flex flex-col items-center">
+            <div className="bg-red-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Brain className="w-8 h-8" />
+            </div>
+            <h3 className="font-semibold text-sm text-center">Model Training</h3>
+            <p className="text-xs text-gray-600 text-center">XGBoost<br/>Validation</p>
           </div>
         </div>
 
-        {/* Process Steps */}
-        <div className="space-y-8">
-          {processSteps.map((step, index) => (
-            <div key={step.id} className="relative">
-              {/* Connection Line */}
-              {index < processSteps.length - 1 && (
-                <div className="absolute left-8 top-20 w-0.5 h-16 bg-gray-300 z-0"></div>
-              )}
-              
-              {/* Step Card */}
-              <div 
-                className={`relative bg-white rounded-xl shadow-lg border-2 transition-all duration-300 cursor-pointer ${
-                  activeStep === step.id 
-                    ? step.lightColor + ' shadow-xl transform scale-[1.02]' 
-                    : 'border-gray-200 hover:shadow-xl hover:border-gray-300'
-                }`}
-                onClick={() => setActiveStep(activeStep === step.id ? null : step.id)}
-              >
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Step Icon */}
-                    <div className={`${step.color} text-white p-3 rounded-xl flex-shrink-0`}>
-                      {step.icon}
-                    </div>
-                    
-                    {/* Step Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-medium text-gray-500">Step {step.id}</span>
-                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
-                          activeStep === step.id ? 'rotate-90' : ''
-                        }`} />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        {step.description}
-                      </p>
-                      
-                      {/* Expanded Details */}
-                      {activeStep === step.id && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <h4 className="font-semibold text-gray-900 mb-3">Implementation Details:</h4>
-                          <ul className="space-y-2">
-                            {step.details.map((detail, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                <span className="text-gray-700 text-sm">{detail}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* Row 2: Explainability */}
+        <div className="flex items-center justify-center mb-12">
+          {/* SHAP Integration */}
+          <div className="flex flex-col items-center">
+            <div className="bg-yellow-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Eye className="w-8 h-8" />
             </div>
-          ))}
+            <h3 className="font-semibold text-sm text-center">SHAP Analysis</h3>
+            <p className="text-xs text-gray-600 text-center">Feature Importance<br/>Explanations</p>
+          </div>
+          
+          <ArrowRight className="w-6 h-6 text-gray-400 mx-4" />
+          
+          {/* Layer System */}
+          <div className="flex flex-col items-center">
+            <div className="bg-indigo-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Layers className="w-8 h-8" />
+            </div>
+            <h3 className="font-semibold text-sm text-center">Layer System</h3>
+            <p className="text-xs text-gray-600 text-center">5 Explanation<br/>Levels</p>
+          </div>
         </div>
 
-        {/* Architecture Diagram */}
-        <div className="mt-16 bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">System Architecture</h2>
+        {/* Row 3: Experiment Flow */}
+        <div className="flex items-center justify-center mb-12">
+          {/* User Experiment */}
+          <div className="flex flex-col items-center">
+            <div className="bg-teal-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Users className="w-8 h-8" />
+            </div>
+            <h3 className="font-semibold text-sm text-center">User Study</h3>
+            <p className="text-xs text-gray-600 text-center">5 Personas<br/>A/B Testing</p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Frontend */}
-            <div className="text-center">
-              <div className="bg-blue-100 rounded-xl p-6 mb-4">
-                <h3 className="font-bold text-blue-900 mb-2">Frontend</h3>
-                <div className="space-y-1 text-sm text-blue-800">
-                  <div>Next.js 14 + TypeScript</div>
-                  <div>TailwindCSS Styling</div>
-                  <div>Responsive Design</div>
-                  <div>Deployed on Netlify</div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">User Interface & Experience</div>
+          {/* Arrow pointing back to model */}
+          <div className="flex flex-col items-center mx-8">
+            <ArrowUpRight className="w-6 h-6 text-gray-400 mb-2" />
+            <p className="text-xs text-gray-500 text-center">Requests<br/>Prediction</p>
+            <ArrowDownLeft className="w-6 h-6 text-gray-400 mt-2" />
+          </div>
+          
+          {/* Model Prediction (connected back) */}
+          <div className="flex flex-col items-center">
+            <div className="bg-red-500 text-white p-4 rounded-xl shadow-lg mb-2 border-4 border-red-300">
+              <Brain className="w-8 h-8" />
             </div>
-
-            {/* Backend */}
-            <div className="text-center">
-              <div className="bg-green-100 rounded-xl p-6 mb-4">
-                <h3 className="font-bold text-green-900 mb-2">Backend</h3>
-                <div className="space-y-1 text-sm text-green-800">
-                  <div>FastAPI + Python</div>
-                  <div>XGBoost + SHAP</div>
-                  <div>ML Model Serving</div>
-                  <div>Deployed on Railway</div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">AI Processing & APIs</div>
+            <h3 className="font-semibold text-sm text-center">Live Prediction</h3>
+            <p className="text-xs text-gray-600 text-center">Real-time<br/>SHAP Values</p>
+          </div>
+          
+          <ArrowRight className="w-6 h-6 text-gray-400 mx-4" />
+          
+          {/* Deployment */}
+          <div className="flex flex-col items-center">
+            <div className="bg-orange-500 text-white p-4 rounded-xl shadow-lg mb-2">
+              <Upload className="w-8 h-8" />
             </div>
+            <h3 className="font-semibold text-sm text-center">Deployment</h3>
+            <p className="text-xs text-gray-600 text-center">Full Stack<br/>Production</p>
+          </div>
+        </div>
 
-            {/* Data Layer */}
+        {/* Data Flow Legend */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mt-12">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">Data Flow Explanation</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Training Pipeline</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Data flows sequentially through cleaning → analysis → feature engineering → model training.
+              </p>
+              <p className="text-sm text-gray-600">
+                SHAP integration provides explainability for the trained model.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Experiment Loop</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Users interact with different explanation layers during the study.
+              </p>
+              <p className="text-sm text-gray-600">
+                Each interaction triggers a live prediction with real-time SHAP explanations.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Architecture Overview */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white mt-8">
+          <h2 className="text-2xl font-bold mb-4 text-center">System Architecture</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="bg-purple-100 rounded-xl p-6 mb-4">
-                <h3 className="font-bold text-purple-900 mb-2">Data Layer</h3>
-                <div className="space-y-1 text-sm text-purple-800">
-                  <div>Supabase PostgreSQL</div>
-                  <div>Cloudflare R2 Storage</div>
-                  <div>Model & Asset Storage</div>
-                  <div>Experiment Data</div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">Storage & Persistence</div>
+              <h3 className="font-semibold mb-2">Frontend</h3>
+              <p className="text-sm opacity-90">Next.js + TypeScript + TailwindCSS</p>
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold mb-2">Backend</h3>
+              <p className="text-sm opacity-90">FastAPI + XGBoost + SHAP</p>
+            </div>
+            <div className="text-center">
+              <h3 className="font-semibold mb-2">Data Layer</h3>
+              <p className="text-sm opacity-90">Supabase + Cloudflare R2</p>
             </div>
           </div>
         </div>
 
         {/* Call to Action */}
-        <div className="mt-12 text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Ready to Explore?</h2>
-          <p className="text-blue-100 mb-6">
-            Experience the complete XAI system with interactive explanations and real-time predictions.
-          </p>
+        <div className="text-center mt-12">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="/experiment" 
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Try the Experiment
             </a>
             <a 
               href="/dataset" 
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors border border-blue-400"
+              className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
             >
               Explore the Data
             </a>
