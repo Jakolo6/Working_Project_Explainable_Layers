@@ -394,30 +394,25 @@ export default function DatasetPage() {
                     employment, higher savings, and shorter loan durations are more likely to be approved.
                   </p>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {images.map((image) => (
-                    <figure key={image.filename} className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                      <figcaption className="mb-3 text-lg font-semibold text-gray-800">
-                        {humanizeFilename(image.filename)}
-                      </figcaption>
-                      <div className="overflow-hidden rounded border bg-white">
-                        <img
-                          src={image.url}
-                          alt={humanizeFilename(image.filename)}
-                          className="h-auto w-full"
-                          loading="lazy"
-                          onError={(event) => {
-                            const target = event.currentTarget
-                            target.alt = 'Visualization unavailable. Please refresh or regenerate from the admin panel.'
-                            target.src = ''
-                          }}
-                        />
-                      </div>
-                      <p className="mt-2 text-xs text-gray-500">
-                        Generated: {new Date(image.last_modified).toLocaleString()} • Size: {(image.size / 1024).toFixed(2)} KB
-                      </p>
-                    </figure>
-                  ))}
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                    <div className="text-2xl mb-2">📊</div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Numerical Features</h3>
+                    <p className="text-sm text-gray-600">Age, credit amount, and duration distributions reveal key patterns in creditworthiness.</p>
+                    <p className="text-xs text-blue-600 mt-2">→ View in Numeric Features tab</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+                    <div className="text-2xl mb-2">📋</div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Categorical Features</h3>
+                    <p className="text-sm text-gray-600">Employment, savings, and housing status show clear approval patterns.</p>
+                    <p className="text-xs text-green-600 mt-2">→ View in Categorical Features tab</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+                    <div className="text-2xl mb-2">🔗</div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Causal Analysis</h3>
+                    <p className="text-sm text-gray-600">Feature importance and outcome relationships guide model decisions.</p>
+                    <p className="text-xs text-purple-600 mt-2">→ View in Causal Analysis tab</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -430,14 +425,26 @@ export default function DatasetPage() {
                     Older applicants (more experience) show better repayment patterns.
                   </p>
                 </div>
-                {images.filter(img => img.filename.includes('numerical')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
-                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
-                    </a>
-                  </div>
-                ))}
+                <div className="space-y-8">
+                  {images.filter(img => img.filename.includes('numerical')).map((image) => (
+                    <div key={image.filename} className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                      <div className="p-6 border-b border-gray-100">
+                        <h3 className="text-2xl font-bold text-gray-900">{humanizeFilename(image.filename)}</h3>
+                        <p className="text-gray-600 mt-2">Click image to view full size in new tab</p>
+                      </div>
+                      <div className="p-6">
+                        <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer group">
+                          <img 
+                            src={image.url} 
+                            alt={humanizeFilename(image.filename)} 
+                            className="w-full h-auto rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]" 
+                            style={{ minHeight: '400px', objectFit: 'contain' }}
+                          />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -449,14 +456,26 @@ export default function DatasetPage() {
                     categorical predictors. Having savings and stable employment dramatically increases approval odds.
                   </p>
                 </div>
-                {images.filter(img => img.filename.includes('categorical')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
-                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
-                    </a>
-                  </div>
-                ))}
+                <div className="space-y-8">
+                  {images.filter(img => img.filename.includes('categorical')).map((image) => (
+                    <div key={image.filename} className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                      <div className="p-6 border-b border-gray-100">
+                        <h3 className="text-2xl font-bold text-gray-900">{humanizeFilename(image.filename)}</h3>
+                        <p className="text-gray-600 mt-2">Click image to view full size in new tab</p>
+                      </div>
+                      <div className="p-6">
+                        <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer group">
+                          <img 
+                            src={image.url} 
+                            alt={humanizeFilename(image.filename)} 
+                            className="w-full h-auto rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]" 
+                            style={{ minHeight: '400px', objectFit: 'contain' }}
+                          />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -468,14 +487,26 @@ export default function DatasetPage() {
                     which features <em>truly drive</em> credit outcomes vs. those that merely correlate.
                   </p>
                 </div>
-                {images.filter(img => img.filename.includes('importance') || img.filename.includes('outcome')).map((image) => (
-                  <div key={image.filename} className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg hover:shadow-xl transition-shadow">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800">{humanizeFilename(image.filename)}</h3>
-                    <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
-                      <img src={image.url} alt={humanizeFilename(image.filename)} className="w-full rounded-lg hover:opacity-90 transition-opacity" />
-                    </a>
-                  </div>
-                ))}
+                <div className="space-y-8">
+                  {images.filter(img => img.filename.includes('importance') || img.filename.includes('outcome')).map((image) => (
+                    <div key={image.filename} className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                      <div className="p-6 border-b border-gray-100">
+                        <h3 className="text-2xl font-bold text-gray-900">{humanizeFilename(image.filename)}</h3>
+                        <p className="text-gray-600 mt-2">Click image to view full size in new tab</p>
+                      </div>
+                      <div className="p-6">
+                        <a href={image.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer group">
+                          <img 
+                            src={image.url} 
+                            alt={humanizeFilename(image.filename)} 
+                            className="w-full h-auto rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]" 
+                            style={{ minHeight: '400px', objectFit: 'contain' }}
+                          />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 
                 {/* Top Drivers Summary */}
                 <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
