@@ -83,13 +83,23 @@ function formatValue(feature: string, value: string): string {
   // Just format numerical values with appropriate units
   const numValue = parseFloat(value)
   if (!isNaN(numValue)) {
-    if (feature.includes('Duration') || feature.includes('months')) {
+    if (feature.includes('Duration') && feature.includes('months')) {
       return `${numValue} months`
     } else if (feature.includes('Credit Amount') || feature.includes('Amount')) {
       return `${numValue.toLocaleString()} DM`
     } else if (feature.includes('Age')) {
       return `${numValue} years old`
-    } else if (feature.includes('Rate') || feature.includes('Burden')) {
+    } else if (feature.includes('Monthly Payment Burden')) {
+      return `${numValue.toLocaleString()} DM/month`
+    } else if (feature.includes('Duration Risk Score')) {
+      return `${numValue.toLocaleString()} DM×months`
+    } else if (feature.includes('Credit Risk Ratio')) {
+      return `${numValue.toFixed(1)} DM per 100 age-years`
+    } else if (feature.includes('Credit to Income Ratio')) {
+      return `${numValue.toFixed(1)} DM per age-year`
+    } else if (feature.includes('Financial Stability Score')) {
+      return `${numValue.toFixed(1)} age×employment-years`
+    } else if (feature.includes('Installment Rate')) {
       return `${numValue}% of income`
     } else if (feature.includes('Residence') || feature.includes('Years')) {
       return `${numValue} years`

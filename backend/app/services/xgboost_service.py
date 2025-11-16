@@ -191,14 +191,23 @@ class XGBoostService:
         # Create feature contributions with human-readable names and original values
         contributions = []
         for i, (encoded_feat, shap_val) in enumerate(zip(encoded_feature_names, shap_values_bad)):
-            # Extract original feature name (remove 'num__' or 'cat__' prefix)
-            original_feat = encoded_feat.replace('num__', '').replace('cat__', '')
+            # Extract original feature name (remove transformer prefixes)
+            # ColumnTransformer creates prefixes like 'num__' and 'cat__'
+            original_feat = encoded_feat
+            if '__' in encoded_feat:
+                # Remove transformer prefix (e.g., 'num__duration' -> 'duration')
+                original_feat = encoded_feat.split('__', 1)[1]
             
             # Get human-readable name
             display_name = self.FEATURE_NAMES.get(original_feat, original_feat)
             
-            # Get original value (before encoding)
-            original_value = original_values.get(original_feat, X_transformed_df.iloc[0, i])
+            # Get original value (before encoding) - ensure we have it
+            if original_feat in original_values:
+                original_value = original_values[original_feat]
+            else:
+                # Log warning for debugging and use fallback
+                print(f"Warning: Feature '{original_feat}' not found in original values. Available: {list(original_values.keys())}")
+                original_value = X_transformed_df.iloc[0, i]
             
             contributions.append({
                 'feature': display_name,
