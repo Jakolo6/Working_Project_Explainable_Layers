@@ -88,8 +88,8 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
     }
   },
 
-  // Monthly Payment Burden
-  'Monthly Payment Burden': {
+  // Installment Rate (percentage of income)
+  'Installment Rate': {
     name: 'Installment Rate',
     description: 'Percentage of available income used for monthly installments. Shows how much of the person\'s income goes into repayment.'
   },
@@ -208,20 +208,30 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
     }
   },
 
-  // Derived/Calculated Features
-  'Duration Risk Score': {
-    name: 'Duration Risk Score',
-    description: 'Calculated risk score based on loan duration. Higher values indicate longer-term loans with potentially higher risk.'
+  // Engineered Features (Calculated Risk Metrics)
+  'Monthly Payment Burden': {
+    name: 'Monthly Payment Burden',
+    description: 'Monthly payment amount calculated as Credit Amount ÷ Duration. Shows the actual monthly payment burden in DM/month. Higher values indicate larger monthly payments that may strain finances.'
+  },
+
+  'Financial Stability Score': {
+    name: 'Financial Stability Score', 
+    description: 'Combined stability metric calculated as Age × Employment Years. Reflects overall life and employment stability. Higher scores indicate more established, stable borrowers with longer employment history.'
   },
 
   'Credit Risk Ratio': {
     name: 'Credit Risk Ratio',
-    description: 'Calculated ratio combining credit amount and other risk factors. Higher values indicate higher risk profiles.'
+    description: 'Risk metric calculated as Credit Amount ÷ (Age × 100). Measures credit amount relative to borrower maturity and earning potential. Higher ratios indicate larger loans relative to expected income capacity.'
   },
 
   'Credit to Income Ratio': {
-    name: 'Credit to Income Ratio',
-    description: 'Ratio of requested credit amount to estimated income. Higher values indicate larger loans relative to income.'
+    name: 'Credit to Income Ratio', 
+    description: 'Simple income proxy calculated as Credit Amount ÷ Age. Estimates credit burden relative to life stage and earning potential. Higher values suggest loans that may be challenging to repay given life circumstances.'
+  },
+
+  'Duration Risk Score': {
+    name: 'Duration Risk Score',
+    description: 'Combined risk metric calculated as Duration × Credit Amount. Captures total financial exposure over loan lifetime. Higher scores indicate larger total commitments that compound risk over time.'
   }
 }
 
