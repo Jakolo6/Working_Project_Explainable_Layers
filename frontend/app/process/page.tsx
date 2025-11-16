@@ -5,7 +5,7 @@ import { ArrowDown, Database, BarChart3, Settings, Brain, Upload, Server, Users,
 
 export default function ProcessPage() {
   const [expandedStep, setExpandedStep] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'phase1' | 'phase2' | 'phase3'>('phase1')
+  const [activeTab, setActiveTab] = useState<'overview' | 'phase1' | 'phase2' | 'phase3'>('overview')
 
   const toggleStep = (step: string) => {
     setExpandedStep(expandedStep === step ? null : step)
@@ -31,6 +31,19 @@ export default function ProcessPage() {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-4 font-semibold transition-colors border-b-4 ${
+                activeTab === 'overview'
+                  ? 'border-gray-900 text-gray-900 bg-gray-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-5 h-5" />
+                <span>Full Flow Diagram</span>
+              </div>
+            </button>
             <button
               onClick={() => setActiveTab('phase1')}
               className={`px-6 py-4 font-semibold transition-colors border-b-4 ${
@@ -76,6 +89,247 @@ export default function ProcessPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        {/* OVERVIEW TAB - FULL FLOW DIAGRAM */}
+        {activeTab === 'overview' && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Complete Technical Flow</h2>
+              <p className="text-gray-600">End-to-end pipeline from data acquisition to user experiment</p>
+            </div>
+
+            {/* Flow Diagram with Swimlanes */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              
+              {/* PHASE 1: OFFLINE TRAINING (Blue) */}
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg font-bold">
+                    <Database className="w-5 h-5" />
+                    <span>OFFLINE TRAINING</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Step 1 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">1. Data Acquisition</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• UCI German Credit dataset</li>
+                      <li>• 1000 samples, 20 features</li>
+                      <li>• Binary classification</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-blue-500" /></div>
+
+                  {/* Step 2 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">2. Data Cleaning</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Map categorical values</li>
+                      <li>• Human-readable labels</li>
+                      <li>• Save clean CSV</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-blue-500" /></div>
+
+                  {/* Step 3 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">3. EDA Analysis</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• 8 visualizations</li>
+                      <li>• Statistics JSON</li>
+                      <li>• Feature importance</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-blue-500" /></div>
+
+                  {/* Step 4 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">4. Feature Engineering</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• 5 derived features</li>
+                      <li>• Encoding pipeline</li>
+                      <li>• Scaling pipeline</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-blue-500" /></div>
+
+                  {/* Step 5 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">5. Model Training</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• XGBoost classifier</li>
+                      <li>• SHAP TreeExplainer init</li>
+                      <li>• Save models to disk</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-blue-500" /></div>
+
+                  {/* Step 6 */}
+                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-blue-900 mb-1">6. Upload to R2</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Manual upload</li>
+                      <li>• Models + EDA files</li>
+                      <li>• Cloudflare R2 storage</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* PHASE 2: DEPLOYMENT (Purple) */}
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg font-bold">
+                    <Server className="w-5 h-5" />
+                    <span>DEPLOYMENT</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Step 7 */}
+                  <div className="bg-white border-2 border-purple-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-purple-900 mb-1">7. Backend Deploy</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• FastAPI on Railway</li>
+                      <li>• Load models from R2</li>
+                      <li>• Initialize SHAP explainer</li>
+                      <li>• Connect Supabase</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-purple-500" /></div>
+
+                  {/* Step 8 */}
+                  <div className="bg-white border-2 border-purple-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-purple-900 mb-1">8. Frontend Deploy</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Next.js on Netlify</li>
+                      <li>• Connect to backend API</li>
+                      <li>• Persona pages</li>
+                      <li>• Layer system</li>
+                    </ul>
+                  </div>
+
+                  {/* Spacer to align with other columns */}
+                  <div className="h-[420px]"></div>
+                </div>
+              </div>
+
+              {/* PHASE 3: ONLINE EXPERIMENT (Green) */}
+              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
+                    <Users className="w-5 h-5" />
+                    <span>ONLINE EXPERIMENT</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Step 9 */}
+                  <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-green-900 mb-1">9. User Registration</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Pre-questionnaire</li>
+                      <li>• Demographics</li>
+                      <li>• AI experience</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-green-500" /></div>
+
+                  {/* Step 10 */}
+                  <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-green-900 mb-1">10. Persona Selection</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Maria, Jonas, or Sofia</li>
+                      <li>• Preset loan scenarios</li>
+                      <li>• Submit application</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-green-500" /></div>
+
+                  {/* Step 11 - HIGHLIGHTED */}
+                  <div className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-3 shadow-lg">
+                    <div className="font-semibold text-yellow-900 mb-1 flex items-center gap-1">
+                      <Zap className="w-4 h-4" />
+                      11. Real-time Prediction
+                    </div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Feature engineering</li>
+                      <li>• XGBoost prediction</li>
+                      <li>• <strong>SHAP calculation NOW</strong></li>
+                      <li>• Return all features</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-green-500" /></div>
+
+                  {/* Step 12 */}
+                  <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-green-900 mb-1">12. Explanation Layers</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Layer 0-5 (6 layers)</li>
+                      <li>• Progressive detail</li>
+                      <li>• Rate each layer</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-green-500" /></div>
+
+                  {/* Step 13 */}
+                  <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-green-900 mb-1">13. Post-Questionnaire</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Satisfaction ratings</li>
+                      <li>• Trust assessment</li>
+                      <li>• Preferred layer</li>
+                    </ul>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="flex justify-center"><ArrowDown className="w-5 h-5 text-green-500" /></div>
+
+                  {/* Step 14 */}
+                  <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
+                    <div className="font-semibold text-green-900 mb-1">14. Complete</div>
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      <li>• Save to Supabase</li>
+                      <li>• Session complete</li>
+                      <li>• Thank you page</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Insight Box */}
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl p-6 text-white text-center">
+              <h3 className="text-xl font-bold mb-2">🔑 Critical Insight: SHAP Timing</h3>
+              <p className="text-sm opacity-90">
+                <strong>OFFLINE:</strong> SHAP TreeExplainer is initialized from the trained model<br/>
+                <strong>ONLINE:</strong> SHAP values are calculated in real-time for each prediction (Step 11)
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* PHASE 1: OFFLINE TRAINING */}
         {activeTab === 'phase1' && (
