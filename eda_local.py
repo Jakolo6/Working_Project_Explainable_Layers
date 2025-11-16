@@ -157,12 +157,13 @@ print("=" * 80)
 fig, axes = plt.subplots(3, 4, figsize=(18, 12))
 axes = axes.flatten()
 
-for idx, feature in enumerate(categorical_features):
+for idx, feature_raw in enumerate(categorical_features_raw):
     ax = axes[idx]
+    feature_display = FEATURE_NAMES[feature_raw]
     
-    ct = pd.crosstab(df[feature], df['class_label'], normalize='index') * 100
+    ct = pd.crosstab(df[feature_raw], df['class_label'], normalize='index') * 100
     ct.plot(kind='bar', ax=ax, color=['#2ecc71', '#e74c3c'], alpha=0.7)
-    ax.set_title(f'{feature.replace("_", " ").title()}', fontsize=11, fontweight='bold')
+    ax.set_title(f'{feature_display}', fontsize=11, fontweight='bold')
     ax.set_ylabel('Percentage (%)', fontsize=10)
     ax.set_xlabel('')
     ax.legend(title='Credit Outcome', loc='best', fontsize=9)
@@ -387,25 +388,27 @@ statistics = {
 }
 
 # Add numerical statistics
-for feature in numerical_features:
-    statistics["numerical_statistics"][feature] = {
-        "mean": float(df[feature].mean()),
-        "median": float(df[feature].median()),
-        "std": float(df[feature].std()),
-        "min": float(df[feature].min()),
-        "max": float(df[feature].max()),
-        "mean_good": float(df[df['class'] == 1][feature].mean()),
-        "mean_bad": float(df[df['class'] == 2][feature].mean())
+for feature_raw in numerical_features_raw:
+    feature_display = FEATURE_NAMES[feature_raw]
+    statistics["numerical_statistics"][feature_display] = {
+        "mean": float(df[feature_raw].mean()),
+        "median": float(df[feature_raw].median()),
+        "std": float(df[feature_raw].std()),
+        "min": float(df[feature_raw].min()),
+        "max": float(df[feature_raw].max()),
+        "mean_good": float(df[df['class'] == 1][feature_raw].mean()),
+        "mean_bad": float(df[df['class'] == 2][feature_raw].mean())
     }
 
 # Add categorical statistics
-for feature in categorical_features:
-    value_counts = df[feature].value_counts().to_dict()
-    approval_rates = (df[df['class'] == 1].groupby(feature).size() / 
-                     df.groupby(feature).size() * 100).to_dict()
+for feature_raw in categorical_features_raw:
+    feature_display = FEATURE_NAMES[feature_raw]
+    value_counts = df[feature_raw].value_counts().to_dict()
+    approval_rates = (df[df['class'] == 1].groupby(feature_raw).size() / 
+                     df.groupby(feature_raw).size() * 100).to_dict()
     
-    statistics["categorical_statistics"][feature] = {
-        "unique_values": int(df[feature].nunique()),
+    statistics["categorical_statistics"][feature_display] = {
+        "unique_values": int(df[feature_raw].nunique()),
         "value_counts": {str(k): int(v) for k, v in value_counts.items()},
         "approval_rates": {str(k): float(v) for k, v in approval_rates.items()}
     }
