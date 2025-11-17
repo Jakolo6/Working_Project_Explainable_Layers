@@ -1,31 +1,35 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: LOCAL-FIRST REFACTORING COMPLETE**  
-> ✅ Local-first workflow | ✅ Manual R2 upload | ✅ Simplified backend | ✅ Clean codebase  
-> 📅 Last Updated: November 11, 2025 (11:52 PM)
+> 🎉 **PROJECT STATUS: PRODUCTION READY - CODE CLEANUP COMPLETE**  
+> ✅ Clean codebase | ✅ Single documentation file | ✅ Best practices | ✅ No unused code  
+> 📅 Last Updated: November 16, 2025
 
 ---
 
-## 🔄 **Major Update: Local-First Approach** (Nov 11, 2025)
+## 🧹 **Latest Update: Code Cleanup & Consolidation** (Nov 16, 2025)
 
 **What Changed:**
-- ❌ Removed all backend upload scripts (download, clean, generate-eda, train)
-- ✅ Added local scripts: `eda_local.py` and `train_models_local.py`
-- ✅ Simplified admin API to only serve data from R2
-- ✅ Updated admin page with manual upload instructions
-- ✅ Cleaner, more transparent, professor-friendly workflow
+- ✅ **Documentation consolidated** - Only PROJECT_OVERVIEW.md + frontend/backend READMEs
+- ✅ **Removed 9 redundant docs** - ADMIN_PAGE_GUIDE, CODE_REVIEW_SUMMARY, etc.
+- ✅ **Removed old notebooks** - DownloadingCleaning.ipynb, EDA.ipynb, Model_Training.ipynb
+- ✅ **Removed duplicate scripts** - EDA.py, Model_Training.py, retrain_models.py
+- ✅ **Backend cleanup** - Removed 6 unused services (old model classes, preprocessing, feature_mappings)
+- ✅ **Removed old API** - experiment.py (replaced by experiment_clean.py)
+- ✅ **EDA updated** - Now includes 5 derived features with human-readable names
 
-**New Workflow:**
-1. Run `python eda_local.py` locally (~30 seconds)
-2. Run `python train_models_local.py` locally (~2-3 minutes)
-3. Manually upload `data/eda/*` and `data/models/*` to R2
-4. Frontend automatically loads from R2
+**Current Clean Structure:**
+- **Root scripts:** `download_data.py`, `convert_data.py`, `eda_local.py`, `train_models_local.py`
+- **Backend services:** `xgboost_service.py`, `logistic_service.py`, `notebook_preprocessing.py`, `supabase_service.py`
+- **Backend APIs:** `experiment_clean.py`, `admin.py`
+- **Documentation:** `PROJECT_OVERVIEW.md`, `frontend/README.md`, `backend/README.md`
 
-**Benefits:**
-- Reproducible (same inputs = same outputs)
-- Transparent (review all files before upload)
-- No cloud dependencies (run offline)
-- Source code included in JSON for professor review
+**Workflow:**
+1. Run `python3 download_data.py` - Download German Credit dataset from Kaggle
+2. Run `python3 convert_data.py` - Convert to human-readable format
+3. Run `python3 eda_local.py` - Generate EDA with 12 numerical features (7 original + 5 derived)
+4. Run `python3 train_models_local.py` - Train XGBoost + Logistic models
+5. Manually upload `data/eda/*` and `data/models/*` to R2
+6. Frontend automatically loads from R2
 
 ---
 
@@ -41,16 +45,20 @@
 - Manual upload to R2 bucket
 - Backend serves data from R2
 - Cleaned dataset with human-readable column names (no Axx codes)
-- Notebook-trained models (XGBoost + Logistic Regression)
-- Preprocessing matches Model_Training.ipynb exactly
-- Feature engineering: 7 base + 5 engineered numerical features + 11 categorical features
+- Trained models (XGBoost + Logistic Regression)
+- Feature engineering: 7 base + 5 derived numerical features + 11 categorical features
+
+**Features:**
+- **7 Original Numerical:** Loan Duration, Credit Amount, Installment Rate, Years at Residence, Age, Existing Credits, Number of Dependents
+- **5 Derived Features:** Monthly Payment Burden, Financial Stability Score, Credit Risk Ratio, Credit-to-Income Proxy, Duration Risk Score
+- **11 Categorical:** Checking Account Status, Credit History, Loan Purpose, Savings Account Status, Employment Duration, Housing Status, Job Type, Other Debtors/Guarantors, Property Ownership, Other Payment Plans, Telephone Registration
 
 **Experimental Design:**
 - 3 Personas (Maria, Jonas, Sofia)
-- 5 Explanation Layers per persona (Minimal, Feature Importance, Detailed SHAP, Visual, Counterfactual)
+- 6 Explanation Layers per persona (All Features, Minimal, Short Text, Visual, Contextual, Counterfactual)
 - Pre/Post experiment questionnaires
 - Layer-specific feedback collection (4 metrics: trust, understanding, usefulness, mental effort)
-- **Total:** 3 personas × 5 layers = 15 variations per participant
+- **Total:** 3 personas × 6 layers = 18 variations per participant
 
 ## 2. Implemented Features
 
