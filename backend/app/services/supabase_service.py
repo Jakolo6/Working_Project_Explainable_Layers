@@ -15,14 +15,16 @@ class SupabaseService:
             config.supabase_key
         )
     
-    def create_session(self, session_record: Dict) -> bool:
+    def create_session(self, session_record: Dict) -> Dict:
         """Create a new experiment session with participant information"""
         try:
             response = self.client.table('sessions').insert(session_record).execute()
-            return True
+            print(f"[INFO] Session created successfully: {session_record.get('session_id')}")
+            return {"success": True, "data": response.data}
         except Exception as e:
-            print(f"Error creating session: {e}")
-            return False
+            print(f"[ERROR] Error creating session: {e}")
+            print(f"[ERROR] Session record: {session_record}")
+            return {"success": False, "error": str(e)}
     
     def store_prediction(self, session_id: str, prediction_data: Dict) -> bool:
         """Store prediction results for a session"""

@@ -175,17 +175,18 @@ async def create_session(session_data: SessionCreate):
         
         result = db.create_session(session_record)
         
-        if result:
+        if result.get("success"):
             return SessionResponse(
                 session_id=session_id,
                 success=True,
                 message="Session created successfully"
             )
         else:
-            raise HTTPException(status_code=500, detail="Failed to create session")
+            error_msg = result.get("error", "Unknown error")
+            raise HTTPException(status_code=500, detail=f"Failed to create session: {error_msg}")
             
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Session creation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Session creation failed: {str(e)}")
 
 
 @router.post("/predict", response_model=PredictionResponse)
