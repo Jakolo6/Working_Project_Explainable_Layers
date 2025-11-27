@@ -18,13 +18,19 @@ class SupabaseService:
     def create_session(self, session_record: Dict) -> Dict:
         """Create a new experiment session with participant information"""
         try:
+            print(f"[INFO] Attempting to create session: {session_record.get('session_id')}")
+            print(f"[INFO] Supabase URL: {self.config.supabase_url[:30]}...")
             response = self.client.table('sessions').insert(session_record).execute()
             print(f"[INFO] Session created successfully: {session_record.get('session_id')}")
+            print(f"[INFO] Response: {response}")
             return {"success": True, "data": response.data}
         except Exception as e:
-            print(f"[ERROR] Error creating session: {e}")
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"[ERROR] Error creating session: {type(e).__name__}: {e}")
+            print(f"[ERROR] Full traceback: {error_details}")
             print(f"[ERROR] Session record: {session_record}")
-            return {"success": False, "error": str(e)}
+            return {"success": False, "error": f"{type(e).__name__}: {str(e) or 'No error message'}"}
     
     def store_prediction(self, session_id: str, prediction_data: Dict) -> bool:
         """Store prediction results for a session"""
