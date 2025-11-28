@@ -1,8 +1,9 @@
-// Layer 2: Short Text - GPT-4 generated natural language explanation
+// Layer 2: Narrative LLM Explanation - Natural language combining global + local SHAP
 
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import GlobalSummary from './GlobalSummary'
 
 interface SHAPFeature {
   feature: string
@@ -18,52 +19,63 @@ interface Layer2ShortTextProps {
 }
 
 export default function Layer2ShortText({ decision, probability, shapFeatures }: Layer2ShortTextProps) {
-  // Get top 3 features
-  const top3Features = shapFeatures.slice(0, 3)
-  const [gptExplanation, setGptExplanation] = useState<string>('')
+  const top5Features = shapFeatures.slice(0, 5)
+  const [narrative, setNarrative] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
-  const [useFallback, setUseFallback] = useState(false)
+  const [isLLMGenerated, setIsLLMGenerated] = useState(false)
   
   useEffect(() => {
-    const fetchExplanation = async () => {
+    const fetchNarrative = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        const response = await fetch(`${apiUrl}/api/v1/experiment/generate_explanation`, {
+        const response = await fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             decision,
             probability,
-            top_features: top3Features
+            shap_features: top5Features,
+            all_features: shapFeatures
           })
         })
         
-        if (!response.ok) {
-          throw new Error('Failed to generate explanation')
+        if (response.ok) {
+          const data = await response.json()
+          setNarrative(data.narrative)
+          setIsLLMGenerated(data.is_llm_generated || false)
+        } else {
+          throw new Error('API error')
+        }
+      } catch (error) {
+        console.error('Narrative API error:', error)
+        // Generate structured fallback
+        const positiveFactors = top5Features.filter(f => f.impact === 'positive')
+        const negativeFactors = top5Features.filter(f => f.impact === 'negative')
+        
+        let fallback = `**Decision Summary:** The credit application was ${decision.toUpperCase()} with ${(probability * 100).toFixed(0)}% confidence.\n\n`
+        
+        if (positiveFactors.length > 0) {
+          fallback += `**Risk-Increasing Factors:** ${positiveFactors.map(f => `${f.feature} (${f.value})`).join(', ')}.\n\n`
+        }
+        if (negativeFactors.length > 0) {
+          fallback += `**Risk-Decreasing Factors:** ${negativeFactors.map(f => `${f.feature} (${f.value})`).join(', ')}.\n\n`
         }
         
-        const data = await response.json()
-        setGptExplanation(data.explanation)
-        setUseFallback(!data.success)
-      } catch (error) {
-        console.error('Error fetching GPT explanation:', error)
-        // Fallback explanation
-        const fallbackExplanation = `The AI ${decision} this loan application with ${(probability * 100).toFixed(1)}% confidence. The key factors were: ${top3Features.map(f => f.feature || 'Unknown Factor').join(', ')}.`
-        setGptExplanation(fallbackExplanation)
-        setUseFallback(true)
+        fallback += `The model analyzed ${shapFeatures.length} features in total. The primary drivers of this decision were the applicant's ${top5Features[0]?.feature || 'profile'} and overall financial stability indicators.`
+        
+        setNarrative(fallback)
+        setIsLLMGenerated(false)
       } finally {
         setIsLoading(false)
       }
     }
     
-    if (top3Features.length > 0) {
-      fetchExplanation()
+    if (shapFeatures.length > 0) {
+      fetchNarrative()
     }
-  }, [decision, probability, top3Features])
+  }, [decision, probability, shapFeatures])
   
-  if (top3Features.length === 0) {
+  if (shapFeatures.length === 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-6 text-gray-600">
         No explanation data available.
@@ -73,75 +85,128 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
 
   const isApproved = decision === 'approved'
 
-  return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-8">
-      <div className="flex items-start gap-4 mb-6">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-          isApproved ? 'bg-green-100' : 'bg-red-100'
-        }`}>
-          {isApproved ? '✓' : '✗'}
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
-            Layer 2: Natural Language Explanation
-          </h3>
-          <p className="text-gray-600">AI-generated summary of top 3 factors</p>
-        </div>
-      </div>
+  // Parse markdown-like formatting in narrative
+  const formatNarrative = (text: string) => {
+    return text.split('\n\n').map((paragraph, idx) => {
+      // Handle bold markers
+      const formatted = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      return (
+        <p 
+          key={idx} 
+          className="mb-3 last:mb-0"
+          dangerouslySetInnerHTML={{ __html: formatted }}
+        />
+      )
+    })
+  }
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-6">
-        <div className="flex items-start gap-3">
-          <div className="text-3xl">💬</div>
-          <div className="flex-1">
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                <p className="text-gray-600">Generating explanation...</p>
-              </div>
-            ) : (
-              <p className="text-lg leading-relaxed text-gray-800">
-                {gptExplanation}
-              </p>
-            )}
+  return (
+    <div className="space-y-6">
+      {/* Global Summary at Top */}
+      <GlobalSummary
+        decision={decision}
+        probability={probability}
+        shapFeatures={shapFeatures}
+        compact={true}
+      />
+      
+      <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
+        <div className="flex items-start gap-4 mb-6">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+            isApproved ? 'bg-green-100' : 'bg-red-100'
+          }`}>
+            {isApproved ? '✓' : '✗'}
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+              Narrative Explanation
+            </h3>
+            <p className="text-gray-600">
+              {isLLMGenerated ? 'AI-generated' : 'Structured'} natural language summary
+            </p>
           </div>
         </div>
-      </div>
 
-      <div className="bg-gray-50 rounded-lg p-6 mb-6">
-        <h4 className="font-semibold text-gray-900 mb-3">Key Factors Breakdown:</h4>
-        <div className="space-y-3">
-          {top3Features.map((feature, index) => (
-            <div key={index} className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                feature.impact === 'positive' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {index + 1}
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900">{feature.feature}</p>
-                <p className="text-sm text-gray-600">
-                  Value: <span className="font-mono bg-white px-2 py-0.5 rounded">{feature.value}</span>
-                  {' • '}
-                  Impact: <span className={feature.impact === 'positive' ? 'text-green-600' : 'text-red-600'}>
-                    {feature.impact === 'positive' ? 'Increases' : 'Decreases'} approval likelihood
-                  </span>
-                </p>
-              </div>
+        {/* Main Narrative */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500 p-6 rounded-r-lg mb-6">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl">📝</div>
+            <div className="flex-1">
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+                  <p className="text-gray-600">Generating narrative explanation...</p>
+                </div>
+              ) : (
+                <div className="text-gray-800 leading-relaxed">
+                  {formatNarrative(narrative)}
+                </div>
+              )}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
 
-      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-sm text-gray-700">
-          <strong>💡 About this explanation:</strong> This natural language summary was {useFallback ? 'generated' : 'created by AI'} to translate the 
-          mathematical decision into plain English. It focuses on the three most important factors and 
-          explains how they contributed to the{' '}
-          <span className={isApproved ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}>
-            {decision}
-          </span>{' '}
-          decision.
-        </p>
+        {/* Top 5 Features Table */}
+        <div className="bg-slate-50 rounded-lg p-4 mb-6">
+          <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
+            📊 Top 5 Contributing Factors
+          </h4>
+          <div className="grid gap-2">
+            {top5Features.map((feature, idx) => (
+              <div 
+                key={idx}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  feature.impact === 'positive' 
+                    ? 'bg-red-50 border-red-200' 
+                    : 'bg-green-50 border-green-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    feature.impact === 'positive' 
+                      ? 'bg-red-200 text-red-800' 
+                      : 'bg-green-200 text-green-800'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  <div>
+                    <span className="font-medium text-slate-800">{feature.feature}</span>
+                    <span className="text-slate-500 text-sm ml-2">= {feature.value}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-mono ${
+                    feature.impact === 'positive' ? 'text-red-600' : 'text-green-600'
+                  }`}>
+                    {feature.shap_value > 0 ? '+' : ''}{feature.shap_value.toFixed(3)}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    feature.impact === 'positive' 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    {feature.impact === 'positive' ? '↑ Risk' : '↓ Risk'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer Note */}
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-2">
+            <span className="text-lg">💡</span>
+            <p className="text-sm text-blue-800">
+              <strong>About this explanation:</strong> This narrative combines global model patterns with 
+              applicant-specific SHAP values to explain why the AI made this decision. 
+              {isLLMGenerated 
+                ? ' The text was generated by an AI language model and is faithful to the underlying SHAP analysis.'
+                : ' The text is based on structured templates derived from the SHAP analysis.'
+              }
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

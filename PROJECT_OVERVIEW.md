@@ -1,12 +1,40 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: PRODUCTION READY - CODE CLEANUP COMPLETE**  
-> ✅ Clean codebase | ✅ Single documentation file | ✅ Best practices | ✅ No unused code  
-> 📅 Last Updated: November 16, 2025
+> 🎉 **PROJECT STATUS: PRODUCTION READY - XAI LAYERS REFACTORED**  
+> ✅ Clean codebase | ✅ New explanation layers | ✅ GlobalSummary component | ✅ Backend APIs  
+> 📅 Last Updated: January 2025
 
 ---
 
-## 🧹 **Latest Update: Code Cleanup & Consolidation** (Nov 16, 2025)
+## 🔄 **Latest Update: XAI Explanation Layers Cleaned Up** (Jan 2025)
+
+**What Changed:**
+- ✅ **GlobalSummary Component** - Shared SHAP summary used across all layers
+- ✅ **Layer 1 (Analytical Dashboard)** - CSS-based waterfall plot, full feature table
+- ✅ **Layer 2 (Narrative LLM)** - OpenAI-powered narrative explanations with fallback
+- ✅ **Layer 3 (Interactive Counterfactual)** - API-driven counterfactual scenarios
+- ✅ **Deleted Layer3Visual.tsx** - Redundant (waterfall in Layer 1)
+- ✅ **Deleted Layer4Contextual.tsx** - Contained outdated Axx codes, merged into Layer 2
+- ✅ **New Backend Endpoints** - `/api/v1/explanations/level2/narrative` and `/level3/counterfactuals`
+- ✅ **OpenAI Integration** - Added openai package to requirements.txt
+
+**Final 4-Layer Structure:**
+- **Layer 0:** Complete SHAP Analysis (baseline, all features)
+- **Layer 1:** Analytical SHAP Dashboard (waterfall + numeric table)
+- **Layer 2:** Narrative LLM Explanation (AI-generated text + top 5 factors)
+- **Layer 3:** Interactive Counterfactual Analysis (what-if scenarios)
+
+**Files:**
+- `frontend/components/layers/GlobalSummary.tsx` - Shared component
+- `frontend/components/layers/Layer0AllFeatures.tsx` - Baseline
+- `frontend/components/layers/Layer1Minimal.tsx` - Analytical dashboard
+- `frontend/components/layers/Layer2ShortText.tsx` - Narrative LLM
+- `frontend/components/layers/Layer5Counterfactual.tsx` - Counterfactual
+- `backend/app/api/explanations.py` - New explanation API endpoints
+
+---
+
+## 🧹 **Previous Update: Code Cleanup & Consolidation** (Nov 16, 2025)
 
 **What Changed:**
 - ✅ **Documentation consolidated** - Only PROJECT_OVERVIEW.md + frontend/backend READMEs
@@ -55,10 +83,10 @@
 
 **Experimental Design:**
 - 3 Personas (Maria, Jonas, Sofia)
-- 6 Explanation Layers per persona (All Features, Minimal, Short Text, Visual, Contextual, Counterfactual)
+- 4 Explanation Layers per persona (All Features, Analytical Dashboard, Narrative LLM, Counterfactual)
 - Pre/Post experiment questionnaires
 - Layer-specific feedback collection (4 metrics: trust, understanding, usefulness, mental effort)
-- **Total:** 3 personas × 6 layers = 18 variations per participant
+- **Total:** 3 personas × 4 layers = 12 variations per participant
 
 ## 2. Implemented Features
 
@@ -190,14 +218,15 @@
   - Submit to AI for prediction
   - Display decision + probability
   - Lock form after submission
-- [x] **Explanation layers** (5 layers per persona) - COMPLETE
-  - [x] Layer 1: Minimal (human-readable, single key factor)
-  - [x] Layer 2: Feature Importance (GPT-4o-mini natural language)
-  - [x] Layer 3: Detailed SHAP (visual bar charts)
-  - [x] Layer 4: Visual (contextual benchmarking with dataset ranges)
-  - [x] Layer 5: Counterfactual (realistic what-if scenarios)
+- [x] **Explanation layers** (4 layers per persona) - CLEANED UP
+  - [x] Layer 0: Complete SHAP Analysis (all features table, baseline)
+  - [x] Layer 1: Analytical Dashboard (waterfall plot + feature table with GlobalSummary)
+  - [x] Layer 2: Narrative LLM (OpenAI-powered natural language with GlobalSummary)
+  - [x] Layer 3: Interactive Counterfactual (API-driven scenarios with GlobalSummary)
+  - [x] ~~Layer3Visual.tsx~~ - DELETED (redundant, visualization in Layer 1)
+  - [x] ~~Layer4Contextual.tsx~~ - DELETED (outdated Axx codes, merged into Layer 2)
 - [x] Layer rating system (Likert scales for trust, understanding, usefulness, mental effort)
-- [x] Layer sequence manager (5 layers per persona)
+- [x] Layer sequence manager (4 layers per persona)
 - [x] Post-experiment questionnaire page (`/experiment/complete`)
 - [x] Thank you page with session summary
 - [x] Session state management (localStorage)
@@ -228,7 +257,7 @@
 - ✅ Dataset page displays real EDA statistics
 - ✅ Model page displays real training metrics
 - ✅ Admin panel fully functional
-- ✅ **All 5 explanation layers implemented** (human-readable, no mock data)
+- ✅ **All 4 explanation layers implemented** (human-readable, no mock data)
 - ✅ **Results dashboard** with real-time analytics
 - ✅ **Complete experiment flow** (start → personas → layers → completion)
 - ✅ **NO MOCK DATA** - All data from real sources
@@ -242,7 +271,7 @@
 2. ✅ Pre-questionnaire (AI trust expectations)
 3. ✅ Persona selection (3 personas)
 4. ✅ Persona application → AI prediction
-5. ✅ 5 explanation layers (all functional with real data)
+5. ✅ 4 explanation layers (all functional with real data)
 6. ✅ Layer ratings (trust, understanding, usefulness, mental effort)
 7. ✅ Post-questionnaire (overall experience, layer preference)
 8. ✅ Thank you page
@@ -310,12 +339,11 @@
 - Public: Landing, About, Dataset (with 7 EDA charts), Model (with metrics), Admin, Results
 - Experiment: Start, Pre-questionnaire, Personas hub, 3 persona pages, Completion
 
-**5 Explanation Layers (All Human-Readable):**
-1. **Minimal** - Single key factor with clear impact
-2. **Feature Importance** - GPT-4o-mini natural language summary
-3. **Detailed SHAP** - Visual bar charts with color gradients
-4. **Visual** - Contextual benchmarking with dataset ranges
-5. **Counterfactual** - Realistic what-if scenarios
+**4 Explanation Layers (All Human-Readable):**
+1. **Complete SHAP Analysis** - Baseline layer showing all features
+2. **Analytical Dashboard** - Waterfall plot + feature contribution table
+3. **Narrative LLM** - OpenAI-powered natural language explanation
+4. **Counterfactual Analysis** - Interactive what-if scenarios
 
 **Deployment:** ✅ Live on Netlify  
 **URL:** https://novaxai.netlify.app
@@ -366,10 +394,10 @@
 - ✅ Export-ready data structure
 
 **Experiment Design:**
-- ✅ 3 personas × 5 layers = 15 variations
+- ✅ 3 personas × 4 layers = 12 variations
 - ✅ Pre-questionnaire (3 questions)
 - ✅ Post-questionnaire (5 questions)
-- ✅ Layer ratings (4 metrics × 5 layers = 20 data points)
+- ✅ Layer ratings (4 metrics × 4 layers = 16 data points)
 - ✅ Layer preference tracking
 
 ---

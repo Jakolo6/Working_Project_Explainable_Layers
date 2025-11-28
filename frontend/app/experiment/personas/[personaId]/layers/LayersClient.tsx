@@ -9,8 +9,6 @@ import { getPersona, type PersonaInfo } from '@/lib/personas'
 import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
 import Layer1Minimal from '@/components/layers/Layer1Minimal'
 import Layer2ShortText from '@/components/layers/Layer2ShortText'
-import Layer3Visual from '@/components/layers/Layer3Visual'
-import Layer4Contextual from '@/components/layers/Layer4Contextual'
 import Layer5Counterfactual from '@/components/layers/Layer5Counterfactual'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
@@ -44,14 +42,12 @@ interface LayersClientProps {
 
 const LAYER_NAMES = [
   'Complete SHAP Analysis',
-  'Minimal',
-  'Feature Importance',
-  'Detailed SHAP',
-  'Visual',
-  'Counterfactual'
+  'Analytical Dashboard',
+  'Narrative Explanation',
+  'Counterfactual Analysis'
 ]
 
-const TOTAL_LAYERS = 6
+const TOTAL_LAYERS = 4
 
 export default function LayersClient({ personaId }: LayersClientProps) {
   const router = useRouter()
@@ -272,20 +268,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             />
           )}
           {currentLayerIndex === 3 && (
-            <Layer3Visual
-              decision={prediction.decision}
-              probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
-            />
-          )}
-          {currentLayerIndex === 4 && (
-            <Layer4Contextual
-              decision={prediction.decision}
-              probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
-            />
-          )}
-          {currentLayerIndex === 5 && (
             <Layer5Counterfactual
               decision={prediction.decision}
               probability={prediction.probability}

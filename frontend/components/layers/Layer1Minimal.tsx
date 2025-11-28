@@ -1,6 +1,9 @@
-// Layer 1: Minimal - Single key driver explanation in plain language
+// Layer 1: Analytical SHAP Dashboard - Technical information-dense SHAP interface
+
+'use client'
 
 import React from 'react'
+import GlobalSummary from './GlobalSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 
@@ -17,70 +20,8 @@ interface Layer1MinimalProps {
   shapFeatures: SHAPFeature[]
 }
 
-// Feature name mappings: backend names → display names
-const FEATURE_LABELS: Record<string, string> = {
-  // Backend returns human-readable names, map to consistent display names
-  'Loan Duration (months)': 'Loan Duration',
-  'Credit Amount': 'Credit Amount',
-  'Installment Rate': 'Monthly Payment Burden',
-  'Years at Residence': 'Residential Stability',
-  'Age': 'Age',
-  'Existing Credits': 'Existing Loans',
-  'Number of Dependents': 'Number of Dependents',
-  'Monthly Payment Burden': 'Monthly Payment Burden',
-  'Financial Stability Score': 'Financial Stability Score',
-  'Credit Risk Ratio': 'Credit Risk Ratio',
-  'Credit to Income Ratio': 'Credit to Income Ratio',
-  'Duration Risk Score': 'Duration Risk Score',
-  'Checking Account Status': 'Checking Account Status',
-  'Credit History': 'Credit History',
-  'Loan Purpose': 'Loan Purpose',
-  'Savings Account Status': 'Savings Account Status',
-  'Employment Duration': 'Employment Duration',
-  'Other Debtors/Guarantors': 'Other Debtors/Guarantors',
-  'Property Ownership': 'Property Ownership',
-  'Other Payment Plans': 'Other Payment Plans',
-  'Housing Status': 'Housing Status',
-  'Job Type': 'Job Type',
-  'Telephone Registration': 'Telephone Registration'
-}
-
-// Value descriptions: backend values → human-readable descriptions
-const VALUE_DESCRIPTIONS: Record<string, string> = {
-  // Categorical values are already human-readable from backend
-  // This is used for additional formatting if needed
-}
-
-// Contextual explanations for each feature category
-const FEATURE_CONTEXT: Record<string, string> = {
-  'Loan Duration': 'Longer loans carry more uncertainty and risk.',
-  'Credit Amount': 'Higher amounts mean greater risk for the lender.',
-  'Monthly Payment Burden': 'Higher monthly payments relative to income increase default risk.',
-  'Residential Stability': 'Longer residence suggests stability and reliability.',
-  'Age': 'Age correlates with financial experience and stability.',
-  'Existing Loans': 'Multiple loans can strain repayment capacity.',
-  'Number of Dependents': 'More dependents mean higher financial obligations.',
-  'Financial Stability Score': 'A composite measure of overall financial health.',
-  'Credit Risk Ratio': 'Measures the relationship between credit amount and borrower profile.',
-  'Credit to Income Ratio': 'Higher ratios indicate greater repayment burden.',
-  'Duration Risk Score': 'Combines loan duration with amount to assess risk.',
-  'Checking Account Status': 'Account balance indicates financial management skills.',
-  'Credit History': 'Past payment behavior is a strong indicator of future reliability.',
-  'Loan Purpose': 'Different loan purposes carry different levels of risk.',
-  'Savings Account Status': 'Savings provide a financial cushion for unexpected situations.',
-  'Employment Duration': 'Longer employment history suggests job security.',
-  'Other Debtors/Guarantors': 'Co-signers can reduce lending risk.',
-  'Property Ownership': 'Property serves as collateral and shows financial stability.',
-  'Other Payment Plans': 'Existing payment obligations affect repayment capacity.',
-  'Housing Status': 'Homeownership indicates financial responsibility.',
-  'Job Type': 'Job type affects income stability and repayment ability.',
-  'Telephone Registration': 'Having a registered phone shows stability and contactability.',
-}
-
 // Format numeric values with context
 function formatValue(feature: string, value: string): string {
-  // Backend already provides human-readable values for categorical features
-  // Just format numerical values with appropriate units
   const numValue = parseFloat(value)
   if (!isNaN(numValue)) {
     if (feature.includes('Duration') && feature.includes('months')) {
@@ -88,59 +29,34 @@ function formatValue(feature: string, value: string): string {
     } else if (feature.includes('Credit Amount') || feature.includes('Amount')) {
       return `${numValue.toLocaleString()} DM`
     } else if (feature.includes('Age')) {
-      return `${numValue} years old`
+      return `${numValue} years`
     } else if (feature.includes('Monthly Payment Burden')) {
       return `${numValue.toLocaleString()} DM/month`
-    } else if (feature.includes('Duration Risk Score')) {
-      return `${numValue.toLocaleString()} DM×months`
-    } else if (feature.includes('Credit Risk Ratio')) {
-      return `${numValue.toFixed(1)} DM per 100 age-years`
-    } else if (feature.includes('Credit to Income Ratio')) {
-      return `${numValue.toFixed(1)} DM per age-year`
-    } else if (feature.includes('Financial Stability Score')) {
-      return `${numValue.toFixed(1)} age×employment-years`
-    } else if (feature.includes('Installment Rate')) {
-      return `${numValue}% of income`
-    } else if (feature.includes('Residence') || feature.includes('Years')) {
-      return `${numValue} years`
-    } else if (feature.includes('Credits') || feature.includes('Loans')) {
-      return `${numValue} loan${numValue !== 1 ? 's' : ''}`
-    } else if (feature.includes('Dependents')) {
-      return `${numValue} dependent${numValue !== 1 ? 's' : ''}`
     } else if (feature.includes('Score') || feature.includes('Ratio')) {
       return numValue.toFixed(2)
     }
   }
-  
-  // Return the value as-is (backend provides human-readable categorical values)
   return value
 }
 
-// Get impact strength and direction in plain language
-function getImpactDescription(shapValue: number, impact: 'positive' | 'negative'): string {
-  const magnitude = Math.abs(shapValue)
-  
-  let strength = ''
-  if (magnitude < 0.3) {
-    strength = 'slightly'
-  } else if (magnitude < 0.7) {
-    strength = 'moderately'
-  } else {
-    strength = 'strongly'
-  }
-  
-  if (impact === 'positive') {
-    return `This factor ${strength} supported approval.`
-  } else {
-    return `This factor ${strength} reduced the chances of approval.`
-  }
-}
-
 export default function Layer1Minimal({ decision, probability, shapFeatures }: Layer1MinimalProps) {
-  // Get the single most important feature
-  const topFeature = shapFeatures[0]
+  // Sort features by absolute SHAP value
+  const sortedFeatures = [...shapFeatures].sort((a, b) => 
+    Math.abs(b.shap_value) - Math.abs(a.shap_value)
+  )
   
-  if (!topFeature) {
+  const maxAbsShap = Math.max(...sortedFeatures.map(f => Math.abs(f.shap_value)))
+  const baseValue = 0 // Base prediction value
+  
+  // Calculate cumulative SHAP for waterfall
+  let cumulative = baseValue
+  const waterfallData = sortedFeatures.slice(0, 10).map(f => {
+    const start = cumulative
+    cumulative += f.shap_value
+    return { ...f, start, end: cumulative }
+  })
+  
+  if (shapFeatures.length === 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-6 text-gray-600">
         No explanation data available.
@@ -149,61 +65,164 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
   }
 
   const isApproved = decision === 'approved'
-  const featureLabel = FEATURE_LABELS[topFeature.feature] || topFeature.feature
-  const valueDescription = formatValue(topFeature.feature, topFeature.value)
-  const impactDescription = getImpactDescription(topFeature.shap_value, topFeature.impact)
-  const context = FEATURE_CONTEXT[featureLabel] || ''
 
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 p-8">
-      <div className="flex items-start gap-4 mb-6">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-          isApproved ? 'bg-green-100' : 'bg-red-100'
-        }`}>
-          {isApproved ? '✓' : '✗'}
+    <div className="space-y-6">
+      {/* Global Summary at Top */}
+      <GlobalSummary
+        decision={decision}
+        probability={probability}
+        shapFeatures={shapFeatures}
+        compact={true}
+      />
+      
+      {/* Header */}
+      <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
+        <div className="flex items-start gap-4 mb-4">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+            isApproved ? 'bg-green-100' : 'bg-red-100'
+          }`}>
+            {isApproved ? '✓' : '✗'}
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+              Analytical SHAP Dashboard
+            </h3>
+            <p className="text-gray-600">Technical analysis of local feature contributions</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
-            Minimal Explanation
-          </h3>
-          <p className="text-gray-600">The single most important factor</p>
+
+        {/* Waterfall Plot (CSS-based) */}
+        <div className="bg-slate-50 rounded-lg p-4 mb-6">
+          <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">
+            📊 Local SHAP Waterfall Plot (Top 10 Features)
+          </h4>
+          
+          <div className="space-y-2">
+            {/* Base value */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 pb-2 border-b border-slate-200">
+              <span className="w-40">Base prediction</span>
+              <span className="font-mono">{baseValue.toFixed(3)}</span>
+            </div>
+            
+            {waterfallData.map((feature, idx) => {
+              const barWidth = (Math.abs(feature.shap_value) / maxAbsShap) * 100
+              const isPositive = feature.shap_value > 0
+              
+              return (
+                <div key={idx} className="flex items-center gap-2">
+                  <Tooltip content={getFeatureDescription(feature.feature)?.description || feature.feature}>
+                    <span className="w-40 text-sm text-slate-700 truncate cursor-help">
+                      {feature.feature}
+                    </span>
+                  </Tooltip>
+                  
+                  {/* Waterfall bar */}
+                  <div className="flex-1 h-6 relative">
+                    <div className="absolute inset-0 flex items-center">
+                      {/* Center line */}
+                      <div className="absolute left-1/2 h-full w-px bg-slate-300" />
+                      
+                      {/* Bar */}
+                      <div
+                        className={`absolute h-5 rounded ${
+                          isPositive 
+                            ? 'bg-gradient-to-r from-red-400 to-red-500' 
+                            : 'bg-gradient-to-r from-green-400 to-green-500'
+                        }`}
+                        style={{
+                          width: `${barWidth / 2}%`,
+                          left: isPositive ? '50%' : `${50 - barWidth / 2}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <span className={`w-20 text-right text-sm font-mono ${
+                    isPositive ? 'text-red-600' : 'text-green-600'
+                  }`}>
+                    {isPositive ? '+' : ''}{feature.shap_value.toFixed(3)}
+                  </span>
+                </div>
+              )
+            })}
+            
+            {/* Final prediction */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 pt-2 border-t border-slate-200">
+              <span className="w-40">Final prediction</span>
+              <span className="font-mono">{cumulative.toFixed(3)}</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
-        <p className="text-lg text-gray-900 mb-3">
-          <strong>Key Factor:</strong>
-        </p>
-        <p className="text-xl font-semibold text-blue-900 mb-3">
-          <Tooltip 
-            content={getFeatureDescription(topFeature.feature)?.description || 'No description available'}
-          >
-            <span className="cursor-help border-b border-dotted border-blue-400">
-              {featureLabel}
-            </span>
-          </Tooltip>
-        </p>
-        <p className="text-gray-700 mb-3">
-          <span className="bg-white px-3 py-1.5 rounded border border-gray-200">
-            {valueDescription}
-          </span>
-        </p>
-        <p className="text-base text-gray-800 mb-2">
-          {impactDescription}
-        </p>
-        {context && (
-          <p className="text-sm text-gray-600 italic">
-            {context}
-          </p>
-        )}
-      </div>
+        {/* Numeric Feature Contributions Table */}
+        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+            <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+              📋 Complete Feature Contributions
+            </h4>
+          </div>
+          
+          <div className="overflow-x-auto max-h-80 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 sticky top-0">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">#</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Feature</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Value</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">SHAP</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">|SHAP|</th>
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase">Direction</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sortedFeatures.map((feature, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <td className="px-4 py-2 text-slate-400 font-mono text-xs">{idx + 1}</td>
+                    <td className="px-4 py-2">
+                      <Tooltip content={getFeatureDescription(feature.feature)?.description || 'No description'}>
+                        <span className="text-slate-700 cursor-help hover:text-blue-600">
+                          {feature.feature}
+                        </span>
+                      </Tooltip>
+                    </td>
+                    <td className="px-4 py-2 text-slate-600 font-mono text-xs">
+                      {formatValue(feature.feature, feature.value)}
+                    </td>
+                    <td className={`px-4 py-2 text-right font-mono text-xs ${
+                      feature.impact === 'positive' ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {feature.shap_value > 0 ? '+' : ''}{feature.shap_value.toFixed(4)}
+                    </td>
+                    <td className="px-4 py-2 text-right font-mono text-xs text-slate-500">
+                      {Math.abs(feature.shap_value).toFixed(4)}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${
+                        feature.impact === 'positive' 
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {feature.impact === 'positive' ? '↑' : '↓'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-700 leading-relaxed">
-          <strong>What this means:</strong> The AI {decision} this loan mainly because the applicant's{' '}
-          <strong>{featureLabel.toLowerCase()}</strong> ({valueDescription.toLowerCase()}){' '}
-          {topFeature.impact === 'positive' ? 'met' : 'did not meet'} the bank's criteria for financial stability.
-        </p>
+        {/* Technical Legend */}
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">📖 Technical Reference</h4>
+          <div className="text-xs text-blue-800 space-y-1">
+            <p><strong>SHAP Value:</strong> Additive contribution of each feature to the model output</p>
+            <p><strong>↑ Positive:</strong> Increases bad credit risk (pushes toward rejection)</p>
+            <p><strong>↓ Negative:</strong> Decreases bad credit risk (pushes toward approval)</p>
+            <p><strong>Waterfall:</strong> Shows how features cumulatively shift the prediction from the base value</p>
+          </div>
+        </div>
       </div>
     </div>
   )

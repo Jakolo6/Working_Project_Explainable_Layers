@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS layer_ratings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
-    layer_number INTEGER NOT NULL CHECK (layer_number >= 1 AND layer_number <= 5),
-    layer_name TEXT NOT NULL CHECK (layer_name IN ('Minimal', 'Feature Importance', 'Detailed SHAP', 'Visual', 'Counterfactual')),
+    layer_number INTEGER NOT NULL CHECK (layer_number >= 1 AND layer_number <= 4),
+    layer_name TEXT NOT NULL CHECK (layer_name IN ('Complete SHAP Analysis', 'Analytical Dashboard', 'Narrative Explanation', 'Counterfactual Analysis')),
     trust_rating INTEGER NOT NULL CHECK (trust_rating >= 1 AND trust_rating <= 5),
     understanding_rating INTEGER NOT NULL CHECK (understanding_rating >= 1 AND understanding_rating <= 5),
     usefulness_rating INTEGER NOT NULL CHECK (usefulness_rating >= 1 AND usefulness_rating <= 5),
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS layer_ratings (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE layer_ratings IS 'Stores participant ratings for each explanation layer (5 layers × 3 personas = 15 ratings per participant)';
+COMMENT ON TABLE layer_ratings IS 'Stores participant ratings for each explanation layer (4 layers × 3 personas = 12 ratings per participant)';
 COMMENT ON COLUMN layer_ratings.trust_rating IS '1=Not at all, 5=Completely';
 COMMENT ON COLUMN layer_ratings.understanding_rating IS '1=Not at all, 5=Completely';
 COMMENT ON COLUMN layer_ratings.usefulness_rating IS '1=Not useful, 5=Very useful';
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS layer_feedback (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     persona_id TEXT NOT NULL,
-    layer_id INTEGER CHECK (layer_id BETWEEN 1 AND 5),
+    layer_id INTEGER CHECK (layer_id BETWEEN 1 AND 4),
     layer_name TEXT NOT NULL,
     understanding_gained TEXT,
     unclear_aspects TEXT,

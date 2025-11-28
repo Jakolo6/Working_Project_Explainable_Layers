@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import experiment_clean as experiment, admin
+from app.api import experiment_clean as experiment, admin, explanations
 import os
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(experiment.router)
 app.include_router(admin.router)
+app.include_router(explanations.router)
 
 @app.get("/")
 async def root():
