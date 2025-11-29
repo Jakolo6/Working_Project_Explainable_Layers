@@ -1,4 +1,5 @@
-// GlobalSummary.tsx - Shared global SHAP summary component used across all explanation layers
+// LocalDecisionSummary.tsx - Shows the LOCAL decision summary for THIS specific applicant
+// Note: This is about the individual decision, not how the model works globally
 
 'use client'
 
@@ -11,19 +12,19 @@ interface SHAPFeature {
   impact: 'positive' | 'negative'
 }
 
-interface GlobalSummaryProps {
+interface LocalDecisionSummaryProps {
   decision: 'approved' | 'rejected'
   probability: number
   shapFeatures: SHAPFeature[]
   compact?: boolean
 }
 
-export default function GlobalSummary({ 
+export default function LocalDecisionSummary({ 
   decision, 
   probability, 
   shapFeatures,
   compact = false 
-}: GlobalSummaryProps) {
+}: LocalDecisionSummaryProps) {
   // Sort features by absolute SHAP value
   const sortedFeatures = [...shapFeatures].sort((a, b) => 
     Math.abs(b.shap_value) - Math.abs(a.shap_value)
@@ -42,7 +43,7 @@ export default function GlobalSummary({
       <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-            Global Model Summary
+            This Application's Summary
           </h3>
           <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
             decision === 'approved' 
@@ -94,10 +95,10 @@ export default function GlobalSummary({
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-lg font-bold text-slate-800 mb-1">
-            📊 Global Model Summary
+            📊 This Application's Analysis
           </h3>
           <p className="text-sm text-slate-600">
-            Overview of all {shapFeatures.length} features influencing the decision
+            How this specific applicant's {shapFeatures.length} factors influenced the decision
           </p>
         </div>
         <div className={`px-4 py-2 rounded-lg text-lg font-bold ${
@@ -164,11 +165,11 @@ export default function GlobalSummary({
       <div className="flex gap-6 mt-4 text-xs text-slate-500">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-red-400"></div>
-          <span>Positive SHAP = Increases rejection risk</span>
+          <span>Red = Factor increased risk for this applicant</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-green-400"></div>
-          <span>Negative SHAP = Decreases rejection risk</span>
+          <span>Green = Factor decreased risk for this applicant</span>
         </div>
       </div>
     </div>

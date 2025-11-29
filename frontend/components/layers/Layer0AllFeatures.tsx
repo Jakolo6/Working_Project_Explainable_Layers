@@ -1,8 +1,9 @@
-// Layer 0: All Features - Complete SHAP values for all features
+// Layer 0: All Features - Complete SHAP values for all features (Baseline Layer)
 
 'use client'
 
 import React from 'react'
+import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
 
@@ -79,38 +80,48 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
   
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Complete SHAP Analysis
-        </h2>
-        <p className="text-gray-600">
-          All {shapFeatures.length} features analyzed with their individual impact on the decision
-        </p>
-        <div className={`inline-flex items-center px-4 py-2 rounded-lg mt-3 ${
-          decision === 'approved' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          <span className="font-semibold">
-            Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(1)}% confidence)
-          </span>
+      {/* Global Model Explanation - How the tool works in general */}
+      <GlobalModelExplanation defaultExpanded={true} />
+      
+      {/* Local Decision Section - This specific applicant */}
+      <div className="border-t-4 border-indigo-200 pt-4">
+        <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+          <span>👤</span> This Applicant's Complete Analysis
+        </h3>
+        
+        {/* Decision Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Complete Feature Analysis
+          </h2>
+          <p className="text-gray-600">
+            All {shapFeatures.length} factors analyzed with their individual impact on this decision
+          </p>
+          <div className={`inline-flex items-center px-4 py-2 rounded-lg mt-3 ${
+            decision === 'approved' 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-red-100 text-red-800'
+          }`}>
+            <span className="font-semibold">
+              Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(1)}% confidence)
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Summary Statistics */}
+      {/* Summary Statistics - Clerk Friendly */}
       <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
         <div className="text-center">
           <div className="text-2xl font-bold text-gray-900">{shapFeatures.length}</div>
-          <div className="text-sm text-gray-600">Total Features</div>
+          <div className="text-sm text-gray-600">Total Factors Checked</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-red-600">{positiveFeatures.length}</div>
-          <div className="text-sm text-gray-600">Risk Increasing</div>
+          <div className="text-sm text-gray-600">Raised Concerns</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-green-600">{negativeFeatures.length}</div>
-          <div className="text-sm text-gray-600">Risk Decreasing</div>
+          <div className="text-sm text-gray-600">Were Favorable</div>
         </div>
       </div>
 
@@ -130,22 +141,22 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rank
+                  #
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Feature
+                  Factor
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Value
+                  Applicant's Value
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SHAP Value
+                  Impact Score
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Impact
+                  Effect
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Visual
+                  Strength
                 </th>
               </tr>
             </thead>
@@ -202,14 +213,14 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Legend - Bank Clerk Friendly */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2">Understanding SHAP Values</h4>
+        <h4 className="text-sm font-semibold text-blue-900 mb-2">Understanding This Table</h4>
         <div className="text-sm text-blue-800 space-y-1">
-          <p><strong>SHAP Value:</strong> Measures how much each feature contributes to the final decision</p>
-          <p><strong>Positive values:</strong> <span className="text-red-600">Increase rejection risk</span> (push toward rejection)</p>
-          <p><strong>Negative values:</strong> <span className="text-green-600">Decrease rejection risk</span> (push toward approval)</p>
-          <p><strong>Magnitude:</strong> Larger absolute values indicate stronger influence on the decision</p>
+          <p><strong>Impact Score:</strong> Shows how much each factor influenced the decision for this applicant</p>
+          <p><strong>Red items:</strong> <span className="text-red-600">Factors that raised concerns</span> (increased risk assessment)</p>
+          <p><strong>Green items:</strong> <span className="text-green-600">Factors that were favorable</span> (reduced risk assessment)</p>
+          <p><strong>Higher numbers:</strong> Indicate the factor had a stronger influence on the decision</p>
         </div>
       </div>
     </div>

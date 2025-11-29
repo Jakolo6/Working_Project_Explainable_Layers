@@ -1,10 +1,12 @@
-# Explanations API - Level 2 Narrative and Level 3 Counterfactual endpoints
+# Explanations API - Global, Level 2 Narrative, and Level 3 Counterfactual endpoints
 
 import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 import json
+
+from app.services.global_explanation_service import get_global_explanation_service
 
 router = APIRouter(prefix="/api/v1/explanations", tags=["explanations"])
 
@@ -49,6 +51,52 @@ class CounterfactualScenario(BaseModel):
 class CounterfactualResponse(BaseModel):
     original: Dict[str, Any]
     counterfactuals: List[CounterfactualScenario]
+
+
+class GlobalExplanationResponse(BaseModel):
+    """Response model for global model explanation."""
+    model_name: str
+    what_tool_does: str
+    how_it_decides: str
+    approval_patterns: List[str]
+    risk_patterns: List[str]
+    uncertainty_note: str
+    important_note: str
+    clerk_narrative: str
+    feature_details: List[Dict[str, Any]]
+    llm_context: str
+
+
+# ============================================================================
+# GLOBAL MODEL EXPLANATION ENDPOINT
+# ============================================================================
+
+@router.get("/global", response_model=GlobalExplanationResponse)
+async def get_global_explanation():
+    """
+    Get the global model explanation for bank clerks.
+    Returns a comprehensive explanation of how the model works in general,
+    suitable for displaying at the top of all explanation layers.
+    """
+    try:
+        service = get_global_explanation_service()
+        profile = service.get_global_profile()
+        
+        return GlobalExplanationResponse(
+            model_name=profile.model_name,
+            what_tool_does=profile.what_tool_does,
+            how_it_decides=profile.how_it_decides,
+            approval_patterns=profile.approval_patterns,
+            risk_patterns=profile.risk_patterns,
+            uncertainty_note=profile.uncertainty_note,
+            important_note=profile.important_note,
+            clerk_narrative=service.get_clerk_narrative(),
+            feature_details=profile.feature_details[:10],  # Top 10 features
+            llm_context=service.get_llm_context()
+        )
+    except Exception as e:
+        print(f"[ERROR] Global explanation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate global explanation: {str(e)}")
 
 
 # ============================================================================
@@ -102,10 +150,14 @@ async def generate_narrative(request: NarrativeRequest):
 
 
 async def _generate_llm_narrative(request: NarrativeRequest, api_key: str) -> str:
-    """Generate narrative using OpenAI API."""
+    """Generate narrative using OpenAI API with global model context."""
     try:
         from openai import OpenAI
         client = OpenAI(api_key=api_key)
+        
+        # Get global context for the LLM
+        global_service = get_global_explanation_service()
+        global_context = global_service.get_llm_context()
         
         # Build context from SHAP features
         positive_features = [f for f in request.shap_features if f.impact == 'positive']
@@ -119,18 +171,27 @@ async def _generate_llm_narrative(request: NarrativeRequest, api_key: str) -> st
             "risk_decreasing": [{"name": f.feature, "value": f.value, "shap": round(f.shap_value, 3)} for f in negative_features[:3]]
         }
         
-        system_prompt = """You are an XAI (Explainable AI) assistant explaining credit decisions.
-Explain the model decision using simple, factual language.
-Start with a global pattern summary, then the applicant-specific reasons.
-Stay faithful to the SHAP values. No fabrication.
-Keep the explanation under 150 words.
-Use **bold** for key terms."""
+        system_prompt = """You are helping a bank clerk explain a credit decision to a customer.
+Write in simple, everyday language that a non-technical person can understand.
 
-        user_prompt = f"""Based on this SHAP analysis, explain the credit decision:
+NEVER use technical terms like: SHAP, feature importance, log-odds, probability scores, model output, prediction values.
+INSTEAD use terms like: factors, indicators, patterns, assessment, analysis.
 
+The explanation should:
+1. Clearly state the decision outcome
+2. Explain the main reasons in human terms
+3. Reference the applicant's specific situation
+4. Be honest and balanced (mention both positive and concerning factors if present)
+
+Keep the explanation under 120 words. Use **bold** for key points."""
+
+        user_prompt = f"""GLOBAL MODEL CONTEXT:
+{global_context}
+
+THIS APPLICANT'S ANALYSIS:
 {json.dumps(features_summary, indent=2)}
 
-Provide a clear, human-readable explanation."""
+Write a clear explanation for this specific decision that a bank clerk could share with the customer."""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -138,7 +199,7 @@ Provide a clear, human-readable explanation."""
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=300,
+            max_tokens=250,
             temperature=0.3
         )
         

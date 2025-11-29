@@ -1,36 +1,43 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: PRODUCTION READY - XAI LAYERS REFACTORED**  
-> ✅ Clean codebase | ✅ New explanation layers | ✅ GlobalSummary component | ✅ Backend APIs  
-> 📅 Last Updated: January 2025
+> 🎉 **PROJECT STATUS: PRODUCTION READY - GLOBAL EXPLANATIONS REDESIGNED**  
+> ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ LLM-powered narratives  
+> 📅 Last Updated: November 2025
 
 ---
 
-## 🔄 **Latest Update: XAI Explanation Layers Cleaned Up** (Jan 2025)
+## 🔄 **Latest Update: Global Model Explanation Redesign** (Nov 2025)
 
 **What Changed:**
-- ✅ **GlobalSummary Component** - Shared SHAP summary used across all layers
-- ✅ **Layer 1 (Analytical Dashboard)** - CSS-based waterfall plot, full feature table
-- ✅ **Layer 2 (Narrative LLM)** - OpenAI-powered narrative explanations with fallback
-- ✅ **Layer 3 (Interactive Counterfactual)** - API-driven counterfactual scenarios
-- ✅ **Deleted Layer3Visual.tsx** - Redundant (waterfall in Layer 1)
-- ✅ **Deleted Layer4Contextual.tsx** - Contained outdated Axx codes, merged into Layer 2
-- ✅ **New Backend Endpoints** - `/api/v1/explanations/level2/narrative` and `/level3/counterfactuals`
-- ✅ **OpenAI Integration** - Added openai package to requirements.txt
+- ✅ **New GlobalModelExplanation Component** - Collapsible, bank-clerk-friendly explanation of how the model works
+- ✅ **LocalDecisionSummary Component** - Renamed from GlobalSummary, clearly shows THIS applicant's factors
+- ✅ **Global Explanation Service** - Backend service providing structured global model analysis
+- ✅ **New API Endpoint** - `GET /api/v1/explanations/global` for global model info
+- ✅ **LLM Context Integration** - Narrative generation now uses global model context
+- ✅ **Clear UI Separation** - Every layer shows global (collapsible) then local (this applicant)
+- ✅ **Bank-Clerk Language** - Removed technical jargon (no SHAP, log-odds, etc.)
+
+**Global Explanation Features:**
+- What the tool does (in simple terms)
+- Factors that usually support approval
+- Factors that usually increase risk
+- How confidence levels work
+- Uncertainty and limitations disclaimer
 
 **Final 4-Layer Structure:**
-- **Layer 0:** Complete SHAP Analysis (baseline, all features)
-- **Layer 1:** Analytical SHAP Dashboard (waterfall + numeric table)
-- **Layer 2:** Narrative LLM Explanation (AI-generated text + top 5 factors)
-- **Layer 3:** Interactive Counterfactual Analysis (what-if scenarios)
+- **Layer 0:** Complete Feature Analysis (baseline, all factors - global expanded by default)
+- **Layer 1:** Analytical Dashboard (waterfall + numeric table)
+- **Layer 2:** Narrative Explanation (LLM-generated, context-aware)
+- **Layer 3:** Interactive Counterfactual (what-if scenarios)
 
-**Files:**
-- `frontend/components/layers/GlobalSummary.tsx` - Shared component
-- `frontend/components/layers/Layer0AllFeatures.tsx` - Baseline
-- `frontend/components/layers/Layer1Minimal.tsx` - Analytical dashboard
-- `frontend/components/layers/Layer2ShortText.tsx` - Narrative LLM
-- `frontend/components/layers/Layer5Counterfactual.tsx` - Counterfactual
-- `backend/app/api/explanations.py` - New explanation API endpoints
+**New Files:**
+- `frontend/components/layers/GlobalModelExplanation.tsx` - Global explanation component
+- `frontend/components/layers/LocalDecisionSummary.tsx` - Per-applicant decision summary
+- `backend/app/services/global_explanation_service.py` - Global model analysis service
+
+**Updated Files:**
+- All 4 layer components - Now include GlobalModelExplanation at top
+- `backend/app/api/explanations.py` - Added global endpoint and improved LLM prompts
 
 ---
 

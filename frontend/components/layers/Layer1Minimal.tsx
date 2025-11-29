@@ -3,7 +3,8 @@
 'use client'
 
 import React from 'react'
-import GlobalSummary from './GlobalSummary'
+import GlobalModelExplanation from './GlobalModelExplanation'
+import LocalDecisionSummary from './LocalDecisionSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 
@@ -68,13 +69,21 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
 
   return (
     <div className="space-y-6">
-      {/* Global Summary at Top */}
-      <GlobalSummary
-        decision={decision}
-        probability={probability}
-        shapFeatures={shapFeatures}
-        compact={true}
-      />
+      {/* Global Model Explanation - How the tool works in general */}
+      <GlobalModelExplanation defaultExpanded={false} />
+      
+      {/* Local Decision Summary - This specific applicant */}
+      <div className="border-t-4 border-indigo-200 pt-4">
+        <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <span>👤</span> This Applicant's Decision
+        </h3>
+        <LocalDecisionSummary
+          decision={decision}
+          probability={probability}
+          shapFeatures={shapFeatures}
+          compact={true}
+        />
+      </div>
       
       {/* Header */}
       <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
