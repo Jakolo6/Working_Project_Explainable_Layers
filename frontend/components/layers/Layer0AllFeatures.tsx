@@ -64,11 +64,14 @@ function getImpactColor(impact: 'positive' | 'negative'): string {
 }
 
 // Helper function to get impact description
+// SHAP values are for Class 1 (bad credit/default risk):
+//   - positive SHAP = increases default risk = AGAINST approval
+//   - negative SHAP = decreases default risk = SUPPORTS approval
 function getImpactDescription(impact: 'positive' | 'negative', decision: string): string {
   if (decision === 'rejected') {
-    return impact === 'positive' ? 'Increases rejection risk' : 'Decreases rejection risk'
+    return impact === 'positive' ? 'Contributed to rejection' : 'Argued against rejection'
   } else {
-    return impact === 'positive' ? 'Supports approval' : 'Against approval'
+    return impact === 'positive' ? 'Raised concerns' : 'Supported approval'
   }
 }
 
