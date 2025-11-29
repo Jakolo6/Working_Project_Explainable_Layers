@@ -168,45 +168,42 @@ class ModelTrainingService:
     def train_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series, 
                       X_test: pd.DataFrame, y_test: pd.Series,
                       num_features: List[str]) -> Tuple[Pipeline, Dict[str, float]]:
-        """Train XGBoost model with risk-ordered categorical encoding and tuned hyperparameters."""
+        """Train XGBoost model with OneHotEncoder for better performance."""
         if not HAS_XGBOOST:
             raise RuntimeError("XGBoost not installed. Run: pip install xgboost")
         
-        self.log("Training XGBoost with RISK-ORDERED categorical encoding...")
+        self.log("Training XGBoost with OneHotEncoder for optimal performance...")
         
-        # Build ordered categories list matching CAT_FEATURES order
-        ordered_categories = [CATEGORY_ORDER[feat] for feat in CAT_FEATURES]
-        
-        # Create preprocessing pipeline
+        # Use OneHotEncoder for XGBoost - this gives MUCH better performance
+        # than OrdinalEncoder because XGBoost can learn arbitrary splits for each category
+        # SHAP values will still be meaningful per category value
         preprocessor = ColumnTransformer([
             ('num', 'passthrough', num_features),
-            ('cat', OrdinalEncoder(
-                categories=ordered_categories,
-                handle_unknown='use_encoded_value',
-                unknown_value=-1
+            ('cat', OneHotEncoder(
+                drop=None,  # Don't drop first - XGBoost handles collinearity well
+                sparse_output=False,
+                handle_unknown='ignore'
             ), CAT_FEATURES)
         ])
         
-        # Optimized hyperparameters for better performance with ordinal encoding
-        # Key changes: lower learning rate, more trees, less regularization to allow
-        # the model to learn non-linear patterns within the ordered categories
+        # Optimized hyperparameters for XGBoost with OneHotEncoding
         pipeline = Pipeline([
             ('preprocess', preprocessor),
             ('model', XGBClassifier(
-                n_estimators=800,           # More trees for better learning
-                learning_rate=0.02,         # Lower learning rate
-                max_depth=5,                # Slightly shallower to avoid overfitting
-                min_child_weight=2,         # Allow more splits
-                subsample=0.85,
-                colsample_bytree=0.85,
-                colsample_bylevel=0.85,
-                gamma=0.05,                 # Less regularization
-                reg_alpha=0.05,             # Less L1 regularization
-                reg_lambda=0.5,             # Less L2 regularization
+                n_estimators=500,
+                learning_rate=0.03,
+                max_depth=6,
+                min_child_weight=3,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                colsample_bylevel=0.8,
+                gamma=0.1,
+                reg_alpha=0.1,
+                reg_lambda=1.0,
                 scale_pos_weight=1.5,       # Handle class imbalance
                 random_state=42,
                 use_label_encoder=False,
-                eval_metric='auc'           # Optimize for AUC directly
+                eval_metric='auc'
             ))
         ])
         
@@ -231,40 +228,40 @@ class ModelTrainingService:
         if metrics['roc_auc'] < 0.75:
             self.log("⚠️ AUC below 0.75, running hyperparameter optimization...")
             pipeline, metrics = self._tune_xgboost(X_train, y_train, X_test, y_test, 
-                                                    num_features, ordered_categories)
+                                                    num_features)
         
         return pipeline, metrics
     
     def _tune_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series,
                       X_test: pd.DataFrame, y_test: pd.Series,
-                      num_features: List[str], ordered_categories: List[List[str]]) -> Tuple[Pipeline, Dict[str, float]]:
+                      num_features: List[str]) -> Tuple[Pipeline, Dict[str, float]]:
         """Hyperparameter tuning for XGBoost when initial training underperforms."""
         from sklearn.model_selection import RandomizedSearchCV
         
         self.log("Running RandomizedSearchCV for XGBoost optimization...")
         
-        # Create base preprocessor
+        # Create base preprocessor with OneHotEncoder
         preprocessor = ColumnTransformer([
             ('num', 'passthrough', num_features),
-            ('cat', OrdinalEncoder(
-                categories=ordered_categories,
-                handle_unknown='use_encoded_value',
-                unknown_value=-1
+            ('cat', OneHotEncoder(
+                drop=None,
+                sparse_output=False,
+                handle_unknown='ignore'
             ), CAT_FEATURES)
         ])
         
         # Parameter grid
         param_distributions = {
-            'model__n_estimators': [500, 800, 1000],
-            'model__learning_rate': [0.01, 0.02, 0.03, 0.05],
-            'model__max_depth': [3, 4, 5, 6, 7],
+            'model__n_estimators': [300, 500, 700, 1000],
+            'model__learning_rate': [0.01, 0.02, 0.03, 0.05, 0.1],
+            'model__max_depth': [3, 4, 5, 6, 7, 8],
             'model__min_child_weight': [1, 2, 3, 5],
-            'model__subsample': [0.7, 0.8, 0.9],
-            'model__colsample_bytree': [0.7, 0.8, 0.9],
+            'model__subsample': [0.7, 0.8, 0.9, 1.0],
+            'model__colsample_bytree': [0.6, 0.7, 0.8, 0.9],
             'model__gamma': [0, 0.05, 0.1, 0.2],
             'model__reg_alpha': [0, 0.01, 0.05, 0.1],
             'model__reg_lambda': [0.1, 0.5, 1.0, 2.0],
-            'model__scale_pos_weight': [1, 1.5, 2, 2.5]
+            'model__scale_pos_weight': [1, 1.5, 2, 2.5, 3]
         }
         
         # Create pipeline
@@ -281,8 +278,8 @@ class ModelTrainingService:
         search = RandomizedSearchCV(
             pipeline,
             param_distributions,
-            n_iter=30,
-            cv=3,
+            n_iter=40,
+            cv=5,
             scoring='roc_auc',
             random_state=42,
             n_jobs=-1,

@@ -223,63 +223,42 @@ print("\n" + "=" * 80)
 print("8. CREATING XGBOOST PIPELINE")
 print("=" * 80)
 
-# RISK-ORDERED CATEGORIES for OrdinalEncoder
-# Order: Lower risk (better) → Higher risk (worse)
-# This ensures SHAP values are semantically meaningful:
-#   - Higher ordinal value = higher risk = positive SHAP contribution
-#   - Lower ordinal value = lower risk = negative SHAP contribution
-CATEGORY_ORDER = {
-    'checking_status': ['ge_200_dm', '0_to_200_dm', 'no_checking', 'lt_0_dm'],
-    'credit_history': ['all_paid', 'existing_paid', 'no_credits', 'delayed_past', 'critical'],
-    'purpose': ['new_car', 'used_car', 'furniture', 'radio_tv', 'domestic_appliances', 
-                'repairs', 'education', 'retraining', 'business', 'vacation', 'others'],
-    'savings_status': ['ge_1000_dm', '500_to_1000_dm', '100_to_500_dm', 'lt_100_dm', 'unknown'],
-    'employment': ['ge_7_years', '4_to_7_years', '1_to_4_years', 'lt_1_year', 'unemployed'],
-    'housing': ['own', 'for_free', 'rent'],
-    'job': ['management', 'skilled', 'unskilled_resident', 'unemployed_unskilled'],
-    'other_debtors': ['guarantor', 'co_applicant', 'none'],
-    'property_magnitude': ['real_estate', 'building_society', 'car_other', 'unknown'],
-    'other_payment_plans': ['none', 'stores', 'bank'],
-    'own_telephone': ['yes', 'none']
-}
-
-# Build ordered categories list matching cat_features order
-ordered_categories = [CATEGORY_ORDER[feat] for feat in cat_features]
-
+# Use OneHotEncoder for XGBoost - gives MUCH better performance
+# than OrdinalEncoder because XGBoost can learn arbitrary splits for each category
 xgb_prep = ColumnTransformer([
     ('num', 'passthrough', num_features_eng),
-    ('cat', OrdinalEncoder(
-        categories=ordered_categories,
-        handle_unknown='use_encoded_value', 
-        unknown_value=-1
+    ('cat', OneHotEncoder(
+        drop=None,  # Don't drop first - XGBoost handles collinearity well
+        sparse_output=False,
+        handle_unknown='ignore'
     ), cat_features)
 ])
-print("✓ XGBoost preprocessing uses RISK-ORDERED categorical encoding")
+print("✓ XGBoost preprocessing uses OneHotEncoder for optimal performance")
 
 xgb_pipeline = Pipeline([
     ('preprocess', xgb_prep),
     ('model', XGBClassifier(
-        n_estimators=800,           # More trees for better learning
-        learning_rate=0.02,         # Lower learning rate
-        max_depth=5,                # Slightly shallower to avoid overfitting
-        min_child_weight=2,         # Allow more splits
-        subsample=0.85,
-        colsample_bytree=0.85,
-        colsample_bylevel=0.85,
-        gamma=0.05,                 # Less regularization
-        reg_alpha=0.05,             # Less L1 regularization
-        reg_lambda=0.5,             # Less L2 regularization
+        n_estimators=500,
+        learning_rate=0.03,
+        max_depth=6,
+        min_child_weight=3,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        colsample_bylevel=0.8,
+        gamma=0.1,
+        reg_alpha=0.1,
+        reg_lambda=1.0,
         scale_pos_weight=1.5,       # Handle class imbalance
         random_state=42,
-        eval_metric='auc',          # Optimize for AUC directly
+        eval_metric='auc',
         early_stopping_rounds=50
     ))
 ])
 
-print("✓ XGBoost pipeline created (optimized for AUC)")
-print("  • n_estimators: 800")
-print("  • learning_rate: 0.02")
-print("  • max_depth: 5")
+print("✓ XGBoost pipeline created (optimized)")
+print("  • n_estimators: 500")
+print("  • learning_rate: 0.03")
+print("  • max_depth: 6")
 print("  • scale_pos_weight: 1.5")
 print("  • eval_metric: auc")
 
