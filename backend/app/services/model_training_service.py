@@ -168,7 +168,7 @@ class ModelTrainingService:
     def train_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series, 
                       X_test: pd.DataFrame, y_test: pd.Series,
                       num_features: List[str]) -> Tuple[Pipeline, Dict[str, float]]:
-        """Train XGBoost model with risk-ordered categorical encoding."""
+        """Train XGBoost model with risk-ordered categorical encoding and tuned hyperparameters."""
         if not HAS_XGBOOST:
             raise RuntimeError("XGBoost not installed. Run: pip install xgboost")
         
@@ -187,23 +187,26 @@ class ModelTrainingService:
             ), CAT_FEATURES)
         ])
         
-        # Create full pipeline
+        # Optimized hyperparameters for better performance with ordinal encoding
+        # Key changes: lower learning rate, more trees, less regularization to allow
+        # the model to learn non-linear patterns within the ordered categories
         pipeline = Pipeline([
             ('preprocess', preprocessor),
             ('model', XGBClassifier(
-                n_estimators=500,
-                learning_rate=0.03,
-                max_depth=6,
-                min_child_weight=3,
-                subsample=0.8,
-                colsample_bytree=0.8,
-                colsample_bylevel=0.8,
-                gamma=0.1,
-                reg_alpha=0.1,
-                reg_lambda=1.0,
+                n_estimators=800,           # More trees for better learning
+                learning_rate=0.02,         # Lower learning rate
+                max_depth=5,                # Slightly shallower to avoid overfitting
+                min_child_weight=2,         # Allow more splits
+                subsample=0.85,
+                colsample_bytree=0.85,
+                colsample_bylevel=0.85,
+                gamma=0.05,                 # Less regularization
+                reg_alpha=0.05,             # Less L1 regularization
+                reg_lambda=0.5,             # Less L2 regularization
+                scale_pos_weight=1.5,       # Handle class imbalance
                 random_state=42,
                 use_label_encoder=False,
-                eval_metric='logloss'
+                eval_metric='auc'           # Optimize for AUC directly
             ))
         ])
         
@@ -223,7 +226,89 @@ class ModelTrainingService:
         }
         
         self.log(f"✓ XGBoost trained - AUC: {metrics['roc_auc']:.4f}, F1: {metrics['f1']:.4f}")
+        
+        # If AUC is still below 0.75, try hyperparameter search
+        if metrics['roc_auc'] < 0.75:
+            self.log("⚠️ AUC below 0.75, running hyperparameter optimization...")
+            pipeline, metrics = self._tune_xgboost(X_train, y_train, X_test, y_test, 
+                                                    num_features, ordered_categories)
+        
         return pipeline, metrics
+    
+    def _tune_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series,
+                      X_test: pd.DataFrame, y_test: pd.Series,
+                      num_features: List[str], ordered_categories: List[List[str]]) -> Tuple[Pipeline, Dict[str, float]]:
+        """Hyperparameter tuning for XGBoost when initial training underperforms."""
+        from sklearn.model_selection import RandomizedSearchCV
+        
+        self.log("Running RandomizedSearchCV for XGBoost optimization...")
+        
+        # Create base preprocessor
+        preprocessor = ColumnTransformer([
+            ('num', 'passthrough', num_features),
+            ('cat', OrdinalEncoder(
+                categories=ordered_categories,
+                handle_unknown='use_encoded_value',
+                unknown_value=-1
+            ), CAT_FEATURES)
+        ])
+        
+        # Parameter grid
+        param_distributions = {
+            'model__n_estimators': [500, 800, 1000],
+            'model__learning_rate': [0.01, 0.02, 0.03, 0.05],
+            'model__max_depth': [3, 4, 5, 6, 7],
+            'model__min_child_weight': [1, 2, 3, 5],
+            'model__subsample': [0.7, 0.8, 0.9],
+            'model__colsample_bytree': [0.7, 0.8, 0.9],
+            'model__gamma': [0, 0.05, 0.1, 0.2],
+            'model__reg_alpha': [0, 0.01, 0.05, 0.1],
+            'model__reg_lambda': [0.1, 0.5, 1.0, 2.0],
+            'model__scale_pos_weight': [1, 1.5, 2, 2.5]
+        }
+        
+        # Create pipeline
+        pipeline = Pipeline([
+            ('preprocess', preprocessor),
+            ('model', XGBClassifier(
+                random_state=42,
+                use_label_encoder=False,
+                eval_metric='auc'
+            ))
+        ])
+        
+        # Randomized search
+        search = RandomizedSearchCV(
+            pipeline,
+            param_distributions,
+            n_iter=30,
+            cv=3,
+            scoring='roc_auc',
+            random_state=42,
+            n_jobs=-1,
+            verbose=0
+        )
+        
+        search.fit(X_train, y_train)
+        
+        best_pipeline = search.best_estimator_
+        self.log(f"Best CV AUC: {search.best_score_:.4f}")
+        self.log(f"Best params: {search.best_params_}")
+        
+        # Evaluate on test set
+        y_pred = best_pipeline.predict(X_test)
+        y_proba = best_pipeline.predict_proba(X_test)[:, 1]
+        
+        metrics = {
+            'accuracy': accuracy_score(y_test, y_pred),
+            'precision': precision_score(y_test, y_pred),
+            'recall': recall_score(y_test, y_pred),
+            'f1': f1_score(y_test, y_pred),
+            'roc_auc': roc_auc_score(y_test, y_proba)
+        }
+        
+        self.log(f"✓ Tuned XGBoost - AUC: {metrics['roc_auc']:.4f}, F1: {metrics['f1']:.4f}")
+        return best_pipeline, metrics
     
     def train_logistic(self, X_train: pd.DataFrame, y_train: pd.Series,
                        X_test: pd.DataFrame, y_test: pd.Series,

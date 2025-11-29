@@ -259,28 +259,29 @@ print("✓ XGBoost preprocessing uses RISK-ORDERED categorical encoding")
 xgb_pipeline = Pipeline([
     ('preprocess', xgb_prep),
     ('model', XGBClassifier(
-        n_estimators=500,
-        learning_rate=0.03,
-        max_depth=6,
-        min_child_weight=3,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        colsample_bylevel=0.8,
-        gamma=0.1,
-        reg_alpha=0.1,
-        reg_lambda=1.0,
+        n_estimators=800,           # More trees for better learning
+        learning_rate=0.02,         # Lower learning rate
+        max_depth=5,                # Slightly shallower to avoid overfitting
+        min_child_weight=2,         # Allow more splits
+        subsample=0.85,
+        colsample_bytree=0.85,
+        colsample_bylevel=0.85,
+        gamma=0.05,                 # Less regularization
+        reg_alpha=0.05,             # Less L1 regularization
+        reg_lambda=0.5,             # Less L2 regularization
+        scale_pos_weight=1.5,       # Handle class imbalance
         random_state=42,
-        eval_metric='logloss',
+        eval_metric='auc',          # Optimize for AUC directly
         early_stopping_rounds=50
     ))
 ])
 
-print("✓ XGBoost pipeline created (optimized)")
-print("  • n_estimators: 500")
-print("  • learning_rate: 0.03")
-print("  • max_depth: 6")
-print("  • Regularization: L1 + L2")
-print("  • Early stopping: 50 rounds")
+print("✓ XGBoost pipeline created (optimized for AUC)")
+print("  • n_estimators: 800")
+print("  • learning_rate: 0.02")
+print("  • max_depth: 5")
+print("  • scale_pos_weight: 1.5")
+print("  • eval_metric: auc")
 
 # ============================================================================
 # 9. TRAIN MODELS
