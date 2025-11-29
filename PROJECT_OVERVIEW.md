@@ -6,13 +6,37 @@
 
 ---
 
-## 🔄 **Latest Update: Pipeline Audit & Code Clarity Improvements** (Nov 29, 2025)
+## 🔄 **Latest Update: OrdinalEncoder Fix for Semantic SHAP Values** (Nov 29, 2025)
 
-**Diagnostic Audit Completed:**
-- ✅ End-to-end model pipeline verified correct
-- ✅ SHAP semantics verified: Class 1 (bad credit) → positive = risk-increasing → RED
-- ✅ Color coding confirmed correct: RED = risk factors, GREEN = favorable factors
-- ✅ LLM narratives use correct "risk_increasing/risk_decreasing" terminology
+**Root Cause Identified & Fixed:**
+- 🔍 Discovered credit_history SHAP values were inverted (all_paid showed +SHAP, critical showed -SHAP)
+- 🔍 Root cause: OrdinalEncoder used arbitrary category ordering instead of risk-based ordering
+- ✅ **FIX**: Implemented risk-ordered categorical encoding for all features
+
+**Changes Made:**
+- ✅ `backend/app/services/notebook_preprocessing.py` - Added `CATEGORY_ORDER` with risk-based ordering
+- ✅ `backend/app/services/model_training_service.py` - New training service with risk-ordered encoding
+- ✅ `backend/app/api/admin.py` - Added `/retrain-model` and `/run-sanity-check` endpoints
+- ✅ `frontend/app/admin/page.tsx` - Admin UI with Retrain Model and Sanity Check buttons
+- ✅ `train_models_local.py` - Updated with risk-ordered categorical encoding
+
+**Risk-Ordered Categories:**
+```
+credit_history: ['all_paid', 'existing_paid', 'no_credits', 'delayed_past', 'critical']
+employment: ['ge_7_years', '4_to_7_years', '1_to_4_years', 'lt_1_year', 'unemployed']
+checking_status: ['ge_200_dm', '0_to_200_dm', 'no_checking', 'lt_0_dm']
+```
+
+**Expected Behavior After Retraining:**
+- `all_paid` (best credit) → NEGATIVE SHAP (decreases risk) → GREEN
+- `critical` (worst credit) → POSITIVE SHAP (increases risk) → RED
+- `unemployed` → POSITIVE SHAP (increases risk) → RED
+
+**⚠️ ACTION REQUIRED:** Model must be retrained via Admin Panel > "Retrain Model" button
+
+---
+
+## 🔄 **Previous Update: Pipeline Audit & Code Clarity Improvements** (Nov 29, 2025)
 
 **Code Clarity Improvements:**
 - ✅ Added clarifying comments to all SHAP interfaces explaining impact semantics

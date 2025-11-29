@@ -223,10 +223,38 @@ print("\n" + "=" * 80)
 print("8. CREATING XGBOOST PIPELINE")
 print("=" * 80)
 
+# RISK-ORDERED CATEGORIES for OrdinalEncoder
+# Order: Lower risk (better) → Higher risk (worse)
+# This ensures SHAP values are semantically meaningful:
+#   - Higher ordinal value = higher risk = positive SHAP contribution
+#   - Lower ordinal value = lower risk = negative SHAP contribution
+CATEGORY_ORDER = {
+    'checking_status': ['ge_200_dm', '0_to_200_dm', 'no_checking', 'lt_0_dm'],
+    'credit_history': ['all_paid', 'existing_paid', 'no_credits', 'delayed_past', 'critical'],
+    'purpose': ['new_car', 'used_car', 'furniture', 'radio_tv', 'domestic_appliances', 
+                'repairs', 'education', 'retraining', 'business', 'vacation', 'others'],
+    'savings_status': ['ge_1000_dm', '500_to_1000_dm', '100_to_500_dm', 'lt_100_dm', 'unknown'],
+    'employment': ['ge_7_years', '4_to_7_years', '1_to_4_years', 'lt_1_year', 'unemployed'],
+    'housing': ['own', 'for_free', 'rent'],
+    'job': ['management', 'skilled', 'unskilled_resident', 'unemployed_unskilled'],
+    'other_debtors': ['guarantor', 'co_applicant', 'none'],
+    'property_magnitude': ['real_estate', 'building_society', 'car_other', 'unknown'],
+    'other_payment_plans': ['none', 'stores', 'bank'],
+    'own_telephone': ['yes', 'none']
+}
+
+# Build ordered categories list matching cat_features order
+ordered_categories = [CATEGORY_ORDER[feat] for feat in cat_features]
+
 xgb_prep = ColumnTransformer([
     ('num', 'passthrough', num_features_eng),
-    ('cat', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), cat_features)
+    ('cat', OrdinalEncoder(
+        categories=ordered_categories,
+        handle_unknown='use_encoded_value', 
+        unknown_value=-1
+    ), cat_features)
 ])
+print("✓ XGBoost preprocessing uses RISK-ORDERED categorical encoding")
 
 xgb_pipeline = Pipeline([
     ('preprocess', xgb_prep),

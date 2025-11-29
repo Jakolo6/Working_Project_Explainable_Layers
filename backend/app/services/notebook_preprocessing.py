@@ -49,6 +49,85 @@ class NotebookPreprocessor:
         'ge_7_years': 10
     }
     
+    # RISK-ORDERED CATEGORIES for OrdinalEncoder
+    # Order: Lower risk (better) → Higher risk (worse)
+    # This ensures SHAP values are semantically meaningful:
+    #   - Higher ordinal value = higher risk = positive SHAP contribution
+    #   - Lower ordinal value = lower risk = negative SHAP contribution
+    CATEGORY_ORDER = {
+        'checking_status': [
+            'ge_200_dm',      # Best: High balance (lowest risk)
+            '0_to_200_dm',    # Moderate balance
+            'no_checking',    # No checking account
+            'lt_0_dm'         # Worst: Negative balance (highest risk)
+        ],
+        'credit_history': [
+            'all_paid',       # Best: All credits paid (lowest risk)
+            'existing_paid',  # Existing credits paid properly
+            'no_credits',     # No credit history
+            'delayed_past',   # Some delays in past
+            'critical'        # Worst: Critical/problematic (highest risk)
+        ],
+        'purpose': [
+            'new_car',        # Lower risk purposes
+            'used_car',
+            'furniture',
+            'radio_tv',
+            'domestic_appliances',
+            'repairs',
+            'education',
+            'retraining',
+            'business',
+            'vacation',       # Higher risk purposes
+            'others'
+        ],
+        'savings_status': [
+            'ge_1000_dm',     # Best: High savings (lowest risk)
+            '500_to_1000_dm',
+            '100_to_500_dm',
+            'lt_100_dm',      # Low savings
+            'unknown'         # Worst: Unknown savings (highest risk)
+        ],
+        'employment': [
+            'ge_7_years',     # Best: Long employment (lowest risk)
+            '4_to_7_years',
+            '1_to_4_years',
+            'lt_1_year',
+            'unemployed'      # Worst: Unemployed (highest risk)
+        ],
+        'housing': [
+            'own',            # Best: Owns home (lowest risk)
+            'for_free',       # Lives for free
+            'rent'            # Higher risk: Renting
+        ],
+        'job': [
+            'management',            # Best: Management/high skilled
+            'skilled',               # Skilled employee
+            'unskilled_resident',    # Unskilled but resident
+            'unemployed_unskilled'   # Worst: Unemployed/unskilled
+        ],
+        'other_debtors': [
+            'guarantor',      # Best: Has guarantor (lowest risk)
+            'co_applicant',   # Has co-applicant
+            'none'            # No guarantor (higher risk)
+        ],
+        'property_magnitude': [
+            'real_estate',       # Best: Owns real estate
+            'building_society',  # Building society savings
+            'car_other',         # Car or other property
+            'unknown'            # Worst: Unknown/no property
+        ],
+        'other_payment_plans': [
+            'none',           # Best: No other obligations
+            'stores',         # Store payment plans
+            'bank'            # Worst: Bank payment plans (higher risk)
+        ],
+        'own_telephone': [
+            'yes',            # Has telephone (slightly better)
+            'none'            # No telephone
+        ]
+    }
+    
     def __init__(self, model_type: str = 'xgboost'):
         """
         Initialize preprocessor.
@@ -123,9 +202,15 @@ class NotebookPreprocessor:
                 ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), self.CAT_FEATURES)
             ])
         else:  # xgboost
+            # Use risk-ordered categories for semantically meaningful SHAP values
+            ordered_categories = [self.CATEGORY_ORDER[feat] for feat in self.CAT_FEATURES]
             return ColumnTransformer([
                 ('num', 'passthrough', self.num_features_all),
-                ('cat', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), self.CAT_FEATURES)
+                ('cat', OrdinalEncoder(
+                    categories=ordered_categories,
+                    handle_unknown='use_encoded_value', 
+                    unknown_value=-1
+                ), self.CAT_FEATURES)
             ])
     
     def fit(self, df: pd.DataFrame, y=None):

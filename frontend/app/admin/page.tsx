@@ -1,14 +1,100 @@
-// Simplified Admin page for local-first workflow
+// Admin page with model retraining and sanity check functionality
 
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 
+interface SanityCheckResult {
+  passed: boolean
+  checks: Record<string, boolean>
+  results: Record<string, {
+    decision: string
+    confidence: number
+    probability_good: number
+    probability_bad: number
+    key_shap_features: Record<string, { value: string; shap: number; impact: string }>
+  }>
+}
+
+interface TrainingResult {
+  success: boolean
+  message?: string
+  xgboost_metrics?: Record<string, number>
+  logistic_metrics?: Record<string, number>
+  sanity_check?: { passed: boolean; safe?: { decision: string }; risky?: { decision: string } }
+  uploaded_files?: Record<string, string>
+  training_log?: string[]
+}
+
 export default function AdminPage() {
   const [clearStatus, setClearStatus] = useState<string>('')
   const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
+  
+  // Training state
+  const [trainingStatus, setTrainingStatus] = useState<string>('')
+  const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null)
+  const [isTraining, setIsTraining] = useState<boolean>(false)
+  
+  // Sanity check state
+  const [sanityStatus, setSanityStatus] = useState<string>('')
+  const [sanityResult, setSanityResult] = useState<SanityCheckResult | null>(null)
+  const [isChecking, setIsChecking] = useState<boolean>(false)
+
+  // Handler for model retraining
+  const handleRetrainModel = async () => {
+    setIsTraining(true)
+    setTrainingStatus('🔄 Starting model retraining with risk-ordered categories...')
+    setTrainingResult(null)
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/admin/retrain-model`, {
+        method: 'POST',
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        setTrainingStatus('✅ Model retrained and uploaded successfully!')
+        setTrainingResult(data)
+      } else {
+        setTrainingStatus(`❌ Training failed: ${data.detail || 'Unknown error'}`)
+      }
+    } catch (error) {
+      setTrainingStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setIsTraining(false)
+    }
+  }
+  
+  // Handler for sanity check
+  const handleSanityCheck = async () => {
+    setIsChecking(true)
+    setSanityStatus('🔍 Running sanity check on deployed model...')
+    setSanityResult(null)
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch(`${apiUrl}/api/v1/admin/run-sanity-check`, {
+        method: 'POST',
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setSanityStatus(data.passed ? '✅ Sanity check PASSED!' : '❌ Sanity check FAILED!')
+        setSanityResult(data)
+      } else {
+        setSanityStatus(`❌ Check failed: ${data.detail || 'Unknown error'}`)
+      }
+    } catch (error) {
+      setSanityStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setIsChecking(false)
+    }
+  }
 
   const handleClearR2Bucket = async () => {
     setLoading(true)
@@ -205,6 +291,156 @@ export default function AdminPage() {
               <span className="text-green-600 mr-2">✓</span>
               <span className="text-gray-700">Source code included</span>
             </div>
+          </div>
+        </div>
+
+        {/* Model Training Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-2 border-indigo-200">
+          <h2 className="text-2xl font-bold text-indigo-700 mb-4">
+            🤖 Model Training & Validation
+          </h2>
+          <p className="text-gray-700 mb-6">
+            Retrain models with <strong>risk-ordered categorical encoding</strong> to ensure SHAP values are semantically meaningful.
+          </p>
+          
+          <div className="space-y-6">
+            {/* Explanation */}
+            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+              <h3 className="font-semibold text-indigo-900 mb-2">📊 Why Risk-Ordered Encoding?</h3>
+              <p className="text-indigo-800 text-sm mb-2">
+                Categories are ordered from lowest risk (code 0) to highest risk (code N-1):
+              </p>
+              <ul className="text-sm text-indigo-700 space-y-1">
+                <li>• <code className="bg-indigo-100 px-1 rounded">credit_history</code>: all_paid → critical</li>
+                <li>• <code className="bg-indigo-100 px-1 rounded">employment</code>: ge_7_years → unemployed</li>
+                <li>• <code className="bg-indigo-100 px-1 rounded">checking_status</code>: ge_200_dm → lt_0_dm</li>
+              </ul>
+              <p className="text-indigo-700 text-sm mt-2">
+                This ensures positive SHAP = increases risk, negative SHAP = decreases risk.
+              </p>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={handleRetrainModel}
+                disabled={isTraining}
+                className={`py-3 px-6 rounded-lg font-semibold text-white transition ${
+                  isTraining
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                {isTraining ? '🔄 Training...' : '🚀 Retrain Model'}
+              </button>
+              
+              <button
+                onClick={handleSanityCheck}
+                disabled={isChecking}
+                className={`py-3 px-6 rounded-lg font-semibold text-white transition ${
+                  isChecking
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-teal-600 hover:bg-teal-700'
+                }`}
+              >
+                {isChecking ? '🔍 Checking...' : '🔍 Run Sanity Check'}
+              </button>
+            </div>
+            
+            {/* Training Status */}
+            {trainingStatus && (
+              <div className={`p-4 rounded-lg ${
+                trainingStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : trainingStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800 border border-red-200'
+                  : 'bg-blue-50 text-blue-800 border border-blue-200'
+              }`}>
+                <p className="font-semibold">{trainingStatus}</p>
+              </div>
+            )}
+            
+            {/* Training Results */}
+            {trainingResult && trainingResult.success && (
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-3">📈 Training Results</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium text-green-800">XGBoost Metrics:</p>
+                    <ul className="text-green-700">
+                      <li>AUC: {trainingResult.xgboost_metrics?.roc_auc?.toFixed(4)}</li>
+                      <li>F1: {trainingResult.xgboost_metrics?.f1?.toFixed(4)}</li>
+                      <li>Accuracy: {trainingResult.xgboost_metrics?.accuracy?.toFixed(4)}</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-800">Logistic Metrics:</p>
+                    <ul className="text-green-700">
+                      <li>AUC: {trainingResult.logistic_metrics?.roc_auc?.toFixed(4)}</li>
+                      <li>F1: {trainingResult.logistic_metrics?.f1?.toFixed(4)}</li>
+                      <li>Accuracy: {trainingResult.logistic_metrics?.accuracy?.toFixed(4)}</li>
+                    </ul>
+                  </div>
+                </div>
+                {trainingResult.sanity_check && (
+                  <div className="mt-3 pt-3 border-t border-green-200">
+                    <p className={`font-medium ${trainingResult.sanity_check.passed ? 'text-green-800' : 'text-red-800'}`}>
+                      Sanity Check: {trainingResult.sanity_check.passed ? '✅ PASSED' : '❌ FAILED'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Sanity Check Status */}
+            {sanityStatus && (
+              <div className={`p-4 rounded-lg ${
+                sanityStatus.startsWith('✅') 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : sanityStatus.startsWith('❌')
+                  ? 'bg-red-50 text-red-800 border border-red-200'
+                  : 'bg-blue-50 text-blue-800 border border-blue-200'
+              }`}>
+                <p className="font-semibold">{sanityStatus}</p>
+              </div>
+            )}
+            
+            {/* Sanity Check Results */}
+            {sanityResult && (
+              <div className={`rounded-lg p-4 border ${sanityResult.passed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                <h4 className={`font-semibold mb-3 ${sanityResult.passed ? 'text-green-900' : 'text-red-900'}`}>
+                  🔍 Sanity Check Results
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(sanityResult.results).map(([name, result]) => (
+                    <div key={name} className="bg-white rounded p-3 border">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium capitalize">{name.replace('_', ' ')}</span>
+                        <span className={`px-2 py-1 rounded text-sm font-semibold ${
+                          result.decision === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {result.decision.toUpperCase()} ({(result.confidence * 100).toFixed(1)}%)
+                        </span>
+                      </div>
+                      {Object.keys(result.key_shap_features).length > 0 && (
+                        <div className="text-xs text-gray-600">
+                          <p className="font-medium mb-1">Key SHAP Features:</p>
+                          {Object.entries(result.key_shap_features).map(([feat, data]) => (
+                            <div key={feat} className="flex items-center gap-2">
+                              <span>{feat}:</span>
+                              <span className={data.shap > 0 ? 'text-red-600' : 'text-green-600'}>
+                                {data.shap > 0 ? '+' : ''}{data.shap.toFixed(3)}
+                              </span>
+                              <span className="text-gray-500">({data.value})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

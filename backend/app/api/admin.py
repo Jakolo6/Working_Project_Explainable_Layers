@@ -198,3 +198,194 @@ async def health_check():
             "r2_connected": False,
             "error": str(e)
         }
+
+
+# =============================================================================
+# MODEL TRAINING ENDPOINTS
+# =============================================================================
+
+@router.post("/retrain-model")
+async def retrain_model():
+    """
+    Retrain XGBoost and Logistic models with risk-ordered categorical encoding.
+    
+    This ensures SHAP values are semantically meaningful:
+    - Higher ordinal value = higher risk = positive SHAP
+    - Lower ordinal value = lower risk = negative SHAP
+    
+    After training, models are automatically uploaded to R2.
+    """
+    try:
+        from app.services.model_training_service import ModelTrainingService
+        
+        service = ModelTrainingService()
+        result = service.full_training_pipeline()
+        
+        if result['success']:
+            return {
+                "success": True,
+                "message": "Models retrained and uploaded successfully",
+                "xgboost_metrics": result['xgboost_metrics'],
+                "logistic_metrics": result['logistic_metrics'],
+                "sanity_check": result['sanity_check'],
+                "uploaded_files": result['uploaded_files'],
+                "training_log": result['log']
+            }
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Training failed: {result.get('error', 'Unknown error')}"
+            )
+            
+    except ImportError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Missing dependencies for training: {str(e)}. Install: pip install xgboost scikit-learn"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
+
+
+@router.get("/training-status")
+async def get_training_status():
+    """
+    Get the current model training status and configuration.
+    Shows the risk-ordered category encoding that will be used.
+    """
+    try:
+        from app.services.model_training_service import CATEGORY_ORDER, CAT_FEATURES
+        
+        return {
+            "status": "ready",
+            "encoding_type": "risk_ordered_ordinal",
+            "description": "Categories ordered from lowest risk (0) to highest risk (N-1)",
+            "categorical_features": CAT_FEATURES,
+            "category_ordering": CATEGORY_ORDER
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@router.post("/run-sanity-check")
+async def run_sanity_check():
+    """
+    Run sanity check on the currently deployed model.
+    Tests with safe, risky, and borderline applicants.
+    """
+    try:
+        from app.services.xgboost_service import XGBoostService
+        import uuid
+        
+        config = get_settings()
+        xgb_service = XGBoostService(config)
+        xgb_service.load_model_from_r2()
+        
+        # Test applicants
+        test_cases = {
+            "safe_applicant": {
+                "checking_status": "ge_200_dm",
+                "duration": 12,
+                "credit_history": "all_paid",
+                "purpose": "new_car",
+                "credit_amount": 2000,
+                "savings_status": "ge_1000_dm",
+                "employment": "ge_7_years",
+                "installment_commitment": 1,
+                "other_debtors": "guarantor",
+                "residence_since": 4,
+                "property_magnitude": "real_estate",
+                "age": 45,
+                "other_payment_plans": "none",
+                "housing": "own",
+                "existing_credits": 1,
+                "job": "management",
+                "num_dependents": 1,
+                "own_telephone": "yes"
+            },
+            "risky_applicant": {
+                "checking_status": "lt_0_dm",
+                "duration": 48,
+                "credit_history": "critical",
+                "purpose": "vacation",
+                "credit_amount": 15000,
+                "savings_status": "lt_100_dm",
+                "employment": "unemployed",
+                "installment_commitment": 4,
+                "other_debtors": "none",
+                "residence_since": 1,
+                "property_magnitude": "unknown",
+                "age": 22,
+                "other_payment_plans": "bank",
+                "housing": "rent",
+                "existing_credits": 4,
+                "job": "unemployed_unskilled",
+                "num_dependents": 2,
+                "own_telephone": "none"
+            },
+            "borderline_applicant": {
+                "checking_status": "0_to_200_dm",
+                "duration": 24,
+                "credit_history": "existing_paid",
+                "purpose": "furniture",
+                "credit_amount": 5000,
+                "savings_status": "100_to_500_dm",
+                "employment": "1_to_4_years",
+                "installment_commitment": 2,
+                "other_debtors": "none",
+                "residence_since": 2,
+                "property_magnitude": "car_other",
+                "age": 32,
+                "other_payment_plans": "none",
+                "housing": "rent",
+                "existing_credits": 2,
+                "job": "skilled",
+                "num_dependents": 1,
+                "own_telephone": "yes"
+            }
+        }
+        
+        results = {}
+        for name, applicant in test_cases.items():
+            # Get prediction
+            pred = xgb_service.predict(applicant)
+            
+            # Get SHAP explanation
+            shap_exp = xgb_service.explain_prediction(applicant, num_features=10)
+            
+            # Extract key feature SHAP values
+            key_features = {}
+            for feat in shap_exp['all_features']:
+                if any(k in feat['feature'].lower() for k in ['credit_history', 'employment', 'checking']):
+                    key_features[feat['feature']] = {
+                        'value': feat['feature_value'],
+                        'shap': feat['shap_value'],
+                        'impact': feat['impact']
+                    }
+            
+            results[name] = {
+                'decision': pred['decision'],
+                'confidence': pred['confidence'],
+                'probability_good': pred['probability_good'],
+                'probability_bad': pred['probability_bad'],
+                'key_shap_features': key_features
+            }
+        
+        # Validate expectations
+        checks = {
+            'safe_approved': results['safe_applicant']['decision'] == 'approved',
+            'risky_rejected': results['risky_applicant']['decision'] == 'rejected',
+        }
+        
+        all_passed = all(checks.values())
+        
+        return {
+            "passed": all_passed,
+            "checks": checks,
+            "results": results
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sanity check failed: {str(e)}")
