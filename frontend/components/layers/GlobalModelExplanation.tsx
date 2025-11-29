@@ -231,6 +231,25 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
                   </div>
                 </div>
               </div>
+
+              {/* Historical Data Note */}
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-300">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">📜</span>
+                  <div>
+                    <h5 className="font-bold text-amber-900 mb-1">About the Historical Data</h5>
+                    <p className="text-amber-800 text-sm mb-2">
+                      This model was trained on the <strong>German Credit Dataset from 1994</strong>. 
+                      Some patterns in this historical data may not reflect modern credit practices.
+                    </p>
+                    <p className="text-amber-700 text-sm">
+                      <strong>Notable finding:</strong> The &apos;credit_history&apos; feature shows counterintuitive patterns 
+                      due to historical selection bias (banks were more cautious with certain applicants). 
+                      Features marked with ⚠ may show unexpected risk directions compared to modern expectations.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -6,6 +6,7 @@ import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
+import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 
 interface SHAPFeature {
   feature: string
@@ -82,6 +83,9 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
   // Split by impact: positive = risk-increasing (bad), negative = risk-decreasing (good)
   const riskIncreasingFeatures = sortedFeatures.filter(f => f.impact === 'positive')
   const riskDecreasingFeatures = sortedFeatures.filter(f => f.impact === 'negative')
+  
+  // Check if credit_history features are present (need warning)
+  const hasCreditHistoryFeature = sortedFeatures.some(f => isCreditHistoryFeature(f.feature))
   
   return (
     <div className="space-y-6">
@@ -173,10 +177,15 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <Tooltip 
-                      content={getFeatureDescription(feature.feature)?.description || 'No description available'}
+                      content={
+                        isCreditHistoryFeature(feature.feature)
+                          ? `${getFeatureDescription(feature.feature)?.description || 'No description available'}\n\n⚠️ ${CREDIT_HISTORY_WARNING_TEXT}`
+                          : getFeatureDescription(feature.feature)?.description || 'No description available'
+                      }
                     >
-                      <span className="font-medium cursor-help border-b border-dotted border-gray-400">
+                      <span className={`font-medium cursor-help border-b border-dotted ${isCreditHistoryFeature(feature.feature) ? 'border-amber-400 bg-amber-50' : 'border-gray-400'}`}>
                         {feature.feature}
+                        {isCreditHistoryFeature(feature.feature) && <span className="ml-1 text-amber-600">⚠</span>}
                       </span>
                     </Tooltip>
                   </td>
@@ -217,6 +226,11 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
           </table>
         </div>
       </div>
+
+      {/* Credit History Warning - if applicable */}
+      {hasCreditHistoryFeature && (
+        <CreditHistoryWarning showDetails={true} />
+      )}
 
       {/* Legend - Bank Clerk Friendly */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

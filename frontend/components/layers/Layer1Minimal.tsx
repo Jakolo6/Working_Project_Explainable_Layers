@@ -7,6 +7,7 @@ import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
+import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 
 interface SHAPFeature {
   feature: string
@@ -50,6 +51,9 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
   
   const maxAbsShap = Math.max(...sortedFeatures.map(f => Math.abs(f.shap_value)))
   const baseValue = 0 // Base prediction value
+  
+  // Check if credit_history features are present (need warning)
+  const hasCreditHistoryFeature = sortedFeatures.some(f => isCreditHistoryFeature(f.feature))
   
   // Calculate cumulative SHAP for waterfall
   let cumulative = baseValue
@@ -122,9 +126,14 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
               
               return (
                 <div key={idx} className="flex items-center gap-2">
-                  <Tooltip content={getFeatureDescription(feature.feature)?.description || feature.feature}>
-                    <span className="w-40 text-sm text-slate-700 truncate cursor-help">
+                  <Tooltip content={
+                    isCreditHistoryFeature(feature.feature)
+                      ? `${getFeatureDescription(feature.feature)?.description || feature.feature}\n\n⚠️ ${CREDIT_HISTORY_WARNING_TEXT}`
+                      : getFeatureDescription(feature.feature)?.description || feature.feature
+                  }>
+                    <span className={`w-40 text-sm truncate cursor-help ${isCreditHistoryFeature(feature.feature) ? 'text-amber-700 bg-amber-50 px-1 rounded' : 'text-slate-700'}`}>
                       {feature.feature}
+                      {isCreditHistoryFeature(feature.feature) && <span className="ml-1">⚠</span>}
                     </span>
                   </Tooltip>
                   
@@ -191,9 +200,14 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                     <td className="px-4 py-2 text-slate-400 font-mono text-xs">{idx + 1}</td>
                     <td className="px-4 py-2">
-                      <Tooltip content={getFeatureDescription(feature.feature)?.description || 'No description'}>
-                        <span className="text-slate-700 cursor-help hover:text-blue-600">
+                      <Tooltip content={
+                        isCreditHistoryFeature(feature.feature)
+                          ? `${getFeatureDescription(feature.feature)?.description || 'No description'}\n\n⚠️ ${CREDIT_HISTORY_WARNING_TEXT}`
+                          : getFeatureDescription(feature.feature)?.description || 'No description'
+                      }>
+                        <span className={`cursor-help hover:text-blue-600 ${isCreditHistoryFeature(feature.feature) ? 'text-amber-700 bg-amber-50 px-1 rounded' : 'text-slate-700'}`}>
                           {feature.feature}
+                          {isCreditHistoryFeature(feature.feature) && <span className="ml-1 text-amber-600">⚠</span>}
                         </span>
                       </Tooltip>
                     </td>
@@ -223,6 +237,13 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
             </table>
           </div>
         </div>
+
+        {/* Credit History Warning - if applicable */}
+        {hasCreditHistoryFeature && (
+          <div className="mt-4">
+            <CreditHistoryWarning compact={true} />
+          </div>
+        )}
 
         {/* Technical Legend */}
         <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">

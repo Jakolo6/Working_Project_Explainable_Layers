@@ -409,7 +409,7 @@ export default function ModelPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <RocCurveChart data={metrics.logistic_regression.roc_curve} />
               <FeatureImportanceBars
-                data={metrics.logistic_regression.top_features?.map((feat) => ({
+                data={metrics.logistic_regression.top_features?.map((feat: { feature: string; coefficient: number }) => ({
                   feature: feat.feature,
                   value: feat.coefficient,
                 }))}
@@ -436,6 +436,64 @@ export default function ModelPage() {
                 All metrics calculated on held-out test set (20% of data). Models trained on 
                 German Credit Dataset with bias features (gender, nationality) excluded.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Historical Data Disclaimer */}
+        {activeTab === 'metrics' && (
+          <div className="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-8 mb-8">
+            <div className="flex items-start gap-4">
+              <span className="text-3xl">⚠️</span>
+              <div>
+                <h2 className="text-2xl font-bold text-amber-900 mb-4">Historical Data Disclaimer</h2>
+                <div className="space-y-4 text-amber-800">
+                  <p>
+                    This model was trained on the <strong>German Credit Dataset from 1994</strong>. 
+                    Due to historical lending practices and selection bias, some features exhibit 
+                    counterintuitive risk patterns.
+                  </p>
+                  <div className="bg-white rounded-lg p-4 border border-amber-200">
+                    <h3 className="font-semibold text-amber-900 mb-2">Notable Data Anomaly: Credit History</h3>
+                    <p className="text-sm mb-3">
+                      The &apos;credit_history&apos; feature shows inverted default rates compared to modern expectations:
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                      <div className="bg-red-100 p-2 rounded text-center">
+                        <div className="font-bold text-red-800">critical</div>
+                        <div className="text-red-700">17.1% default</div>
+                        <div className="text-red-600 text-xs">(lowest!)</div>
+                      </div>
+                      <div className="bg-yellow-100 p-2 rounded text-center">
+                        <div className="font-bold text-yellow-800">delayed</div>
+                        <div className="text-yellow-700">31.8% default</div>
+                      </div>
+                      <div className="bg-yellow-100 p-2 rounded text-center">
+                        <div className="font-bold text-yellow-800">existing_paid</div>
+                        <div className="text-yellow-700">31.9% default</div>
+                      </div>
+                      <div className="bg-orange-100 p-2 rounded text-center">
+                        <div className="font-bold text-orange-800">all_paid</div>
+                        <div className="text-orange-700">57.1% default</div>
+                      </div>
+                      <div className="bg-red-100 p-2 rounded text-center">
+                        <div className="font-bold text-red-800">no_credits</div>
+                        <div className="text-red-700">62.5% default</div>
+                        <div className="text-red-600 text-xs">(highest!)</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-amber-700 mt-3">
+                      <strong>Why?</strong> Banks in 1994 were likely more cautious with &apos;critical&apos; applicants 
+                      (smaller loans, more oversight), while &apos;all_paid&apos; applicants may have been overconfident borrowers.
+                      This is historical selection bias, not modern credit practice.
+                    </p>
+                  </div>
+                  <p className="text-sm">
+                    The model faithfully learns these historical patterns. Features marked with ⚠ in explanations 
+                    may show unexpected risk directions. This is intentional for research transparency.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}

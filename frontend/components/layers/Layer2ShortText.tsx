@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
+import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 
 // Interface for SHAP feature data
 interface SHAPFeature {
@@ -34,6 +35,9 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
   const [narrative, setNarrative] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [isLLMGenerated, setIsLLMGenerated] = useState(false)
+  
+  // Check if any credit_history features are in the top features
+  const hasCreditHistoryFeature = top5Features.some(f => isCreditHistoryFeature(f.feature))
   
   useEffect(() => {
     const fetchNarrative = async () => {
@@ -189,7 +193,10 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
                     {idx + 1}
                   </span>
                   <div>
-                    <span className="font-medium text-slate-800">{feature.feature}</span>
+                    <span className={`font-medium ${isCreditHistoryFeature(feature.feature) ? 'text-amber-700' : 'text-slate-800'}`}>
+                      {feature.feature}
+                      {isCreditHistoryFeature(feature.feature) && <span className="ml-1 text-amber-600">⚠</span>}
+                    </span>
                     <span className="text-slate-500 text-sm ml-2">= {feature.value}</span>
                   </div>
                 </div>
@@ -211,6 +218,13 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
             ))}
           </div>
         </div>
+
+        {/* Credit History Warning - if applicable */}
+        {hasCreditHistoryFeature && (
+          <div className="mb-6">
+            <CreditHistoryWarning compact={true} />
+          </div>
+        )}
 
         {/* Footer Note */}
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">

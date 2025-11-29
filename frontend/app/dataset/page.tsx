@@ -323,6 +323,96 @@ export default function DatasetPage() {
           </div>
         )}
 
+        {/* Data Anomaly Discovery Section */}
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-8 mb-8">
+          <div className="flex items-start gap-4">
+            <span className="text-4xl">🔬</span>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-amber-900 mb-4">Research Finding: Historical Data Anomaly</h2>
+              <p className="text-amber-800 mb-4">
+                During our deep alignment analysis, we discovered a <strong>counterintuitive pattern</strong> in 
+                the &apos;credit_history&apos; feature that contradicts modern credit risk intuition.
+              </p>
+              
+              <div className="bg-white rounded-lg p-6 border border-amber-200 mb-4">
+                <h3 className="font-semibold text-amber-900 mb-3">Observed Default Rates by Credit History</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-amber-100">
+                        <th className="px-4 py-2 text-left font-semibold text-amber-900">Credit History</th>
+                        <th className="px-4 py-2 text-center font-semibold text-amber-900">Default Rate</th>
+                        <th className="px-4 py-2 text-center font-semibold text-amber-900">Samples</th>
+                        <th className="px-4 py-2 text-left font-semibold text-amber-900">Expected vs Actual</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-amber-100">
+                        <td className="px-4 py-2 font-medium">critical</td>
+                        <td className="px-4 py-2 text-center text-green-700 font-bold">17.1%</td>
+                        <td className="px-4 py-2 text-center">293</td>
+                        <td className="px-4 py-2 text-red-600">Expected: HIGHEST risk → Actual: LOWEST</td>
+                      </tr>
+                      <tr className="border-b border-amber-100">
+                        <td className="px-4 py-2 font-medium">delayed_past</td>
+                        <td className="px-4 py-2 text-center text-yellow-700 font-bold">31.8%</td>
+                        <td className="px-4 py-2 text-center">88</td>
+                        <td className="px-4 py-2 text-amber-600">Expected: High risk → Actual: Medium</td>
+                      </tr>
+                      <tr className="border-b border-amber-100">
+                        <td className="px-4 py-2 font-medium">existing_paid</td>
+                        <td className="px-4 py-2 text-center text-yellow-700 font-bold">31.9%</td>
+                        <td className="px-4 py-2 text-center">530</td>
+                        <td className="px-4 py-2 text-green-600">As expected: Medium risk</td>
+                      </tr>
+                      <tr className="border-b border-amber-100">
+                        <td className="px-4 py-2 font-medium">all_paid</td>
+                        <td className="px-4 py-2 text-center text-orange-700 font-bold">57.1%</td>
+                        <td className="px-4 py-2 text-center">49</td>
+                        <td className="px-4 py-2 text-red-600">Expected: LOWEST risk → Actual: High</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2 font-medium">no_credits</td>
+                        <td className="px-4 py-2 text-center text-red-700 font-bold">62.5%</td>
+                        <td className="px-4 py-2 text-center">40</td>
+                        <td className="px-4 py-2 text-red-600">Expected: Low risk → Actual: HIGHEST</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-white rounded-lg p-4 border border-amber-200">
+                  <h4 className="font-semibold text-amber-900 mb-2">🤔 Why This Happened</h4>
+                  <ul className="text-sm text-amber-800 space-y-1">
+                    <li>• <strong>Selection Bias:</strong> Banks in 1994 were more cautious with &apos;critical&apos; applicants</li>
+                    <li>• <strong>Smaller Loans:</strong> Risky applicants received smaller, safer loans</li>
+                    <li>• <strong>More Oversight:</strong> High-risk applicants had stricter monitoring</li>
+                    <li>• <strong>Overconfidence:</strong> &apos;all_paid&apos; applicants may have over-borrowed</li>
+                  </ul>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-amber-200">
+                  <h4 className="font-semibold text-amber-900 mb-2">📚 Research Implications</h4>
+                  <ul className="text-sm text-amber-800 space-y-1">
+                    <li>• The model <strong>correctly learns</strong> from historical data</li>
+                    <li>• SHAP values <strong>accurately reflect</strong> what the model learned</li>
+                    <li>• This demonstrates why <strong>XAI is crucial</strong> for understanding AI</li>
+                    <li>• Historical patterns may not match modern intuition</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>Transparency Note:</strong> This anomaly is intentionally preserved for research purposes. 
+                  Features marked with ⚠ in explanations may show unexpected risk directions. 
+                  This is a valuable example of why explainable AI matters in real-world applications.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {!loading && !error && images.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
