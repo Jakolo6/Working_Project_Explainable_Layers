@@ -1,12 +1,57 @@
 # PROJECT_OVERVIEW.md
 
 > 🎉 **PROJECT STATUS: PRODUCTION READY - AUDITED & VERIFIED**  
-> ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ SHAP semantics verified  
+> ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ SHAP semantics verified | ✅ Data anomaly documented  
 > 📅 Last Updated: November 29, 2025
 
 ---
 
-## 🔄 **Latest Update: OrdinalEncoder Fix for Semantic SHAP Values** (Nov 29, 2025)
+## 🔄 **Latest Update: Credit History Warnings & Data Anomaly Documentation** (Nov 29, 2025)
+
+**Deep Alignment Analysis Discovery:**
+- 🔬 Discovered `credit_history` feature has **counterintuitive patterns** in the 1994 German Credit data
+- 📊 Observed default rates are **inverted** compared to modern expectations:
+  - `critical`: 17.1% default (LOWEST - expected highest)
+  - `all_paid`: 57.1% default (HIGH - expected lowest)
+- 🤔 **Root cause**: Historical selection bias (banks were more cautious with risky applicants)
+
+**Changes Made:**
+
+**1. New CreditHistoryWarning Component** (`frontend/components/CreditHistoryWarning.tsx`)
+- Reusable warning component for credit_history features
+- Compact and detailed display modes
+- Explains historical data pattern and selection bias
+
+**2. Updated Explanation Layers (0, 1, 2)**
+- Credit history features marked with ⚠ warning icon
+- Tooltips include historical data pattern notice
+- Warning sections displayed when credit_history appears in top features
+
+**3. Global Model Explanation Updated**
+- Added "About the Historical Data" section
+- Explains 1994 dataset and selection bias
+- Notes features marked with ⚠ may show unexpected patterns
+
+**4. Model Page Updated**
+- Added "Historical Data Disclaimer" section
+- Shows default rates table for all credit_history categories
+- Explains why patterns are counterintuitive
+
+**5. Dataset Page Updated**
+- Added "Research Finding: Historical Data Anomaly" section
+- Full breakdown table of observed vs expected default rates
+- Explains selection bias and research implications
+
+**6. Fixed Effect Label Inversion**
+- Positive SHAP → "Raised concerns" (was incorrectly "Supports approval")
+- Negative SHAP → "Supported approval" (was incorrectly "Against approval")
+
+**Research Value:**
+This anomaly demonstrates why XAI is crucial - the model correctly learned historical patterns that contradict modern intuition. The documentation makes this transparent for research purposes.
+
+---
+
+## 🔄 **Previous Update: OrdinalEncoder Fix for Semantic SHAP Values** (Nov 29, 2025)
 
 **Root Cause Identified & Fixed:**
 - 🔍 Discovered credit_history SHAP values were inverted (all_paid showed +SHAP, critical showed -SHAP)
