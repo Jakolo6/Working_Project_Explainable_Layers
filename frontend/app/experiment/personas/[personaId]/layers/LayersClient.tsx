@@ -240,7 +240,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             <span className={prediction.decision === 'approved' ? 'text-green-700' : 'text-red-700'}>
               {prediction.decision.toUpperCase()}
             </span>{' '}
-            ({(prediction.probability * 100).toFixed(1)}% confidence)
+            (Model certainty: {(prediction.probability * 100).toFixed(0)}%)
           </p>
         </div>
 

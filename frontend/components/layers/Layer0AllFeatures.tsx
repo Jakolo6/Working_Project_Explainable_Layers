@@ -11,6 +11,8 @@ interface SHAPFeature {
   feature: string
   value: string
   shap_value: number
+  // 'positive' = increases default risk (bad for applicant) = RED
+  // 'negative' = decreases default risk (good for applicant) = GREEN
   impact: 'positive' | 'negative'
 }
 
@@ -74,9 +76,9 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
   // Sort features by absolute SHAP value (most important first)
   const sortedFeatures = [...shapFeatures].sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value))
   
-  // Split into positive and negative impact features
-  const positiveFeatures = sortedFeatures.filter(f => f.impact === 'positive')
-  const negativeFeatures = sortedFeatures.filter(f => f.impact === 'negative')
+  // Split by impact: positive = risk-increasing (bad), negative = risk-decreasing (good)
+  const riskIncreasingFeatures = sortedFeatures.filter(f => f.impact === 'positive')
+  const riskDecreasingFeatures = sortedFeatures.filter(f => f.impact === 'negative')
   
   return (
     <div className="space-y-6">
@@ -116,11 +118,11 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
           <div className="text-sm text-gray-600">Total Factors Checked</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-red-600">{positiveFeatures.length}</div>
+          <div className="text-2xl font-bold text-red-600">{riskIncreasingFeatures.length}</div>
           <div className="text-sm text-gray-600">Raised Concerns</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">{negativeFeatures.length}</div>
+          <div className="text-2xl font-bold text-green-600">{riskDecreasingFeatures.length}</div>
           <div className="text-sm text-gray-600">Were Favorable</div>
         </div>
       </div>

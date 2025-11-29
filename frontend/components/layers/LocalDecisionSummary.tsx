@@ -9,6 +9,8 @@ interface SHAPFeature {
   feature: string
   value: string
   shap_value: number
+  // 'positive' = increases default risk (bad for applicant) = RED
+  // 'negative' = decreases default risk (good for applicant) = GREEN
   impact: 'positive' | 'negative'
 }
 
@@ -30,9 +32,9 @@ export default function LocalDecisionSummary({
     Math.abs(b.shap_value) - Math.abs(a.shap_value)
   )
   
-  // Split into positive and negative impact
-  const positiveFeatures = sortedFeatures.filter(f => f.impact === 'positive')
-  const negativeFeatures = sortedFeatures.filter(f => f.impact === 'negative')
+  // Split by impact: positive = risk-increasing (bad), negative = risk-decreasing (good)
+  const riskIncreasingFeatures = sortedFeatures.filter(f => f.impact === 'positive')
+  const riskDecreasingFeatures = sortedFeatures.filter(f => f.impact === 'negative')
   
   // Get top 5 for compact view
   const topFeatures = sortedFeatures.slice(0, 5)
@@ -82,8 +84,8 @@ export default function LocalDecisionSummary({
         
         <div className="flex gap-4 mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500">
           <span>{shapFeatures.length} features analyzed</span>
-          <span className="text-red-500">{positiveFeatures.length} risk-increasing</span>
-          <span className="text-green-500">{negativeFeatures.length} risk-decreasing</span>
+          <span className="text-red-500">{riskIncreasingFeatures.length} risk-increasing</span>
+          <span className="text-green-500">{riskDecreasingFeatures.length} risk-decreasing</span>
         </div>
       </div>
     )
@@ -120,11 +122,11 @@ export default function LocalDecisionSummary({
           <div className="text-xs text-slate-500 uppercase">Total Features</div>
         </div>
         <div className="bg-white rounded-lg p-3 text-center border border-red-200">
-          <div className="text-2xl font-bold text-red-600">{positiveFeatures.length}</div>
+          <div className="text-2xl font-bold text-red-600">{riskIncreasingFeatures.length}</div>
           <div className="text-xs text-slate-500 uppercase">Risk Increasing</div>
         </div>
         <div className="bg-white rounded-lg p-3 text-center border border-green-200">
-          <div className="text-2xl font-bold text-green-600">{negativeFeatures.length}</div>
+          <div className="text-2xl font-bold text-green-600">{riskDecreasingFeatures.length}</div>
           <div className="text-xs text-slate-500 uppercase">Risk Decreasing</div>
         </div>
       </div>

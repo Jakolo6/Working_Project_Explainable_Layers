@@ -1,12 +1,29 @@
 # PROJECT_OVERVIEW.md
 
-> 🎉 **PROJECT STATUS: PRODUCTION READY - GLOBAL EXPLANATIONS REDESIGNED**  
-> ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ LLM-powered narratives  
-> 📅 Last Updated: November 2025
+> 🎉 **PROJECT STATUS: PRODUCTION READY - AUDITED & VERIFIED**  
+> ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ SHAP semantics verified  
+> 📅 Last Updated: November 29, 2025
 
 ---
 
-## 🔄 **Latest Update: Global Model Explanation Redesign** (Nov 2025)
+## 🔄 **Latest Update: Pipeline Audit & Code Clarity Improvements** (Nov 29, 2025)
+
+**Diagnostic Audit Completed:**
+- ✅ End-to-end model pipeline verified correct
+- ✅ SHAP semantics verified: Class 1 (bad credit) → positive = risk-increasing → RED
+- ✅ Color coding confirmed correct: RED = risk factors, GREEN = favorable factors
+- ✅ LLM narratives use correct "risk_increasing/risk_decreasing" terminology
+
+**Code Clarity Improvements:**
+- ✅ Added clarifying comments to all SHAP interfaces explaining impact semantics
+- ✅ Renamed variables: `positiveFeatures` → `riskIncreasingFeatures` for clarity
+- ✅ Renamed variables: `negativeFeatures` → `riskDecreasingFeatures` for clarity  
+- ✅ Updated confidence display: "confidence" → "Model certainty" to avoid confusion
+- ✅ Added SHAP semantic documentation in backend service
+
+---
+
+## 🔄 **Previous Update: Global Model Explanation Redesign** (Nov 2025)
 
 **What Changed:**
 - ✅ **New GlobalModelExplanation Component** - Collapsible, bank-clerk-friendly explanation of how the model works

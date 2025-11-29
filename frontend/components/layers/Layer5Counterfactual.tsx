@@ -10,6 +10,8 @@ interface SHAPFeature {
   feature: string
   value: string
   shap_value: number
+  // 'positive' = increases default risk (bad for applicant) = RED
+  // 'negative' = decreases default risk (good for applicant) = GREEN
   impact: 'positive' | 'negative'
 }
 

@@ -183,6 +183,10 @@ class XGBoostService:
         encoded_feature_names = list(X_transformed_df.columns)
         
         # Get SHAP values for bad credit class (class 1)
+        # IMPORTANT SEMANTICS:
+        # - We use Class 1 (bad credit/default risk) SHAP values
+        # - Positive SHAP = feature INCREASES default risk = BAD for applicant = RED in UI
+        # - Negative SHAP = feature DECREASES default risk = GOOD for applicant = GREEN in UI
         if isinstance(shap_values, list):
             shap_values_bad = shap_values[1][0]  # Class 1 (bad credit)
         else:

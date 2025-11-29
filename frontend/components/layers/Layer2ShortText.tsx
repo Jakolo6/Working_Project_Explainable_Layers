@@ -6,16 +6,26 @@ import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
 
+// Interface for SHAP feature data
 interface SHAPFeature {
+  // Feature name (e.g. 'Credit Score')
   feature: string
+  // Feature value (e.g. '720')
   value: string
+  // SHAP value (impact on model output)
   shap_value: number
+  // 'positive' = increases default risk (bad for applicant) = RED
+  // 'negative' = decreases default risk (good for applicant) = GREEN
   impact: 'positive' | 'negative'
 }
 
+// Props for Layer2ShortText component
 interface Layer2ShortTextProps {
+  // Decision outcome ('approved' or 'rejected')
   decision: 'approved' | 'rejected'
+  // Model confidence (probability of decision)
   probability: number
+  // Array of SHAP feature data
   shapFeatures: SHAPFeature[]
 }
 
