@@ -23,103 +23,37 @@ interface Layer0AllFeaturesProps {
   shapFeatures: SHAPFeature[]
 }
 
-// Map raw encoded feature names to human-readable display names
+// Map feature names to human-readable display names
+// Backend now returns grouped features with human-readable names, but we keep this for fallback
 const FEATURE_DISPLAY_MAP: Record<string, string> = {
-  // Checking status
-  'checking_status_no_checking_account': 'Checking Account: None',
-  'checking_status_negative_balance': 'Checking Account: Negative Balance',
-  'checking_status_0_to_200_dm': 'Checking Account: 0-200 DM',
-  'checking_status_gte_200_dm': 'Checking Account: 200+ DM',
-  'checking_status': 'Checking Account Status',
-  
-  // Savings status
-  'savings_status_lt_100_dm': 'Savings: Less than 100 DM',
-  'savings_status_100_to_500_dm': 'Savings: 100-500 DM',
-  'savings_status_500_to_1000_dm': 'Savings: 500-1000 DM',
-  'savings_status_gte_1000_dm': 'Savings: 1000+ DM',
-  'savings_status_unknown': 'Savings: Unknown/None',
-  'savings_status': 'Savings Account Status',
-  
-  // Credit history
-  'credit_history_critical': 'Credit History: Critical',
-  'credit_history_existing_paid': 'Credit History: Existing Paid',
-  'credit_history_delayed': 'Credit History: Delayed',
-  'credit_history_all_paid': 'Credit History: All Paid',
-  'credit_history_no_credits': 'Credit History: No Credits',
-  'credit_history': 'Credit History',
-  
-  // Purpose
-  'purpose_new_car': 'Purpose: New Car',
-  'purpose_used_car': 'Purpose: Used Car',
-  'purpose_furniture': 'Purpose: Furniture',
-  'purpose_radio_tv': 'Purpose: Radio/TV',
-  'purpose_appliances': 'Purpose: Appliances',
-  'purpose_repairs': 'Purpose: Repairs',
-  'purpose_education': 'Purpose: Education',
-  'purpose_business': 'Purpose: Business',
-  'purpose_other': 'Purpose: Other',
-  'purpose': 'Loan Purpose',
-  
-  // Employment
-  'employment_unemployed': 'Employment: Unemployed',
-  'employment_lt_1_year': 'Employment: Less than 1 Year',
-  'employment_1_to_4_years': 'Employment: 1-4 Years',
-  'employment_4_to_7_years': 'Employment: 4-7 Years',
-  'employment_gte_7_years': 'Employment: 7+ Years',
-  'employment': 'Employment Duration',
-  
-  // Housing
-  'housing_rent': 'Housing: Renting',
-  'housing_own': 'Housing: Owner',
-  'housing_free': 'Housing: Free',
-  'housing': 'Housing Status',
-  
-  // Property
-  'property_magnitude_real_estate': 'Property: Real Estate',
-  'property_magnitude_savings_insurance': 'Property: Savings/Insurance',
-  'property_magnitude_car': 'Property: Car/Other',
-  'property_magnitude_unknown': 'Property: Unknown/None',
-  'property_magnitude': 'Property Ownership',
-  
-  // Other debtors
-  'other_debtors_none': 'Guarantors: None',
-  'other_debtors_co_applicant': 'Guarantors: Co-applicant',
-  'other_debtors_guarantor': 'Guarantors: Guarantor',
-  'other_debtors': 'Other Debtors/Guarantors',
-  
-  // Other payment plans
-  'other_payment_plans_none': 'Other Plans: None',
-  'other_payment_plans_bank': 'Other Plans: Bank',
-  'other_payment_plans_stores': 'Other Plans: Stores',
-  'other_payment_plans': 'Other Payment Plans',
-  
-  // Job
-  'job_skilled': 'Job: Skilled',
-  'job_unskilled_resident': 'Job: Unskilled Resident',
-  'job_management': 'Job: Management',
-  'job_unemployed': 'Job: Unemployed',
-  'job': 'Job Type',
-  
-  // Telephone
-  'own_telephone_yes': 'Telephone: Yes',
-  'own_telephone_none': 'Telephone: None',
-  'own_telephone': 'Telephone',
+  // Categorical features (now grouped by backend)
+  'Checking Account Status': 'Checking Account Status',
+  'Savings Account Status': 'Savings Account Status',
+  'Credit History': 'Credit History',
+  'Loan Purpose': 'Loan Purpose',
+  'Employment Duration': 'Employment Duration',
+  'Housing Status': 'Housing Status',
+  'Property Ownership': 'Property Ownership',
+  'Other Debtors/Guarantors': 'Other Debtors/Guarantors',
+  'Other Payment Plans': 'Other Payment Plans',
+  'Job Type': 'Job Type',
+  'Telephone Registration': 'Telephone Registration',
   
   // Numerical features
-  'duration': 'Loan Duration (months)',
-  'credit_amount': 'Credit Amount (DM)',
-  'installment_commitment': 'Installment Rate (% of income)',
-  'residence_since': 'Years at Current Residence',
-  'age': 'Applicant Age',
-  'existing_credits': 'Number of Existing Credits',
-  'num_dependents': 'Number of Dependents',
+  'Loan Duration (months)': 'Loan Duration',
+  'Credit Amount': 'Credit Amount',
+  'Installment Rate': 'Installment Rate',
+  'Years at Residence': 'Years at Residence',
+  'Age': 'Applicant Age',
+  'Existing Credits': 'Existing Credits',
+  'Number of Dependents': 'Dependents',
   
   // Engineered features
-  'monthly_burden': 'Monthly Payment Burden',
-  'stability_score': 'Financial Stability Score',
-  'risk_ratio': 'Credit-to-Age Risk Ratio',
-  'credit_to_income_proxy': 'Credit to Income Ratio',
-  'duration_risk': 'Duration Risk Score',
+  'Monthly Payment Burden': 'Monthly Payment Burden',
+  'Financial Stability Score': 'Financial Stability',
+  'Credit Risk Ratio': 'Credit Risk Ratio',
+  'Credit to Income Ratio': 'Credit to Income Ratio',
+  'Duration Risk Score': 'Duration Risk',
 }
 
 // Convert raw feature name to human-readable display name

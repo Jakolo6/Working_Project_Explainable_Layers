@@ -145,16 +145,112 @@ class XGBoostService:
             'model': 'xgboost'
         }
     
+    # Mapping from one-hot encoded column prefixes to base feature names
+    # Used to group SHAP values for categorical features
+    CATEGORICAL_FEATURES = {
+        'checking_status': 'Checking Account Status',
+        'credit_history': 'Credit History',
+        'purpose': 'Loan Purpose',
+        'savings_status': 'Savings Account Status',
+        'employment': 'Employment Duration',
+        'other_debtors': 'Other Debtors/Guarantors',
+        'property_magnitude': 'Property Ownership',
+        'other_payment_plans': 'Other Payment Plans',
+        'housing': 'Housing Status',
+        'job': 'Job Type',
+        'own_telephone': 'Telephone Registration',
+        'foreign_worker': 'Foreign Worker Status',
+        'personal_status': 'Personal Status'
+    }
+    
+    # Human-readable value mappings for categorical features
+    CATEGORY_VALUE_DISPLAY = {
+        'checking_status': {
+            'negative_balance': 'Negative Balance (< 0 DM)',
+            'no_checking': 'No Checking Account',
+            'lt_200_dm': '0–200 DM',
+            'ge_200_dm': '≥ 200 DM'
+        },
+        'savings_status': {
+            'no_savings': 'No Savings',
+            'lt_100_dm': '< 100 DM',
+            'lt_500_dm': '100–500 DM',
+            'lt_1000_dm': '500–1000 DM',
+            'ge_1000_dm': '≥ 1000 DM'
+        },
+        'credit_history': {
+            'critical': 'Critical Account',
+            'existing_paid': 'Existing Credits Paid',
+            'delayed_previously': 'Delayed Previously',
+            'all_paid': 'All Credits Paid',
+            'no_credits': 'No Credits Taken'
+        },
+        'employment': {
+            'unemployed': 'Unemployed',
+            'lt_1_year': '< 1 Year',
+            '1_to_4_years': '1–4 Years',
+            '4_to_7_years': '4–7 Years',
+            'ge_7_years': '≥ 7 Years'
+        },
+        'purpose': {
+            'car_new': 'New Car',
+            'car_used': 'Used Car',
+            'furniture_equipment': 'Furniture/Equipment',
+            'radio_tv': 'Radio/TV',
+            'domestic_appliance': 'Domestic Appliance',
+            'repairs': 'Repairs',
+            'education': 'Education',
+            'vacation': 'Vacation',
+            'retraining': 'Retraining',
+            'business': 'Business',
+            'other': 'Other'
+        },
+        'housing': {
+            'rent': 'Renting',
+            'own': 'Own Property',
+            'for_free': 'Living for Free'
+        },
+        'property_magnitude': {
+            'real_estate': 'Real Estate',
+            'building_society_savings': 'Building Society Savings',
+            'car_or_other': 'Car or Other',
+            'no_known_property': 'No Known Property'
+        },
+        'other_debtors': {
+            'none': 'None',
+            'co_applicant': 'Co-Applicant',
+            'guarantor': 'Guarantor'
+        },
+        'other_payment_plans': {
+            'none': 'None',
+            'bank': 'Bank',
+            'stores': 'Stores'
+        },
+        'job': {
+            'unemployed_unskilled_non_resident': 'Unemployed/Unskilled Non-Resident',
+            'unskilled_resident': 'Unskilled Resident',
+            'skilled_employee_official': 'Skilled Employee/Official',
+            'management_self_employed': 'Management/Self-Employed'
+        },
+        'own_telephone': {
+            'none': 'No Telephone',
+            'yes_registered': 'Registered Telephone'
+        }
+    }
+
     def explain_prediction(self, user_input: Dict[str, Any], num_features: int = 10) -> Dict[str, Any]:
         """
-        Generate SHAP explanation for prediction.
+        Generate SHAP explanation for prediction with grouped categorical features.
+        
+        One-hot encoded columns are grouped by their base feature, and SHAP values
+        are summed to give one total impact score per original feature.
         
         Args:
             user_input: User input dictionary
             num_features: Number of top features to return
             
         Returns:
-            Dictionary with SHAP values and feature contributions
+            Dictionary with SHAP values and feature contributions (grouped)
         """
         if self.model is None:
             raise ValueError("Model not loaded")
@@ -162,7 +258,7 @@ class XGBoostService:
         # Engineer features and keep original values
         df_engineered = self._engineer_features(user_input)
         
-        # Store original values for display
+        # Store original values for display (before encoding)
         original_values = df_engineered.iloc[0].to_dict()
         
         # Transform using model's pipeline preprocessor
@@ -192,48 +288,116 @@ class XGBoostService:
         else:
             shap_values_bad = shap_values[0]
         
-        # Create feature contributions with human-readable names and original values
-        contributions = []
-        for i, (encoded_feat, shap_val) in enumerate(zip(encoded_feature_names, shap_values_bad)):
-            # Extract original feature name (remove transformer prefixes)
-            # ColumnTransformer creates prefixes like 'num__' and 'cat__'
-            original_feat = encoded_feat
-            if '__' in encoded_feat:
-                # Remove transformer prefix (e.g., 'num__duration' -> 'duration')
-                original_feat = encoded_feat.split('__', 1)[1]
-            
-            # Get human-readable name
-            display_name = self.FEATURE_NAMES.get(original_feat, original_feat)
-            
-            # Get original value (before encoding) - ensure we have it
-            if original_feat in original_values:
-                original_value = original_values[original_feat]
-            else:
-                # Log warning for debugging and use fallback
-                print(f"Warning: Feature '{original_feat}' not found in original values. Available: {list(original_values.keys())}")
-                original_value = X_transformed_df.iloc[0, i]
-            
-            contributions.append({
-                'feature': display_name,
-                'feature_key': original_feat,
-                'shap_value': float(shap_val),
-                'feature_value': original_value,
-                'impact': 'increases_risk' if shap_val > 0 else 'decreases_risk'
-            })
+        # Group SHAP values by base feature name
+        grouped_shap = self._group_shap_values(
+            encoded_feature_names, 
+            shap_values_bad, 
+            original_values,
+            user_input
+        )
         
         # Sort by absolute SHAP value
-        contributions.sort(key=lambda x: abs(x['shap_value']), reverse=True)
+        grouped_shap.sort(key=lambda x: abs(x['shap_value']), reverse=True)
         
         # Get base value (expected value)
         base_value = float(self.explainer.expected_value[1] if isinstance(self.explainer.expected_value, list) 
                           else self.explainer.expected_value)
         
         return {
-            'top_features': contributions[:num_features],
-            'all_features': contributions,
+            'top_features': grouped_shap[:num_features],
+            'all_features': grouped_shap,
             'base_value': base_value,
             'prediction_value': float(base_value + sum(shap_values_bad))
         }
+    
+    def _group_shap_values(
+        self, 
+        encoded_feature_names: list, 
+        shap_values: np.ndarray,
+        original_values: Dict[str, Any],
+        user_input: Dict[str, Any]
+    ) -> list:
+        """
+        Group one-hot encoded SHAP values by their base feature.
+        
+        For categorical features, sums all one-hot column SHAP values into one.
+        For numerical features, keeps the single SHAP value as-is.
+        
+        Args:
+            encoded_feature_names: List of encoded column names (e.g., 'cat__checking_status_negative_balance')
+            shap_values: Array of SHAP values for each encoded column
+            original_values: Dictionary of original feature values (after engineering)
+            user_input: Original user input dictionary (for categorical values)
+            
+        Returns:
+            List of grouped feature contributions
+        """
+        # Dictionary to accumulate SHAP values by base feature
+        feature_shap_sums = {}
+        
+        for encoded_feat, shap_val in zip(encoded_feature_names, shap_values):
+            # Remove transformer prefix (num__ or cat__)
+            clean_feat = encoded_feat
+            if '__' in encoded_feat:
+                clean_feat = encoded_feat.split('__', 1)[1]
+            
+            # Determine base feature name for categorical one-hot columns
+            base_feature = None
+            for cat_prefix in self.CATEGORICAL_FEATURES.keys():
+                if clean_feat.startswith(cat_prefix + '_'):
+                    base_feature = cat_prefix
+                    break
+            
+            if base_feature is None:
+                # This is a numerical feature or non-one-hot categorical
+                base_feature = clean_feat
+            
+            # Accumulate SHAP value
+            if base_feature not in feature_shap_sums:
+                feature_shap_sums[base_feature] = 0.0
+            feature_shap_sums[base_feature] += float(shap_val)
+        
+        # Build grouped contributions list
+        contributions = []
+        for base_feature, total_shap in feature_shap_sums.items():
+            # Get human-readable display name
+            display_name = self.FEATURE_NAMES.get(base_feature, base_feature)
+            if display_name == base_feature:
+                # Try categorical features mapping
+                display_name = self.CATEGORICAL_FEATURES.get(base_feature, base_feature)
+            
+            # Get the original value for display
+            if base_feature in user_input:
+                # Categorical feature - get human-readable value
+                raw_value = user_input[base_feature]
+                if base_feature in self.CATEGORY_VALUE_DISPLAY:
+                    display_value = self.CATEGORY_VALUE_DISPLAY[base_feature].get(raw_value, str(raw_value))
+                else:
+                    display_value = str(raw_value).replace('_', ' ').title()
+            elif base_feature in original_values:
+                # Engineered or numerical feature
+                raw_value = original_values[base_feature]
+                if isinstance(raw_value, float):
+                    if raw_value == int(raw_value):
+                        display_value = str(int(raw_value))
+                    else:
+                        display_value = f"{raw_value:.2f}"
+                else:
+                    display_value = str(raw_value)
+            else:
+                # Fallback - should not happen
+                display_value = "N/A"
+                print(f"[WARNING] Could not find value for feature '{base_feature}'")
+            
+            contributions.append({
+                'feature': display_name,
+                'feature_key': base_feature,
+                'shap_value': total_shap,
+                'feature_value': display_value,
+                'impact': 'increases_risk' if total_shap > 0 else 'decreases_risk'
+            })
+        
+        return contributions
     
     def _engineer_features(self, user_input: Dict[str, Any]) -> pd.DataFrame:
         """
