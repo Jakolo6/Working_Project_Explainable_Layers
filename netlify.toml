@@ -2,5 +2,9 @@
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/out"
 
+[build.environment]
+  # Skip secrets scanning for the admin password since NEXT_PUBLIC_* vars are intentionally bundled
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_ADMIN_PASSWORD"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
