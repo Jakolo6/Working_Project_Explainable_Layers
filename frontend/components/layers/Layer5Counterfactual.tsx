@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
+import ContextualGlobalInsight from './ContextualGlobalInsight'
 import LocalDecisionSummary from './LocalDecisionSummary'
 
 interface SHAPFeature {
@@ -89,10 +90,16 @@ export default function Layer5Counterfactual({ decision, probability, shapFeatur
       {/* Global Model Explanation - How the tool works in general */}
       <GlobalModelExplanation defaultExpanded={false} />
       
+      {/* Contextualized Global Insight - Counterfactual style (info button) */}
+      <div className="flex items-center gap-4 mb-4">
+        <ContextualGlobalInsight context="counterfactual" />
+        <span className="text-sm text-gray-500">← Click to see what the model generally focuses on</span>
+      </div>
+      
       {/* Local Decision Summary - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">
         <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-          <span>👤</span> This Applicant's Decision
+          <span>👤</span> This Applicant&apos;s Decision
         </h3>
         <LocalDecisionSummary
           decision={decision}

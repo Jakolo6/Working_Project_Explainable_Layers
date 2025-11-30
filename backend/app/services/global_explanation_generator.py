@@ -482,6 +482,28 @@ from historical biases rather than causal relationships.
         
         df = self.df_raw
         
+        # Calculate feature importance for the summary
+        mean_abs_shap = np.abs(self.shap_values).mean(axis=0)
+        feature_importance_raw = {}
+        
+        for i, name in enumerate(self.encoded_feature_names):
+            base = name.split('__')[-1] if '__' in name else name
+            for feat in self.feature_names:
+                if base.startswith(feat + '_') or base == feat:
+                    base = feat
+                    break
+            if base not in feature_importance_raw:
+                feature_importance_raw[base] = 0
+            feature_importance_raw[base] += mean_abs_shap[i]
+        
+        # Normalize feature importance to 0-1 scale
+        max_importance = max(feature_importance_raw.values()) if feature_importance_raw else 1
+        feature_importance = {k: float(v / max_importance) for k, v in feature_importance_raw.items()}
+        
+        # Get top features sorted by importance
+        top_features_sorted = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
+        top_features = [f[0] for f in top_features_sorted[:10]]
+        
         # Basic statistics
         summary = {
             "dataset_name": "German Credit Dataset (Statlog)",
@@ -506,6 +528,9 @@ from historical biases rather than causal relationships.
                 }
                 for feat in ['duration', 'credit_amount', 'age', 'installment_commitment']
             ],
+            # Feature importance for frontend contextualized global insight
+            "top_features": top_features,
+            "feature_importance": feature_importance,
             "disclaimers": {
                 "historical_data": "This model was trained on 1994 German credit data. Lending practices and economic conditions have changed significantly since then.",
                 "credit_history_anomaly": self.CREDIT_HISTORY_DISCLAIMER,

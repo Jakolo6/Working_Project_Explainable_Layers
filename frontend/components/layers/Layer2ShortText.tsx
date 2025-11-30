@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
+import ContextualGlobalInsight from './ContextualGlobalInsight'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 
@@ -108,10 +109,13 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
       {/* Global Model Explanation - How the tool works in general */}
       <GlobalModelExplanation defaultExpanded={false} />
       
+      {/* Contextualized Global Insight - Narrative style (preface) */}
+      <ContextualGlobalInsight context="narrative" className="mb-4" />
+      
       {/* Local Decision Summary - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">
         <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-          <span>👤</span> This Applicant's Decision
+          <span>👤</span> This Applicant&apos;s Decision
         </h3>
         <LocalDecisionSummary
           decision={decision}
