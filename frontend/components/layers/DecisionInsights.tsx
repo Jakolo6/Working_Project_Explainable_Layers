@@ -162,11 +162,34 @@ export default function DecisionInsights({ decision, probability, shapFeatures }
     return groups
   }, [filteredFeatures])
   
-  // Generate AI summary (optional, short)
+  // Generate AI summary (optional, short) - with fallback if API fails
   useEffect(() => {
     const generateSummary = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      if (!apiUrl) return
+      
+      // Generate local fallback summary
+      const generateLocalSummary = () => {
+        const supportiveNames = topSupportive.slice(0, 2).map(f => f.feature.toLowerCase()).join(' and ')
+        const concernNames = topConcerns.slice(0, 2).map(f => f.feature.toLowerCase()).join(' and ')
+        
+        if (decision === 'approved') {
+          if (supportiveNames) {
+            return `This application was approved based on positive indicators including ${supportiveNames}. The overall profile met the criteria for approval.`
+          }
+          return "This application was approved. The applicant's profile met the necessary criteria."
+        } else {
+          if (concernNames) {
+            return `This application was not approved primarily due to concerns about ${concernNames}. These factors outweighed the positive aspects.`
+          }
+          return "This application was not approved. The overall profile did not meet the required criteria."
+        }
+      }
+      
+      // If no API URL, use local fallback immediately
+      if (!apiUrl) {
+        setAiSummary(generateLocalSummary())
+        return
+      }
       
       setIsLoadingSummary(true)
       try {
@@ -184,9 +207,13 @@ export default function DecisionInsights({ decision, probability, shapFeatures }
         if (response.ok) {
           const data = await response.json()
           setAiSummary(data.summary)
+        } else {
+          // API returned error, use local fallback
+          setAiSummary(generateLocalSummary())
         }
       } catch {
-        // AI summary is optional, fail silently
+        // Network error, use local fallback
+        setAiSummary(generateLocalSummary())
       } finally {
         setIsLoadingSummary(false)
       }
