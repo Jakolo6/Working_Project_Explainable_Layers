@@ -412,6 +412,92 @@ def _suggest_change(feature: SHAPFeature) -> str:
 
 
 # ============================================================================
+# INSIGHTS SUMMARY ENDPOINT (Short AI Summary for DecisionInsights layer)
+# ============================================================================
+
+class InsightsSummaryRequest(BaseModel):
+    decision: str
+    probability: float
+    top_supportive: List[Dict[str, str]]
+    top_concerns: List[Dict[str, str]]
+
+class InsightsSummaryResponse(BaseModel):
+    summary: str
+    is_llm_generated: bool
+
+@router.post("/insights-summary", response_model=InsightsSummaryResponse)
+async def generate_insights_summary(request: InsightsSummaryRequest):
+    """
+    Generate a very short (2-3 sentence) summary for the DecisionInsights layer.
+    This is meant to be a brief, empathetic summary for bank clerks.
+    """
+    try:
+        openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        
+        if not openai_key:
+            # Fallback to template
+            return InsightsSummaryResponse(
+                summary=_generate_template_insights_summary(request),
+                is_llm_generated=False
+            )
+        
+        from openai import OpenAI
+        client = OpenAI(api_key=openai_key)
+        
+        supportive_names = [f["feature"] for f in request.top_supportive]
+        concern_names = [f["feature"] for f in request.top_concerns]
+        
+        prompt = f"""Write a 2-3 sentence summary for a bank clerk to understand this credit decision.
+Decision: {request.decision.upper()}
+Main supportive factors: {', '.join(supportive_names) if supportive_names else 'None identified'}
+Main concerns: {', '.join(concern_names) if concern_names else 'None identified'}
+
+Rules:
+- Maximum 3 sentences
+- Warm, professional tone suitable for explaining to a customer
+- No technical terms, no numbers, no percentages
+- Mention the key factors naturally
+- Be empathetic but factual"""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful banking assistant writing brief, empathetic summaries."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=100,
+            temperature=0.3
+        )
+        
+        return InsightsSummaryResponse(
+            summary=response.choices[0].message.content.strip(),
+            is_llm_generated=True
+        )
+        
+    except Exception as e:
+        print(f"[ERROR] Insights summary failed: {e}")
+        return InsightsSummaryResponse(
+            summary=_generate_template_insights_summary(request),
+            is_llm_generated=False
+        )
+
+
+def _generate_template_insights_summary(request: InsightsSummaryRequest) -> str:
+    """Template fallback for insights summary."""
+    supportive = [f["feature"] for f in request.top_supportive]
+    concerns = [f["feature"] for f in request.top_concerns]
+    
+    if request.decision == 'approved':
+        if supportive:
+            return f"This application was approved based on positive indicators including {' and '.join(supportive[:2])}. The overall profile met the criteria for approval."
+        return "This application was approved. The applicant's profile met the necessary criteria."
+    else:
+        if concerns:
+            return f"This application was not approved primarily due to concerns about {' and '.join(concerns[:2])}. These factors outweighed the positive aspects of the profile."
+        return "This application was not approved. The overall profile did not meet the required criteria."
+
+
+# ============================================================================
 # CHATBOT ENDPOINT
 # ============================================================================
 

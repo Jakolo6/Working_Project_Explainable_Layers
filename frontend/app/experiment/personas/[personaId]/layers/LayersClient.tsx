@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
 import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
-import Layer1Minimal from '@/components/layers/Layer1Minimal'
+import DecisionInsights from '@/components/layers/DecisionInsights'
 import Layer2ShortText from '@/components/layers/Layer2ShortText'
 import CounterfactualExplorer from '@/components/layers/CounterfactualExplorer'
 
@@ -254,7 +254,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             />
           )}
           {currentLayerIndex === 1 && (
-            <Layer1Minimal
+            <DecisionInsights
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
