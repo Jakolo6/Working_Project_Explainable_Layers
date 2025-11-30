@@ -6,7 +6,8 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 import json
 
-from app.services.global_explanation_service import get_global_explanation_service
+# Old service deprecated - now using R2-based global explanation
+# from app.services.global_explanation_service import get_global_explanation_service
 
 router = APIRouter(prefix="/api/v1/explanations", tags=["explanations"])
 
@@ -68,35 +69,36 @@ class GlobalExplanationResponse(BaseModel):
 
 
 # ============================================================================
-# GLOBAL MODEL EXPLANATION ENDPOINT
+# GLOBAL MODEL EXPLANATION ENDPOINT (DEPRECATED - Use /admin/global-explanation)
 # ============================================================================
 
-@router.get("/global", response_model=GlobalExplanationResponse)
+@router.get("/global")
 async def get_global_explanation():
     """
-    Get the global model explanation for bank clerks.
-    Returns a comprehensive explanation of how the model works in general,
-    suitable for displaying at the top of all explanation layers.
+    DEPRECATED: This endpoint now redirects to the R2-based global explanation.
+    Use /api/v1/admin/global-explanation for the new R2-based global explanation.
+    
+    This endpoint is kept for backward compatibility but returns data from R2.
     """
     try:
-        service = get_global_explanation_service()
-        profile = service.get_global_profile()
+        from app.services.global_explanation_generator import get_global_explanation_assets
         
-        return GlobalExplanationResponse(
-            model_name=profile.model_name,
-            what_tool_does=profile.what_tool_does,
-            how_it_decides=profile.how_it_decides,
-            approval_patterns=profile.approval_patterns,
-            risk_patterns=profile.risk_patterns,
-            uncertainty_note=profile.uncertainty_note,
-            important_note=profile.important_note,
-            clerk_narrative=service.get_clerk_narrative(),
-            feature_details=profile.feature_details[:10],  # Top 10 features
-            llm_context=service.get_llm_context()
-        )
+        assets = get_global_explanation_assets()
+        
+        if not assets.get("available"):
+            raise HTTPException(
+                status_code=404,
+                detail="Global explanation not generated. Use admin panel to generate it first."
+            )
+        
+        # Return R2-based data in a compatible format
+        return assets
+        
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[ERROR] Global explanation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate global explanation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get global explanation: {str(e)}")
 
 
 # ============================================================================
