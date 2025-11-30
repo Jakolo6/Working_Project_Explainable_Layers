@@ -20,5 +20,8 @@ joblib==1.4.2
 xgboost==2.1.3
 shap==0.46.0
 
+# Visualization for global explanations
+matplotlib==3.9.3
+
 # Optional: LLM narrative generation (Level 2 explanations)
 openai>=1.0.0
