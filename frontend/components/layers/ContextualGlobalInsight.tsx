@@ -103,8 +103,20 @@ export default function ContextualGlobalInsight({ context, className = '' }: Con
     fetchGlobalData()
   }, [apiUrl])
 
+  // Show loading state briefly, then nothing if no data
+  if (isLoading) {
+    return (
+      <div className={`bg-gray-50 rounded-lg border border-gray-200 p-3 ${className}`}>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+          <span>Loading global context...</span>
+        </div>
+      </div>
+    )
+  }
+  
   // Don't render if data not available
-  if (isLoading || !data?.available) {
+  if (!data?.available) {
     return null
   }
 
