@@ -567,3 +567,78 @@ async def run_sanity_check():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sanity check failed: {str(e)}")
+
+
+# =============================================================================
+# GLOBAL ANALYSIS REPORT ENDPOINT
+# =============================================================================
+
+@router.post("/generate-global-analysis")
+async def generate_global_analysis():
+    """
+    Generate a comprehensive text-based global XGBoost model analysis report.
+    
+    This creates a detailed report including:
+    - Model statistics (AUC, accuracy, F1, trees, depth, etc.)
+    - SHAP mean absolute feature importance (ranked)
+    - SHAP summary (global direction of effects)
+    - Top 10 SHAP dependence insights (text form)
+    - Global patterns (risk-increasing vs risk-decreasing features)
+    - Notable nonlinear patterns or thresholds
+    - Key insights summary
+    
+    The report is uploaded to R2 as 'global_explanation/global_xgboost_analysis.txt'
+    and returned in the API response.
+    
+    NO mock data or placeholders - all data from real model and dataset.
+    """
+    try:
+        from app.services.global_analysis_service import GlobalAnalysisService
+        
+        service = GlobalAnalysisService()
+        result = service.generate_and_upload()
+        
+        return result
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate global analysis: {str(e)}"
+        )
+
+
+@router.get("/global-analysis")
+async def get_global_analysis():
+    """
+    Get the global XGBoost analysis report from R2.
+    Returns the text content of the report.
+    """
+    try:
+        config = get_settings()
+        r2 = create_r2_client()
+        
+        response = r2.get_object(
+            Bucket=config.r2_bucket_name,
+            Key='global_explanation/global_xgboost_analysis.txt'
+        )
+        
+        content = response['Body'].read().decode('utf-8')
+        
+        return {
+            'success': True,
+            'report_content': content,
+            'last_modified': response['LastModified'].isoformat()
+        }
+        
+    except r2.exceptions.NoSuchKey:
+        raise HTTPException(
+            status_code=404,
+            detail="Global analysis report not found. Use POST /generate-global-analysis first."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve global analysis: {str(e)}"
+        )
