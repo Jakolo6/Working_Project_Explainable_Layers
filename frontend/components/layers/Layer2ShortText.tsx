@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
+import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
@@ -108,7 +109,7 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
   return (
     <div className="space-y-6">
       {/* Global Model Explanation - How the tool works in general */}
-      <GlobalModelExplanation defaultExpanded={false} />
+      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
       
       {/* Local Decision Summary - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">
@@ -122,6 +123,9 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
           compact={true}
         />
       </div>
+      
+      {/* Model Certainty Explanation */}
+      <ModelCertaintyExplanation probability={probability} decision={decision} />
       
       <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
         <div className="flex items-start gap-4 mb-6">

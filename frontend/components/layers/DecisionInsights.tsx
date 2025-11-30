@@ -4,7 +4,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { ChevronDown, ChevronUp, Filter, TrendingUp, TrendingDown, HelpCircle, Sparkles, AlertTriangle, CheckCircle, XCircle, Info, Wallet, Clock, Home, CreditCard, Users } from 'lucide-react'
+import { ChevronDown, ChevronUp, Filter, TrendingUp, TrendingDown, HelpCircle, Sparkles, AlertTriangle, CheckCircle, XCircle, Info, Wallet, Clock, Home, CreditCard } from 'lucide-react'
+import GlobalModelExplanation from './GlobalModelExplanation'
+import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 
 interface SHAPFeature {
   feature: string
@@ -239,6 +241,9 @@ export default function DecisionInsights({ decision, probability, shapFeatures }
 
   return (
     <div className="space-y-6">
+      {/* Global Model Explanation - How the tool works in general */}
+      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
+      
       {/* Decision Summary Card */}
       <div className={`rounded-2xl p-6 ${isApproved ? 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200' : 'bg-gradient-to-br from-red-50 to-orange-50 border border-red-200'}`}>
         <div className="flex items-start gap-4">
@@ -275,12 +280,10 @@ export default function DecisionInsights({ decision, probability, shapFeatures }
           </div>
         </div>
         
-        {/* Confidence tooltip */}
-        <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-          <HelpCircle size={14} />
-          <span>Confidence reflects how clearly this profile matches typical cases in historical data.</span>
-        </div>
       </div>
+
+      {/* Model Certainty Explanation */}
+      <ModelCertaintyExplanation probability={probability} decision={decision} />
 
       {/* Decision Story */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">

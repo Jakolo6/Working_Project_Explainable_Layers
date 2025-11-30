@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle } from 'lucide-react'
+import GlobalModelExplanation from './GlobalModelExplanation'
+import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 
 interface SHAPFeature {
   feature: string
@@ -377,6 +379,12 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
 
   return (
     <div className="space-y-6">
+      {/* Global Model Explanation - How the tool works in general */}
+      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
+      
+      {/* Model Certainty Explanation */}
+      <ModelCertaintyExplanation probability={probability} decision={decision} />
+      
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
         <div className="flex items-start gap-4">

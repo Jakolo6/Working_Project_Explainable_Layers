@@ -5,6 +5,7 @@
 import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
+import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
@@ -174,11 +175,14 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
               : 'bg-red-100 text-red-800'
           }`}>
             <span className="font-semibold">
-              Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(1)}% confidence)
+              Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(0)}% certainty)
             </span>
           </div>
         </div>
       </div>
+
+      {/* Model Certainty Explanation */}
+      <ModelCertaintyExplanation probability={probability} decision={decision} />
 
       {/* SHAP Value Explanation - Always show at the beginning */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
