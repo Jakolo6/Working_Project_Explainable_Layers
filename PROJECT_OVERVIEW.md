@@ -6,7 +6,43 @@
 
 ---
 
-## 🔄 **Latest Update: Major Global Explanation Cleanup** (Nov 30, 2025)
+## 🔄 **Latest Update: SHAP Value Grouping for One-Hot Encoded Features** (Nov 30, 2025)
+
+**Problem Solved:**
+- Previously, the local explanation table showed ~60 rows (one per one-hot encoded column)
+- Users saw confusing entries like `checking_status_negative_balance: 1.0` with separate SHAP values
+- This made it hard to understand the actual impact of each original feature
+
+**Solution Implemented:**
+- ✅ Backend now groups all one-hot encoded columns by their base feature
+- ✅ SHAP values are summed to give one total impact score per original feature
+- ✅ Human-readable category values displayed (e.g., "Negative Balance (< 0 DM)")
+- ✅ Result: **23 grouped features** instead of 60 one-hot columns
+
+**Backend Changes (`xgboost_service.py`):**
+- Added `CATEGORICAL_FEATURES` mapping for 13 categorical features
+- Added `CATEGORY_VALUE_DISPLAY` with human-readable value labels
+- New `_group_shap_values()` method groups and sums SHAP values by base feature
+- `explain_prediction()` now returns grouped features with actual category values
+
+**Example Output:**
+```
+Before: checking_status_negative_balance: 1.0 → SHAP: +0.57
+        checking_status_no_checking: 0.0 → SHAP: +0.52
+        checking_status_lt_200_dm: 0.0 → SHAP: -0.01
+        
+After:  Checking Account Status: Negative Balance (< 0 DM) → SHAP: +1.08
+```
+
+**Affected Layers:**
+- ✅ Layer 0 (All Features) - Now shows ~23 rows
+- ✅ Layer 1 (Analytical Dashboard) - Grouped features in waterfall
+- ✅ Layer 2 (Narrative LLM) - Grouped features sent to LLM
+- ✅ Layer 5 (Counterfactual) - Uses grouped features
+
+---
+
+## 🔄 **Previous Update: Major Global Explanation Cleanup** (Nov 30, 2025)
 
 **Code Cleanup Completed:**
 - ❌ **DELETED** `backend/app/services/global_explanation_service.py` - Old hardcoded service
