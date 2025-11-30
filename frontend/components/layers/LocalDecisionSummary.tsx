@@ -47,12 +47,17 @@ export default function LocalDecisionSummary({
           <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
             This Application's Summary
           </h3>
-          <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-            decision === 'approved' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {decision.toUpperCase()} ({(probability * 100).toFixed(0)}%)
+          <div className="text-right">
+            <div className={`px-3 py-1 rounded-full text-sm font-semibold inline-block ${
+              decision === 'approved' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {decision.toUpperCase()} ({(probability * 100).toFixed(0)}% confidence)
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Model is {(probability * 100).toFixed(0)}% confident in this {decision}
+            </p>
           </div>
         </div>
         
@@ -103,15 +108,20 @@ export default function LocalDecisionSummary({
             How this specific applicant's {shapFeatures.length} factors influenced the decision
           </p>
         </div>
-        <div className={`px-4 py-2 rounded-lg text-lg font-bold ${
-          decision === 'approved' 
-            ? 'bg-green-100 text-green-800 border border-green-300' 
-            : 'bg-red-100 text-red-800 border border-red-300'
-        }`}>
-          {decision.toUpperCase()}
-          <span className="text-sm font-normal ml-2">
-            ({(probability * 100).toFixed(1)}%)
-          </span>
+        <div className="text-right">
+          <div className={`px-4 py-2 rounded-lg text-lg font-bold inline-block ${
+            decision === 'approved' 
+              ? 'bg-green-100 text-green-800 border border-green-300' 
+              : 'bg-red-100 text-red-800 border border-red-300'
+          }`}>
+            {decision.toUpperCase()}
+            <span className="text-sm font-normal ml-2">
+              ({(probability * 100).toFixed(0)}% confidence)
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Model is {(probability * 100).toFixed(0)}% confident in this {decision}
+          </p>
         </div>
       </div>
 

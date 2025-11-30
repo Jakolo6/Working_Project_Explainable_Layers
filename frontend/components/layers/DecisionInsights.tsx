@@ -92,10 +92,10 @@ function formatValue(feature: string, value: string): string {
   return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-// Get confidence label
+// Get confidence label - probability is the model's confidence in its decision
 function getConfidenceLabel(probability: number): { label: string; color: string } {
-  if (probability > 0.8 || probability < 0.2) return { label: 'High confidence', color: 'text-blue-700' }
-  if (probability > 0.65 || probability < 0.35) return { label: 'Moderate confidence', color: 'text-amber-700' }
+  if (probability >= 0.80) return { label: 'High confidence', color: 'text-blue-700' }
+  if (probability >= 0.65) return { label: 'Moderate confidence', color: 'text-amber-700' }
   return { label: 'Borderline case', color: 'text-gray-600' }
 }
 
@@ -277,6 +277,11 @@ export default function DecisionInsights({ decision, probability, shapFeatures }
                 }
               </p>
             )}
+            
+            {/* Confidence explanation */}
+            <p className="text-xs text-gray-500 mt-3">
+              {Math.round(probability * 100)}% confidence = model is this certain the applicant should be {decision}
+            </p>
           </div>
         </div>
         

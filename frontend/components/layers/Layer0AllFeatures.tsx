@@ -175,9 +175,12 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
               : 'bg-red-100 text-red-800'
           }`}>
             <span className="font-semibold">
-              Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(0)}% certainty)
+              Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(0)}% confidence)
             </span>
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {(probability * 100).toFixed(0)}% = model is this confident the applicant should be {decision}
+          </p>
         </div>
       </div>
 

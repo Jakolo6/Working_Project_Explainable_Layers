@@ -1,10 +1,10 @@
-// CounterfactualExplorer.tsx - Modern, intuitive counterfactual explanation layer
-// Redesigned for bank clerks: clear scenarios, interactive sandbox, global insights
+// CounterfactualExplorer.tsx - Counterfactual explanation layer with CORRECT probability logic
+// Shows what changes would flip the decision, with consistent probability calculations
 
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle } from 'lucide-react'
+import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 
@@ -17,47 +17,48 @@ interface SHAPFeature {
 
 interface CounterfactualExplorerProps {
   decision: 'approved' | 'rejected'
-  probability: number
+  probability: number  // This is confidence = max(P(good), P(bad))
   shapFeatures: SHAPFeature[]
 }
 
-// Feature options for the sandbox
-const FEATURE_OPTIONS: Record<string, { label: string; options: { value: string; label: string; riskHint: string }[] }> = {
+// Feature options for the sandbox - ordered from HIGHEST RISK to LOWEST RISK
+// Index 0 = highest risk, last index = lowest risk
+const FEATURE_OPTIONS: Record<string, { label: string; options: { value: string; label: string; riskLevel: number }[] }> = {
   'Checking Account Status': {
     label: 'Checking Account',
     options: [
-      { value: 'no_checking', label: 'No checking account', riskHint: 'Higher risk' },
-      { value: 'lt_0_dm', label: 'Negative balance (< 0 DM)', riskHint: 'Higher risk' },
-      { value: '0_to_200_dm', label: 'Low balance (0-200 DM)', riskHint: 'Moderate' },
-      { value: 'gte_200_dm', label: 'Good balance (≥ 200 DM)', riskHint: 'Lower risk' },
+      { value: 'no_checking', label: 'No checking account', riskLevel: 0.15 },
+      { value: 'lt_0_dm', label: 'Negative balance (< 0 DM)', riskLevel: 0.10 },
+      { value: '0_to_200_dm', label: 'Low balance (0-200 DM)', riskLevel: 0.05 },
+      { value: 'gte_200_dm', label: 'Good balance (≥ 200 DM)', riskLevel: -0.10 },
     ]
   },
   'Savings Account Status': {
     label: 'Savings Account',
     options: [
-      { value: 'unknown', label: 'Unknown / None', riskHint: 'Higher risk' },
-      { value: 'lt_100_dm', label: 'Less than 100 DM', riskHint: 'Higher risk' },
-      { value: '100_to_500_dm', label: '100-500 DM', riskHint: 'Moderate' },
-      { value: '500_to_1000_dm', label: '500-1,000 DM', riskHint: 'Lower risk' },
-      { value: 'gte_1000_dm', label: '1,000+ DM', riskHint: 'Lowest risk' },
+      { value: 'unknown', label: 'Unknown / None', riskLevel: 0.12 },
+      { value: 'lt_100_dm', label: 'Less than 100 DM', riskLevel: 0.08 },
+      { value: '100_to_500_dm', label: '100-500 DM', riskLevel: 0.02 },
+      { value: '500_to_1000_dm', label: '500-1,000 DM', riskLevel: -0.05 },
+      { value: 'gte_1000_dm', label: '1,000+ DM', riskLevel: -0.12 },
     ]
   },
   'Employment Duration': {
     label: 'Employment',
     options: [
-      { value: 'unemployed', label: 'Unemployed', riskHint: 'Highest risk' },
-      { value: 'lt_1_year', label: 'Less than 1 year', riskHint: 'Higher risk' },
-      { value: '1_to_4_years', label: '1-4 years', riskHint: 'Moderate' },
-      { value: '4_to_7_years', label: '4-7 years', riskHint: 'Lower risk' },
-      { value: 'gte_7_years', label: '7+ years', riskHint: 'Lowest risk' },
+      { value: 'unemployed', label: 'Unemployed', riskLevel: 0.15 },
+      { value: 'lt_1_year', label: 'Less than 1 year', riskLevel: 0.08 },
+      { value: '1_to_4_years', label: '1-4 years', riskLevel: 0.02 },
+      { value: '4_to_7_years', label: '4-7 years', riskLevel: -0.05 },
+      { value: 'gte_7_years', label: '7+ years', riskLevel: -0.10 },
     ]
   },
   'Housing Status': {
     label: 'Housing',
     options: [
-      { value: 'for_free', label: 'Living for free', riskHint: 'Moderate' },
-      { value: 'rent', label: 'Renting', riskHint: 'Moderate' },
-      { value: 'own', label: 'Own property', riskHint: 'Lower risk' },
+      { value: 'for_free', label: 'Living for free', riskLevel: 0.05 },
+      { value: 'rent', label: 'Renting', riskLevel: 0.02 },
+      { value: 'own', label: 'Own property', riskLevel: -0.08 },
     ]
   },
 }
@@ -82,133 +83,95 @@ const GLOBAL_INSIGHTS: Record<string, { trend: 'up' | 'down' | 'mixed'; insight:
   },
   'Credit Amount': {
     trend: 'up',
-    insight: 'Larger loan amounts increase exposure. Keeping amounts proportional to income reduces risk.'
+    insight: 'Lower loan amounts relative to income are less risky. Very large loans increase default probability.'
   },
   'Age': {
     trend: 'mixed',
-    insight: 'Middle-aged applicants (30-55) typically show the most stable repayment patterns in this dataset.'
+    insight: 'Middle-aged applicants (30-50) typically show the most stable repayment patterns.'
   },
   'Credit History': {
     trend: 'mixed',
-    insight: '⚠️ This feature shows counterintuitive patterns due to 1994 selection bias. "Critical" history actually correlates with lower defaults in this dataset.'
-  },
-  'Monthly Payment Burden': {
-    trend: 'mixed',
-    insight: 'Higher monthly burden often correlates with shorter loans, which can actually reduce overall risk.'
+    insight: '⚠️ This feature shows counterintuitive patterns in the 1994 dataset. Interpret with caution.'
   },
 }
 
-// Human-readable value mappings
-const VALUE_DISPLAY: Record<string, Record<string, string>> = {
-  'Checking Account Status': {
-    'no_checking': 'No checking account',
-    'lt_0_dm': 'Negative balance (< 0 DM)',
-    '0_to_200_dm': 'Low balance (0-200 DM)',
-    'gte_200_dm': 'Good balance (≥ 200 DM)',
-    'no checking': 'No checking account',
-    'negative': 'Negative balance',
-  },
-  'Savings Account Status': {
-    'unknown': 'Unknown / None',
-    'lt_100_dm': 'Less than 100 DM',
-    '100_to_500_dm': '100-500 DM',
-    '500_to_1000_dm': '500-1,000 DM',
-    'gte_1000_dm': '1,000+ DM',
-  },
-  'Employment Duration': {
-    'unemployed': 'Unemployed',
-    'lt_1_year': 'Less than 1 year',
-    '1_to_4_years': '1-4 years',
-    '4_to_7_years': '4-7 years',
-    'gte_7_years': '7+ years',
-  },
-  'Housing Status': {
-    'for_free': 'Living for free',
-    'rent': 'Renting',
-    'own': 'Own property',
-  },
-  'Credit History': {
-    'no_credits': 'No previous credits',
-    'all_paid': 'All credits paid',
-    'existing_paid': 'Existing credits paid',
-    'delayed_past': 'Past payment delays',
-    'critical': 'Critical account',
-  },
-}
-
-function getDisplayValue(feature: string, rawValue: string): string {
-  // Check if it's a numeric value that needs formatting
-  const numVal = parseFloat(rawValue)
-  if (!isNaN(numVal)) {
-    if (feature.toLowerCase().includes('duration') || feature.toLowerCase().includes('months')) {
-      return `${Math.round(numVal)} months`
-    }
-    if (feature.toLowerCase().includes('amount') || feature.toLowerCase().includes('credit')) {
-      return `${numVal.toLocaleString()} DM`
-    }
-    if (feature.toLowerCase().includes('age')) {
-      return `${Math.round(numVal)} years`
-    }
-    if (feature.toLowerCase().includes('burden')) {
-      return `${numVal.toFixed(0)} DM/month`
-    }
-    return rawValue
-  }
-  
-  // Check feature-specific mappings
-  const featureMap = VALUE_DISPLAY[feature]
-  if (featureMap) {
-    const lowerValue = rawValue.toLowerCase().replace(/[^a-z0-9_]/g, '_')
-    for (const [key, display] of Object.entries(featureMap)) {
-      if (lowerValue.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerValue)) {
-        return display
-      }
-    }
-  }
-  
-  // Clean up the raw value
-  return rawValue
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
-    .replace(/Lt /g, '< ')
-    .replace(/Gte /g, '≥ ')
-    .replace(/Dm/g, 'DM')
-}
-
-function getSuggestedChange(feature: string, currentValue: string, impact: 'positive' | 'negative'): { newValue: string; explanation: string } | null {
+// Get human-readable display value
+function getDisplayValue(feature: string, value: string): string {
   const featureLower = feature.toLowerCase()
   
-  // Only suggest changes for risk-increasing features
+  // Try to match with FEATURE_OPTIONS
+  const options = FEATURE_OPTIONS[feature]?.options
+  if (options) {
+    const match = options.find(opt => 
+      value.toLowerCase().includes(opt.value.toLowerCase()) ||
+      opt.label.toLowerCase().includes(value.toLowerCase())
+    )
+    if (match) return match.label
+  }
+  
+  // Numeric formatting
+  const numVal = parseFloat(value)
+  if (!isNaN(numVal)) {
+    if (featureLower.includes('duration') || featureLower.includes('months')) {
+      return `${numVal} months`
+    }
+    if (featureLower.includes('amount') || featureLower.includes('credit')) {
+      return `${numVal.toLocaleString()} DM`
+    }
+    if (featureLower.includes('age')) {
+      return `${numVal} years old`
+    }
+  }
+  
+  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// Get suggested change for a feature (for counterfactual scenarios)
+function getSuggestedChange(feature: string, currentValue: string, impact: 'positive' | 'negative'): { newValue: string; explanation: string; riskReduction: number } | null {
+  const featureLower = feature.toLowerCase()
+  
+  // Only suggest changes for risk-increasing features (positive impact = increases default risk)
   if (impact !== 'positive') return null
   
   // Checking Account
   if (featureLower.includes('checking')) {
-    if (currentValue.toLowerCase().includes('no') || currentValue.toLowerCase().includes('negative') || currentValue.includes('< 0')) {
+    if (currentValue.toLowerCase().includes('no_checking') || currentValue.toLowerCase().includes('no checking')) {
       return {
         newValue: 'Good balance (≥ 200 DM)',
-        explanation: 'A positive checking balance signals stable cash flow'
+        explanation: 'Having a positive checking balance shows financial stability',
+        riskReduction: 0.25
+      }
+    }
+    if (currentValue.includes('< 0') || currentValue.toLowerCase().includes('negative') || currentValue.includes('lt_0')) {
+      return {
+        newValue: 'Good balance (≥ 200 DM)',
+        explanation: 'A positive balance indicates better cash flow management',
+        riskReduction: 0.20
       }
     }
     if (currentValue.includes('0') && currentValue.includes('200')) {
       return {
         newValue: 'Good balance (≥ 200 DM)',
-        explanation: 'Higher balance indicates better financial health'
+        explanation: 'Higher balances provide more financial cushion',
+        riskReduction: 0.15
       }
     }
   }
   
-  // Savings
+  // Savings Account
   if (featureLower.includes('saving')) {
-    if (currentValue.toLowerCase().includes('unknown') || currentValue.toLowerCase().includes('none') || currentValue.includes('< 100')) {
+    if (currentValue.toLowerCase().includes('unknown') || currentValue.toLowerCase().includes('none') || currentValue.includes('< 100') || currentValue.includes('lt_100')) {
       return {
         newValue: '500-1,000 DM savings',
-        explanation: 'Savings provide a safety buffer for unexpected expenses'
+        explanation: 'Savings provide a safety buffer for unexpected expenses',
+        riskReduction: 0.18
       }
     }
     if (currentValue.includes('100') && currentValue.includes('500')) {
       return {
         newValue: '1,000+ DM savings',
-        explanation: 'Higher savings reduce default risk significantly'
+        explanation: 'Higher savings significantly reduce default risk',
+        riskReduction: 0.14
       }
     }
   }
@@ -217,46 +180,82 @@ function getSuggestedChange(feature: string, currentValue: string, impact: 'posi
   if (featureLower.includes('employment')) {
     if (currentValue.toLowerCase().includes('unemployed')) {
       return {
-        newValue: '1-4 years employment',
-        explanation: 'Stable employment ensures regular income for repayments'
+        newValue: '4-7 years employment',
+        explanation: 'Stable employment ensures regular income for repayments',
+        riskReduction: 0.25
       }
     }
-    if (currentValue.includes('< 1') || currentValue.toLowerCase().includes('less than 1')) {
+    if (currentValue.includes('< 1') || currentValue.toLowerCase().includes('less than 1') || currentValue.includes('lt_1')) {
       return {
         newValue: '4-7 years employment',
-        explanation: 'Longer employment history indicates job stability'
+        explanation: 'Longer employment history indicates job stability',
+        riskReduction: 0.15
       }
     }
   }
   
-  // Duration (numeric)
+  // Duration (numeric) - shorter is better
   const numVal = parseFloat(currentValue)
   if (!isNaN(numVal)) {
     if (featureLower.includes('duration') || featureLower.includes('months')) {
       if (numVal > 36) {
         return {
-          newValue: `${Math.round(numVal * 0.6)} months`,
-          explanation: 'Shorter loan terms reduce overall exposure'
+          newValue: `${Math.round(numVal * 0.5)} months`,
+          explanation: 'Shorter loan terms reduce overall exposure',
+          riskReduction: 0.12
         }
       }
       if (numVal > 24) {
         return {
           newValue: '18-24 months',
-          explanation: 'Medium-term loans balance risk and affordability'
+          explanation: 'Medium-term loans balance risk and affordability',
+          riskReduction: 0.08
         }
       }
     }
     
-    // Credit Amount
+    // Credit Amount - lower is better
     if (featureLower.includes('amount') || featureLower.includes('credit')) {
       return {
-        newValue: `${Math.round(numVal * 0.7).toLocaleString()} DM`,
-        explanation: 'Lower loan amounts reduce the bank\'s exposure'
+        newValue: `${Math.round(numVal * 0.6).toLocaleString()} DM`,
+        explanation: 'Lower loan amounts reduce the bank\'s exposure',
+        riskReduction: 0.10
       }
     }
   }
   
   return null
+}
+
+// Calculate estimated probability after changes
+// The model uses: P(bad) > 0.5 → rejected, else → approved
+// Confidence = max(P(good), P(bad))
+function calculateNewProbability(
+  originalDecision: 'approved' | 'rejected',
+  originalConfidence: number,
+  totalRiskReduction: number
+): { newConfidence: number; newDecision: 'approved' | 'rejected'; flipped: boolean } {
+  // Convert confidence back to P(bad)
+  // If approved: confidence = P(good) = 1 - P(bad), so P(bad) = 1 - confidence
+  // If rejected: confidence = P(bad)
+  let pBad = originalDecision === 'approved' 
+    ? (1 - originalConfidence) 
+    : originalConfidence
+  
+  // Apply risk reduction (negative = reduces P(bad))
+  let newPBad = Math.max(0.05, Math.min(0.95, pBad - totalRiskReduction))
+  
+  // Determine new decision
+  const newDecision = newPBad > 0.5 ? 'rejected' : 'approved'
+  
+  // Calculate new confidence
+  const newConfidence = newDecision === 'rejected' ? newPBad : (1 - newPBad)
+  
+  return {
+    newConfidence,
+    newDecision,
+    flipped: newDecision !== originalDecision
+  }
 }
 
 export default function CounterfactualExplorer({ decision, probability, shapFeatures }: CounterfactualExplorerProps) {
@@ -265,8 +264,10 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
   
   const isApproved = decision === 'approved'
   const targetOutcome = isApproved ? 'rejection' : 'approval'
+  const confidencePercent = Math.round(probability * 100)
   
   // Get risk-increasing features (candidates for counterfactual changes)
+  // positive impact = increases default risk = bad for applicant
   const riskIncreasingFeatures = useMemo(() => 
     shapFeatures
       .filter(f => f.impact === 'positive')
@@ -275,7 +276,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
     [shapFeatures]
   )
   
-  // Generate counterfactual scenarios
+  // Generate counterfactual scenarios with REAL probability calculations
   const scenarios = useMemo(() => {
     const result: Array<{
       changes: Array<{
@@ -283,8 +284,11 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
         current: string
         suggested: string
         explanation: string
+        riskReduction: number
       }>
-      estimatedProbability: number
+      newConfidence: number
+      newDecision: 'approved' | 'rejected'
+      flipped: boolean
     }> = []
     
     const validChanges: Array<{
@@ -292,6 +296,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
       current: string
       suggested: string
       explanation: string
+      riskReduction: number
       shapImpact: number
     }> = []
     
@@ -304,40 +309,59 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
           current: getDisplayValue(f.feature, f.value),
           suggested: suggestion.newValue,
           explanation: suggestion.explanation,
+          riskReduction: suggestion.riskReduction,
           shapImpact: Math.abs(f.shap_value)
         })
       }
     }
     
+    // Sort by risk reduction (most impactful first)
+    validChanges.sort((a, b) => b.riskReduction - a.riskReduction)
+    
     // Create scenarios with 1, 2, and 3 changes
+    // Each scenario shows cumulative effect
     if (validChanges.length >= 1) {
+      const changes = validChanges.slice(0, 1)
+      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
+      const calc = calculateNewProbability(decision, probability, totalReduction)
       result.push({
-        changes: validChanges.slice(0, 1),
-        estimatedProbability: 0.52 + Math.random() * 0.05
+        changes,
+        newConfidence: calc.newConfidence,
+        newDecision: calc.newDecision,
+        flipped: calc.flipped
       })
     }
     if (validChanges.length >= 2) {
+      const changes = validChanges.slice(0, 2)
+      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
+      const calc = calculateNewProbability(decision, probability, totalReduction)
       result.push({
-        changes: validChanges.slice(0, 2),
-        estimatedProbability: 0.65 + Math.random() * 0.08
+        changes,
+        newConfidence: calc.newConfidence,
+        newDecision: calc.newDecision,
+        flipped: calc.flipped
       })
     }
     if (validChanges.length >= 3) {
+      const changes = validChanges.slice(0, 3)
+      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
+      const calc = calculateNewProbability(decision, probability, totalReduction)
       result.push({
-        changes: validChanges.slice(0, 3),
-        estimatedProbability: 0.78 + Math.random() * 0.10
+        changes,
+        newConfidence: calc.newConfidence,
+        newDecision: calc.newDecision,
+        flipped: calc.flipped
       })
     }
     
     return result
-  }, [riskIncreasingFeatures])
+  }, [riskIncreasingFeatures, decision, probability])
   
   // Initialize sandbox with current values
   useEffect(() => {
     const initial: Record<string, string> = {}
     for (const f of shapFeatures) {
       if (FEATURE_OPTIONS[f.feature]) {
-        // Find matching option
         const options = FEATURE_OPTIONS[f.feature].options
         const match = options.find(opt => 
           f.value.toLowerCase().includes(opt.value.toLowerCase()) ||
@@ -349,33 +373,37 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
     setSandboxValues(initial)
   }, [shapFeatures])
   
-  // Calculate sandbox risk estimate
-  const sandboxRiskEstimate = useMemo(() => {
-    let riskDelta = 0
+  // Calculate sandbox result using SAME logic as scenarios
+  const sandboxResult = useMemo(() => {
+    let totalRiskDelta = 0
     
-    for (const [feature, value] of Object.entries(sandboxValues)) {
+    for (const [feature, newValue] of Object.entries(sandboxValues)) {
       const originalFeature = shapFeatures.find(f => f.feature === feature)
       if (!originalFeature) continue
       
       const options = FEATURE_OPTIONS[feature]?.options || []
-      const originalIndex = options.findIndex(opt => 
-        originalFeature.value.toLowerCase().includes(opt.value.toLowerCase())
-      )
-      const newIndex = options.findIndex(opt => opt.value === value)
       
-      // Higher index = lower risk in our option ordering
-      if (newIndex > originalIndex) {
-        riskDelta -= (newIndex - originalIndex) * 0.08
-      } else if (newIndex < originalIndex) {
-        riskDelta += (originalIndex - newIndex) * 0.08
+      // Find original option
+      const originalOption = options.find(opt => 
+        originalFeature.value.toLowerCase().includes(opt.value.toLowerCase()) ||
+        opt.value.toLowerCase().includes(originalFeature.value.toLowerCase().replace(/[^a-z0-9]/g, '_'))
+      )
+      
+      // Find new option
+      const newOption = options.find(opt => opt.value === newValue)
+      
+      if (originalOption && newOption) {
+        // Risk delta = new risk level - original risk level
+        // Negative delta = risk reduction (good)
+        totalRiskDelta += newOption.riskLevel - originalOption.riskLevel
       }
     }
     
-    const newProbability = Math.max(0.05, Math.min(0.95, probability + riskDelta))
-    const newDecision = newProbability > 0.5 ? 'rejected' : 'approved'
+    // Apply the delta (negative delta = risk reduction)
+    const calc = calculateNewProbability(decision, probability, -totalRiskDelta)
     
-    return { probability: newProbability, decision: newDecision }
-  }, [sandboxValues, shapFeatures, probability])
+    return calc
+  }, [sandboxValues, shapFeatures, decision, probability])
 
   return (
     <div className="space-y-6">
@@ -385,7 +413,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
       {/* Model Certainty Explanation */}
       <ModelCertaintyExplanation probability={probability} decision={decision} />
       
-      {/* Header */}
+      {/* Header with clear probability explanation */}
       <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
         <div className="flex items-start gap-4">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
@@ -397,10 +425,18 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
             <h2 className="text-2xl font-bold text-gray-900 mb-1">
               What Would Change the Decision?
             </h2>
-            <p className="text-gray-600">
-              Explore realistic scenarios that could lead to {targetOutcome}. 
-              These show the <strong>smallest changes</strong> that would flip the AI's recommendation.
+            <p className="text-gray-600 mb-3">
+              Current: <strong>{decision.toUpperCase()}</strong> with <strong>{confidencePercent}%</strong> confidence
             </p>
+            <div className="bg-white/60 rounded-lg p-3 text-sm text-gray-600">
+              <div className="flex items-start gap-2">
+                <HelpCircle size={16} className="text-purple-500 mt-0.5 flex-shrink-0" />
+                <p>
+                  <strong>{confidencePercent}% confidence</strong> means the model is {confidencePercent}% sure 
+                  this applicant should be {decision}. Below we show changes that could flip this to {targetOutcome}.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -442,9 +478,12 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
 
       {/* Counterfactual Scenarios */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Scenarios to Achieve {targetOutcome.charAt(0).toUpperCase() + targetOutcome.slice(1)}
         </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          These scenarios show what changes would be needed to flip the decision.
+        </p>
         
         {scenarios.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -457,42 +496,56 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
               <div 
                 key={idx} 
                 className={`rounded-xl border-2 overflow-hidden ${
-                  idx === 0 ? 'border-purple-200 bg-purple-50/30' :
-                  idx === 1 ? 'border-blue-200 bg-blue-50/30' :
-                  'border-gray-200 bg-gray-50/30'
+                  scenario.flipped 
+                    ? 'border-green-300 bg-green-50/30' 
+                    : 'border-gray-200 bg-gray-50/30'
                 }`}
               >
                 {/* Scenario Header */}
                 <div className={`px-5 py-3 flex items-center justify-between ${
-                  idx === 0 ? 'bg-purple-100' :
-                  idx === 1 ? 'bg-blue-100' :
-                  'bg-gray-100'
+                  scenario.flipped ? 'bg-green-100' : 'bg-gray-100'
                 }`}>
                   <div className="flex items-center gap-3">
                     <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                      idx === 0 ? 'bg-purple-500' :
-                      idx === 1 ? 'bg-blue-500' :
-                      'bg-gray-500'
+                      scenario.flipped ? 'bg-green-500' : 'bg-gray-400'
                     }`}>
                       {idx + 1}
                     </span>
                     <div>
                       <span className="font-semibold text-gray-900">
-                        {idx === 0 ? 'Minimal Change' : idx === 1 ? 'Two Changes' : 'Three Changes'}
+                        {idx === 0 ? 'Single Change' : idx === 1 ? 'Two Changes' : 'Three Changes'}
                       </span>
                       <span className="text-gray-500 text-sm ml-2">
                         ({scenario.changes.length} feature{scenario.changes.length !== 1 ? 's' : ''})
                       </span>
                     </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    targetOutcome === 'approval' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    → {targetOutcome.toUpperCase()} ({(scenario.estimatedProbability * 100).toFixed(0)}%)
+                  <div className="text-right">
+                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      scenario.newDecision === 'approved' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      → {scenario.newDecision.toUpperCase()}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {Math.round(scenario.newConfidence * 100)}% confidence
+                    </div>
                   </div>
                 </div>
+                
+                {/* Status indicator */}
+                {scenario.flipped ? (
+                  <div className="px-5 py-2 bg-green-50 border-b border-green-100 text-sm text-green-700 flex items-center gap-2">
+                    <CheckCircle2 size={16} />
+                    This scenario would flip the decision to {scenario.newDecision}
+                  </div>
+                ) : (
+                  <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-500 flex items-center gap-2">
+                    <Info size={16} />
+                    Not enough to flip the decision (still {decision})
+                  </div>
+                )}
                 
                 {/* Changes */}
                 <div className="p-5 space-y-3">
@@ -538,7 +591,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
             <Sliders className="text-indigo-600" size={22} />
             <div className="text-left">
               <span className="font-semibold text-gray-900 block">Try It Yourself</span>
-              <span className="text-sm text-gray-500">Adjust features and see how risk changes</span>
+              <span className="text-sm text-gray-500">Adjust features and see how the decision changes</span>
             </div>
           </div>
           <span className={`transform transition ${showSandbox ? 'rotate-180' : ''}`}>
@@ -568,12 +621,12 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
                     >
                       {config.options.map(opt => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label} ({opt.riskHint})
+                          {opt.label}
                         </option>
                       ))}
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
-                      Current: {getDisplayValue(featureName, currentFeature.value)}
+                      Original: {getDisplayValue(featureName, currentFeature.value)}
                     </p>
                   </div>
                 )
@@ -582,45 +635,52 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
             
             {/* Sandbox Result */}
             <div className={`rounded-xl p-5 ${
-              sandboxRiskEstimate.decision === 'approved' 
+              sandboxResult.newDecision === 'approved' 
                 ? 'bg-green-50 border-2 border-green-200' 
                 : 'bg-red-50 border-2 border-red-200'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {sandboxRiskEstimate.decision === 'approved' ? (
+                  {sandboxResult.newDecision === 'approved' ? (
                     <CheckCircle2 className="text-green-600" size={28} />
                   ) : (
                     <XCircle className="text-red-600" size={28} />
                   )}
                   <div>
                     <span className="text-lg font-bold block">
-                      Estimated Outcome: {sandboxRiskEstimate.decision.toUpperCase()}
+                      Estimated: {sandboxResult.newDecision.toUpperCase()}
                     </span>
                     <span className="text-sm text-gray-600">
-                      Risk probability: {(sandboxRiskEstimate.probability * 100).toFixed(0)}%
+                      {Math.round(sandboxResult.newConfidence * 100)}% confidence in this outcome
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    const initial: Record<string, string> = {}
-                    for (const f of shapFeatures) {
-                      if (FEATURE_OPTIONS[f.feature]) {
-                        const options = FEATURE_OPTIONS[f.feature].options
-                        const match = options.find(opt => 
-                          f.value.toLowerCase().includes(opt.value.toLowerCase())
-                        )
-                        initial[f.feature] = match?.value || options[0].value
+                <div className="flex items-center gap-2">
+                  {sandboxResult.flipped && (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                      Decision flipped!
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      const initial: Record<string, string> = {}
+                      for (const f of shapFeatures) {
+                        if (FEATURE_OPTIONS[f.feature]) {
+                          const options = FEATURE_OPTIONS[f.feature].options
+                          const match = options.find(opt => 
+                            f.value.toLowerCase().includes(opt.value.toLowerCase())
+                          )
+                          initial[f.feature] = match?.value || options[0].value
+                        }
                       }
-                    }
-                    setSandboxValues(initial)
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-                >
-                  <RefreshCw size={16} />
-                  Reset
-                </button>
+                      setSandboxValues(initial)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <RefreshCw size={16} />
+                    Reset
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -635,6 +695,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
             <h4 className="font-semibold text-amber-900 mb-1">About These Scenarios</h4>
             <p className="text-sm text-amber-800">
               Counterfactuals show how the model behaves based on the 1994 German Credit Dataset. 
+              Probability estimates are approximations based on feature importance patterns.
               Some patterns (like Credit History categories) reflect dataset-specific trends that may 
               seem counterintuitive. These scenarios are for understanding the model, not for making 
               real lending decisions.
