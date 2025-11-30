@@ -6,8 +6,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
-import Layer1BaselineSHAP from '@/components/layers/Layer1BaselineSHAP'
 import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
+import DecisionInsights from '@/components/layers/DecisionInsights'
+import Layer2ShortText from '@/components/layers/Layer2ShortText'
 import CounterfactualExplorer from '@/components/layers/CounterfactualExplorer'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
@@ -40,12 +41,13 @@ interface LayersClientProps {
 }
 
 const LAYER_NAMES = [
-  'Baseline SHAP Values',
-  'Interactive SHAP Dashboard',
+  'Complete SHAP Analysis',
+  'Analytical Dashboard',
+  'Narrative Explanation',
   'Counterfactual Analysis'
 ]
 
-const TOTAL_LAYERS = 3
+const TOTAL_LAYERS = 4
 
 export default function LayersClient({ personaId }: LayersClientProps) {
   const router = useRouter()
@@ -245,20 +247,27 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         {/* Current Layer Display */}
         <div className="mb-8">
           {currentLayerIndex === 0 && (
-            <Layer1BaselineSHAP
-              decision={prediction.decision}
-              probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
-            />
-          )}
-          {currentLayerIndex === 1 && (
             <Layer0AllFeatures
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
+          {currentLayerIndex === 1 && (
+            <DecisionInsights
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
           {currentLayerIndex === 2 && (
+            <Layer2ShortText
+              decision={prediction.decision}
+              probability={prediction.probability}
+              shapFeatures={prediction.shap_features}
+            />
+          )}
+          {currentLayerIndex === 3 && (
             <CounterfactualExplorer
               decision={prediction.decision}
               probability={prediction.probability}
