@@ -9,7 +9,7 @@ import { getPersona, type PersonaInfo } from '@/lib/personas'
 import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
 import Layer1Minimal from '@/components/layers/Layer1Minimal'
 import Layer2ShortText from '@/components/layers/Layer2ShortText'
-import Layer5Counterfactual from '@/components/layers/Layer5Counterfactual'
+import CounterfactualExplorer from '@/components/layers/CounterfactualExplorer'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
 
@@ -268,7 +268,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             />
           )}
           {currentLayerIndex === 3 && (
-            <Layer5Counterfactual
+            <CounterfactualExplorer
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
