@@ -22,6 +22,7 @@ shap==0.46.0
 
 # Visualization for global explanations
 matplotlib==3.9.3
+seaborn==0.13.2
 
 # Optional: LLM narrative generation (Level 2 explanations)
 openai>=1.0.0
