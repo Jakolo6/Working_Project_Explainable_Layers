@@ -4,7 +4,6 @@
 
 import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
-import ContextualGlobalInsight from './ContextualGlobalInsight'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
@@ -78,9 +77,6 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
     <div className="space-y-6">
       {/* Global Model Explanation - How the tool works in general */}
       <GlobalModelExplanation defaultExpanded={false} />
-      
-      {/* Contextualized Global Insight - Dashboard style (sidebar note) */}
-      <ContextualGlobalInsight context="dashboard" className="mb-4" />
       
       {/* Local Decision Summary - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">

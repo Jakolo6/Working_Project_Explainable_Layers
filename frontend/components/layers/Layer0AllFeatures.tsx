@@ -4,7 +4,6 @@
 
 import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
-import ContextualGlobalInsight from './ContextualGlobalInsight'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
 import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
@@ -220,11 +219,8 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
   
   return (
     <div className="space-y-6">
-      {/* Global Model Explanation - How the tool works in general */}
-      <GlobalModelExplanation defaultExpanded={false} />
-      
-      {/* Contextualized Global Insight - Features layer style */}
-      <ContextualGlobalInsight context="features" className="mb-4" />
+      {/* Global Model Explanation - How the tool works in general with SHAP visualizations */}
+      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
       
       {/* Local Decision Section - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">
