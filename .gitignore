@@ -1,7 +1,22 @@
-# Environment variables
+# Environment variables - NEVER COMMIT THESE
 .env
 .env.local
 .env.production
+.env.development
+.env*.local
+*.env
+
+# Secrets and credentials - NEVER COMMIT
+secrets/
+credentials/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Windsurf rules (may contain sensitive info)
+.windsurf/
 
 # Python
 __pycache__/

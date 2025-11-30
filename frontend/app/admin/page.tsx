@@ -1,10 +1,12 @@
 // Admin page - Focused model and explanation management
-// Three main actions: Upload Model, Generate Global Explanation, Upload Performance Stats
+// Protected by password - Three main actions: Upload Model, Generate Global Explanation, Upload Performance Stats
 
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import PasswordProtection from '@/components/PasswordProtection'
+import { AlertTriangle, Trash2 } from 'lucide-react'
 
 interface AssetStatus {
   key: string
@@ -23,12 +25,15 @@ interface AssetsResponse {
   checked_at: string
 }
 
-export default function AdminPage() {
+function AdminContent() {
   const [assets, setAssets] = useState<AssetsResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [actionStatus, setActionStatus] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
   const [isTraining, setIsTraining] = useState<boolean>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState<string>('')
   const [generationLog, setGenerationLog] = useState<string[]>([])
   const [showLog, setShowLog] = useState<boolean>(false)
 
@@ -118,6 +123,43 @@ export default function AdminPage() {
       setActionStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  // Handler for deleting all experiment data
+  const handleDeleteAllData = async () => {
+    if (deleteConfirmText !== 'DELETE ALL DATA') {
+      setActionStatus('❌ Please type "DELETE ALL DATA" to confirm')
+      return
+    }
+    
+    setIsDeleting(true)
+    setActionStatus('🔄 Deleting all experiment data...')
+    
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/admin/delete-all-data`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          confirm: 'DELETE_ALL_EXPERIMENT_DATA'
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        setActionStatus(`✅ All data deleted successfully! Deleted: ${data.deleted_sessions || 0} sessions, ${data.deleted_ratings || 0} ratings, ${data.deleted_predictions || 0} predictions, ${data.deleted_questionnaires || 0} questionnaires`)
+        setShowDeleteConfirm(false)
+        setDeleteConfirmText('')
+      } else {
+        setActionStatus(`❌ Delete failed: ${data.detail || 'Unknown error'}`)
+      }
+    } catch (error) {
+      setActionStatus(`❌ Error: ${error instanceof Error ? error.message : 'Network error'}`)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -325,6 +367,72 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* DANGER ZONE - Delete All Data */}
+        <div className="bg-red-50 rounded-xl border-2 border-red-200 p-6 mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="text-red-600" size={24} />
+            <h2 className="text-xl font-bold text-red-900">
+              Danger Zone
+            </h2>
+          </div>
+          
+          {!showDeleteConfirm ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-red-900">Delete All Experiment Data</h3>
+                <p className="text-sm text-red-700">
+                  Permanently delete all sessions, ratings, predictions, and questionnaires from Supabase.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-6 py-3 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition flex items-center gap-2"
+              >
+                <Trash2 size={18} />
+                Delete All Data
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg p-4 border border-red-300">
+              <p className="text-red-800 font-semibold mb-3">
+                ⚠️ This action cannot be undone! All experiment data will be permanently deleted.
+              </p>
+              <p className="text-sm text-red-700 mb-3">
+                Type <strong>DELETE ALL DATA</strong> to confirm:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE ALL DATA"
+                className="w-full px-4 py-2 border border-red-300 rounded-lg mb-3 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteAllData}
+                  disabled={isDeleting || deleteConfirmText !== 'DELETE ALL DATA'}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-white transition flex items-center justify-center gap-2 ${
+                    deleteConfirmText === 'DELETE ALL DATA' && !isDeleting
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {isDeleting ? '🔄 Deleting...' : '🗑️ Confirm Delete'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setDeleteConfirmText('')
+                  }}
+                  className="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Quick Links */}
         <div className="bg-gray-100 rounded-xl p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -349,9 +457,24 @@ export default function AdminPage() {
             >
               <span className="text-gray-700 font-semibold">🧪 Experiment</span>
             </Link>
+            <Link 
+              href="/results" 
+              className="flex-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg p-3 text-center transition"
+            >
+              <span className="text-gray-700 font-semibold">📈 Results</span>
+            </Link>
           </div>
         </div>
       </div>
     </main>
+  )
+}
+
+// Wrap with password protection
+export default function AdminPage() {
+  return (
+    <PasswordProtection pageName="Admin Panel">
+      <AdminContent />
+    </PasswordProtection>
   )
 }

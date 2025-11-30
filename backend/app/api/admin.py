@@ -642,3 +642,87 @@ async def get_global_analysis():
             status_code=500,
             detail=f"Failed to retrieve global analysis: {str(e)}"
         )
+
+
+# =============================================================================
+# DELETE ALL EXPERIMENT DATA
+# =============================================================================
+
+from pydantic import BaseModel
+
+class DeleteConfirmRequest(BaseModel):
+    confirm: str
+
+@router.delete("/delete-all-data")
+async def delete_all_experiment_data(request: DeleteConfirmRequest):
+    """
+    Delete ALL experiment data from Supabase tables.
+    Requires confirmation string: 'DELETE_ALL_EXPERIMENT_DATA'
+    
+    This will delete:
+    - All sessions
+    - All layer_ratings
+    - All predictions
+    - All post_questionnaires
+    """
+    # Verify confirmation
+    if request.confirm != "DELETE_ALL_EXPERIMENT_DATA":
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid confirmation. Send confirm='DELETE_ALL_EXPERIMENT_DATA'"
+        )
+    
+    try:
+        config = get_settings()
+        from supabase import create_client
+        
+        supabase = create_client(config.supabase_url, config.supabase_key)
+        
+        deleted_counts = {
+            'deleted_sessions': 0,
+            'deleted_ratings': 0,
+            'deleted_predictions': 0,
+            'deleted_questionnaires': 0
+        }
+        
+        # Delete in order to respect foreign key constraints
+        # 1. Delete layer_ratings first (references sessions)
+        try:
+            result = supabase.table('layer_ratings').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            deleted_counts['deleted_ratings'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting layer_ratings: {e}")
+        
+        # 2. Delete predictions (references sessions)
+        try:
+            result = supabase.table('predictions').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            deleted_counts['deleted_predictions'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting predictions: {e}")
+        
+        # 3. Delete post_questionnaires (references sessions)
+        try:
+            result = supabase.table('post_questionnaires').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            deleted_counts['deleted_questionnaires'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting post_questionnaires: {e}")
+        
+        # 4. Delete sessions last
+        try:
+            result = supabase.table('sessions').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            deleted_counts['deleted_sessions'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting sessions: {e}")
+        
+        return {
+            'success': True,
+            'message': 'All experiment data has been deleted',
+            **deleted_counts,
+            'deleted_at': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete data: {str(e)}"
+        )

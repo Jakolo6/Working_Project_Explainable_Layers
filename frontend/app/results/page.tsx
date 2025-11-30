@@ -1,8 +1,10 @@
 // Results dashboard - Researcher view for aggregated experiment data
+// Protected by password
 
 'use client'
 
 import { useState, useEffect } from 'react'
+import PasswordProtection from '@/components/PasswordProtection'
 
 interface DashboardStats {
   total_sessions: number
@@ -18,7 +20,7 @@ interface DashboardStats {
   avg_would_trust_ai: number
 }
 
-export default function ResultsPage() {
+function ResultsContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -258,5 +260,14 @@ export default function ResultsPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+// Wrap with password protection
+export default function ResultsPage() {
+  return (
+    <PasswordProtection pageName="Results Dashboard">
+      <ResultsContent />
+    </PasswordProtection>
   )
 }
