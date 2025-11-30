@@ -46,6 +46,22 @@
 - ✅ All components now show explicit error messages when API fails
 - ✅ Backend returns HTTP 500 with clear error details
 
+**Contextualized Global Insight Component:**
+- 📋 **Summary Header** - Plain-language description of model's top factors (always visible)
+- 💡 **Why This Matters** - Expandable section with 2-3 bullet points
+- 📊 **Technical Summary** - Collapsed section with feature importance bars
+
+**Layer-Specific Adaptations:**
+- **Dashboard (Layer 1)**: Sidebar/top note style with full expansion options
+- **Narrative (Layer 2)**: Preface style with inline "Learn more" link
+- **Counterfactual (Layer 5)**: Info button with popup tooltip
+- **Features (Layer 0)**: Summary header with contextual guidance
+
+**Progressive Disclosure:**
+- Bank clerks see global insight only when relevant or requested
+- Avoids cognitive overload while maintaining transparency
+- Technical details hidden by default, available on demand
+
 ---
 
 ## 🔄 **Previous Update: Credit History Warnings & Data Anomaly Documentation** (Nov 29, 2025)
