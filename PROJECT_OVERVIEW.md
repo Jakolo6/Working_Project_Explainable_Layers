@@ -6,61 +6,45 @@
 
 ---
 
-## 🔄 **Latest Update: Global Explanation Package & Admin Redesign** (Nov 30, 2025)
+## 🔄 **Latest Update: Major Global Explanation Cleanup** (Nov 30, 2025)
 
-**New Global Explanation Generator:**
-- 📊 **Feature Importance Chart** - Mean |SHAP| bar chart showing which factors matter most
-- 📈 **SHAP Summary Plot** - Dot plot showing how each feature affects risk
-- 📉 **Dependence Plots** - Individual plots for top 6 features
-- 📊 **Distribution Histograms** - Feature distributions in training data
-- 📝 **Plain-Language Narrative** - Non-technical explanation of model behavior
-- ⚠️ **Dataset Summary & Disclaimers** - Including credit_history anomaly documentation
+**Code Cleanup Completed:**
+- ❌ **DELETED** `backend/app/services/global_explanation_service.py` - Old hardcoded service
+- ❌ **DELETED** `frontend/components/layers/ContextualGlobalInsight.tsx` - Redundant component
+- ✅ All global explanation now served exclusively from R2 storage
+- ✅ Zero mock data, zero fallback data anywhere in the codebase
 
-**New Backend Service:**
-- `backend/app/services/global_explanation_generator.py` - Generates complete explanation package
-- Computes SHAP values on sample data (300 records)
-- Creates matplotlib visualizations
-- Uploads all assets to R2 under `global_explanation/` folder
-- Generates manifest.json for tracking
+**R2-Based Global Explanation Pipeline:**
+- 📊 **Feature Importance Chart** (`feature_importance.png`) - Mean |SHAP| bar chart
+- 📈 **SHAP Summary Plot** (`shap_summary.png`) - Dot plot showing feature effects
+- 📉 **Dependence Plots** (`dependence_*.png`) - 6 plots for top features
+- 📊 **Distribution Histograms** (`distributions.png`) - Feature distributions
+- 📝 **Narrative** (`narrative.md`) - Plain-language explanation
+- 📋 **Dataset Summary** (`dataset_summary.json`) - Statistics and disclaimers
+- 📄 **Manifest** (`manifest.json`) - Tracks all generated files
 
-**New API Endpoints:**
+**Backend API Endpoints:**
 - `POST /api/v1/admin/generate-global-explanation` - Generate and upload package
-- `GET /api/v1/admin/global-explanation` - Get metadata and narrative
-- `GET /api/v1/admin/global-explanation-image/{filename}` - Serve images
+- `GET /api/v1/admin/global-explanation` - Get manifest, summary, and narrative
+- `GET/HEAD /api/v1/admin/global-explanation-image/{filename}` - Serve images (supports HEAD)
 - `GET /api/v1/admin/asset-status` - Check status of all managed assets
 
-**Redesigned Admin Page:**
-- 🎯 **Focused Interface** - Three main actions only
-- 📊 **Asset Status Cards** - Shows availability and last update time for model, global explanation, and performance stats
-- 🔘 **Action Buttons** - Retrain Model, Generate Global Explanation, Refresh Status
-- 🖼️ **Preview Section** - Shows generated SHAP visualizations when available
+**Frontend GlobalModelExplanation Component:**
+- Single component for all global explanation display
+- `showVisualizations={true}` enables SHAP charts tab
+- Dynamically loads dependence plots from manifest
+- Error handling for missing images
+- Shows generation timestamp
 
-**Updated GlobalModelExplanation Component:**
-- Now supports `showVisualizations` prop
-- Tab navigation between Overview and SHAP Visualizations
-- Displays feature importance, SHAP summary, and distributions from R2
+**Admin Page Actions:**
+- 🤖 **Retrain Model** - Retrain XGBoost with risk-ordered encoding
+- 📊 **Generate Global Explanation** - Create all SHAP visualizations
+- 🔄 **Refresh Status** - Check R2 for latest assets
 
-**Mock/Fallback Data Audit Completed:**
-- ❌ Removed all fallback data from frontend components
-- ❌ Removed silent error handling that returned mock data
-- ✅ All components now show explicit error messages when API fails
-- ✅ Backend returns HTTP 500 with clear error details
-
-**Contextualized Global Insight Component:**
-- 📋 **Summary Header** - Plain-language description of model's top factors (always visible)
-- 💡 **Why This Matters** - Expandable section with 2-3 bullet points
-- 📊 **Technical Summary** - Collapsed section with feature importance bars
-
-**Layer-Specific Adaptations:**
-- **Dashboard (Layer 1)**: Sidebar/top note style with full expansion options
-- **Narrative (Layer 2)**: Preface style with inline "Learn more" link
-- **Counterfactual (Layer 5)**: Info button with popup tooltip
-- **Features (Layer 0)**: Summary header with contextual guidance
-
-**Progressive Disclosure:**
-- Bank clerks see global insight only when relevant or requested
-- Avoids cognitive overload while maintaining transparency
-- Technical details hidden by default, available on demand
+**No Mock Data Policy:**
+- All components show explicit error messages when data unavailable
+- Backend returns HTTP 404/500 with clear error details
+- Frontend displays "Generate from admin panel" prompts
 
 ---
 
