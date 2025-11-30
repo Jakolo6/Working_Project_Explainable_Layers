@@ -177,3 +177,69 @@ class SupabaseService:
         except Exception as e:
             print(f"Error completing session: {e}")
             return False
+    
+    def get_dashboard_stats(self) -> Dict:
+        """
+        Get aggregated experiment statistics for the results dashboard.
+        Queries real data from Supabase - no mock data.
+        
+        Raises:
+            Exception: If database query fails
+        """
+        # Get session counts
+        sessions_response = self.client.table('sessions').select('session_id, completed').execute()
+        sessions = sessions_response.data or []
+        total_sessions = len(sessions)
+        completed_sessions = len([s for s in sessions if s.get('completed')])
+        
+        # Get layer ratings
+        ratings_response = self.client.table('layer_ratings').select('*').execute()
+        ratings = ratings_response.data or []
+        total_ratings = len(ratings)
+        
+        # Calculate average ratings
+        avg_trust = 0.0
+        avg_understanding = 0.0
+        avg_usefulness = 0.0
+        avg_mental_effort = 0.0
+        
+        if total_ratings > 0:
+            avg_trust = sum(r.get('trust', 0) or 0 for r in ratings) / total_ratings
+            avg_understanding = sum(r.get('understanding', 0) or 0 for r in ratings) / total_ratings
+            avg_usefulness = sum(r.get('usefulness', 0) or 0 for r in ratings) / total_ratings
+            avg_mental_effort = sum(r.get('mental_effort', 0) or 0 for r in ratings) / total_ratings
+        
+        # Get post-questionnaire data for layer preferences and overall ratings
+        post_response = self.client.table('post_questionnaires').select('*').execute()
+        post_data = post_response.data or []
+        
+        # Count layer preferences
+        layer_preferences: Dict[str, int] = {}
+        for post in post_data:
+            preferred = post.get('preferred_layer')
+            if preferred:
+                layer_preferences[preferred] = layer_preferences.get(preferred, 0) + 1
+        
+        # Calculate post-questionnaire averages
+        avg_overall_experience = 0.0
+        avg_explanation_helpfulness = 0.0
+        avg_would_trust_ai = 0.0
+        
+        if len(post_data) > 0:
+            avg_overall_experience = sum(p.get('overall_experience', 0) or 0 for p in post_data) / len(post_data)
+            avg_explanation_helpfulness = sum(p.get('explanation_helpfulness', 0) or 0 for p in post_data) / len(post_data)
+            avg_would_trust_ai = sum(p.get('would_trust_ai', 0) or 0 for p in post_data) / len(post_data)
+        
+        return {
+            "total_sessions": total_sessions,
+            "completed_sessions": completed_sessions,
+            "total_ratings": total_ratings,
+            "avg_trust": avg_trust,
+            "avg_understanding": avg_understanding,
+            "avg_usefulness": avg_usefulness,
+            "avg_mental_effort": avg_mental_effort,
+            "layer_preferences": layer_preferences,
+            "avg_overall_experience": avg_overall_experience,
+            "avg_explanation_helpfulness": avg_explanation_helpfulness,
+            "avg_would_trust_ai": avg_would_trust_ai
+        }

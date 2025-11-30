@@ -59,10 +59,10 @@ export default function Layer5Counterfactual({ decision, probability, shapFeatur
           throw new Error('API error')
         }
       } catch (err) {
-        console.error('Counterfactual API error:', err)
-        // Generate local counterfactuals as fallback
-        const localCFs = generateLocalCounterfactuals(shapFeatures, decision)
-        setCounterfactuals(localCFs)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to compute counterfactuals'
+        console.error('[ERROR] Counterfactual API error:', errorMessage)
+        setError(errorMessage)
+        setCounterfactuals([])
       } finally {
         setIsLoading(false)
       }
@@ -72,47 +72,6 @@ export default function Layer5Counterfactual({ decision, probability, shapFeatur
       fetchCounterfactuals()
     }
   }, [decision, probability, shapFeatures])
-  
-  // Generate counterfactuals locally as fallback
-  const generateLocalCounterfactuals = (features: SHAPFeature[], currentDecision: string): CounterfactualScenario[] => {
-    const scenarios: CounterfactualScenario[] = []
-    const riskIncreasing = features.filter(f => f.impact === 'positive').slice(0, 3)
-    
-    // Generate 2 scenarios
-    for (let i = 0; i < Math.min(2, riskIncreasing.length); i++) {
-      const changedFeatures = riskIncreasing.slice(0, i + 1)
-      const deltas: Record<string, { original: string; changed: string }> = {}
-      
-      changedFeatures.forEach(f => {
-        const numValue = parseFloat(f.value)
-        let changedValue = f.value
-        
-        if (!isNaN(numValue)) {
-          // Numerical: adjust toward favorable direction
-          if (f.feature.includes('Duration') || f.feature.includes('months')) {
-            changedValue = Math.max(12, Math.min(24, numValue)).toString()
-          } else if (f.feature.includes('Amount') || f.feature.includes('Credit')) {
-            changedValue = Math.floor(numValue * 0.7).toString()
-          } else if (f.feature.includes('Age')) {
-            changedValue = Math.max(25, Math.min(50, numValue)).toString()
-          } else {
-            changedValue = (numValue * 0.8).toFixed(0)
-          }
-        }
-        
-        deltas[f.feature] = { original: f.value, changed: changedValue }
-      })
-      
-      scenarios.push({
-        features: {},
-        deltas,
-        prediction: currentDecision === 'rejected' ? 'approved' : 'rejected',
-        probability: 0.5 + (i + 1) * 0.15
-      })
-    }
-    
-    return scenarios
-  }
   
   if (shapFeatures.length === 0) {
     return (
@@ -234,8 +193,18 @@ export default function Layer5Counterfactual({ decision, probability, shapFeatur
           </div>
         )}
 
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="text-center py-8">
+            <div className="text-red-500 text-4xl mb-3">⚠️</div>
+            <p className="text-red-700 font-semibold mb-2">Failed to Compute Counterfactuals</p>
+            <p className="text-red-600 text-sm">{error}</p>
+            <p className="text-slate-500 text-xs mt-2">The backend counterfactual API must be running and accessible.</p>
+          </div>
+        )}
+
         {/* No Counterfactuals */}
-        {!isLoading && counterfactuals.length === 0 && (
+        {!isLoading && !error && counterfactuals.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <p>No counterfactual scenarios could be generated for this prediction.</p>
           </div>

@@ -19,56 +19,41 @@ interface GlobalModelExplanationProps {
   defaultExpanded?: boolean
 }
 
-// Fallback data in case API fails
-const FALLBACK_DATA: GlobalExplanationData = {
-  model_name: "Credit Risk Assessment Tool",
-  what_tool_does: "This tool analyzes credit applications based on historical lending patterns. It looks at factors like employment stability, credit history, savings, and the loan details to estimate how likely an applicant is to repay successfully.",
-  how_it_decides: "The tool learned from thousands of past credit decisions. It identified which factors were most associated with successful repayment versus payment difficulties. For each new application, it checks how the applicant's profile matches these patterns.",
-  approval_patterns: [
-    "Stable employment history (4+ years at current job)",
-    "Clean credit history with all previous loans paid on time",
-    "Positive checking account balance",
-    "Established savings account",
-    "Moderate loan amount relative to financial profile",
-    "Shorter loan duration (under 24 months)"
-  ],
-  risk_patterns: [
-    "Negative or no checking account balance",
-    "Short or unstable employment history",
-    "Previous payment delays or credit problems",
-    "Very high loan amount relative to profile",
-    "Long loan duration (over 36 months)",
-    "No savings or very low savings"
-  ],
-  uncertainty_note: "The tool is most confident when applicants clearly fit established patterns. For applicants with mixed indicators, the tool may be less certain, and human judgment becomes more important.",
-  important_note: "This tool identifies patterns from historical data - it does not make guarantees or personal judgments. It is designed to support, not replace, your professional assessment."
-}
-
 export default function GlobalModelExplanation({ defaultExpanded = false }: GlobalModelExplanationProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
-  const [data, setData] = useState<GlobalExplanationData>(FALLBACK_DATA)
+  const [data, setData] = useState<GlobalExplanationData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchGlobalExplanation = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        if (!apiUrl) {
+          throw new Error('API URL not configured')
+        }
+        
         const response = await fetch(`${apiUrl}/api/v1/explanations/global`)
         
-        if (response.ok) {
-          const result = await response.json()
-          setData({
-            model_name: result.model_name,
-            what_tool_does: result.what_tool_does,
-            how_it_decides: result.how_it_decides,
-            approval_patterns: result.approval_patterns,
-            risk_patterns: result.risk_patterns,
-            uncertainty_note: result.uncertainty_note,
-            important_note: result.important_note
-          })
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}: ${response.statusText}`)
         }
-      } catch (error) {
-        console.log('Using fallback global explanation data')
+        
+        const result = await response.json()
+        setData({
+          model_name: result.model_name,
+          what_tool_does: result.what_tool_does,
+          how_it_decides: result.how_it_decides,
+          approval_patterns: result.approval_patterns,
+          risk_patterns: result.risk_patterns,
+          uncertainty_note: result.uncertainty_note,
+          important_note: result.important_note
+        })
+        setError(null)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load global explanation'
+        console.error('[ERROR] Global explanation fetch failed:', errorMessage)
+        setError(errorMessage)
       } finally {
         setIsLoading(false)
       }
@@ -111,10 +96,18 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
       {/* Collapsed Preview */}
       {!isExpanded && (
         <div className="bg-blue-50 border-x border-b border-blue-200 rounded-b-xl p-4">
-          <p className="text-sm text-slate-600">
-            <span className="font-medium text-blue-800">Quick summary:</span>{' '}
-            {data.what_tool_does.substring(0, 150)}...
-          </p>
+          {error ? (
+            <p className="text-sm text-red-600">
+              <span className="font-medium">Error:</span> {error}
+            </p>
+          ) : data ? (
+            <p className="text-sm text-slate-600">
+              <span className="font-medium text-blue-800">Quick summary:</span>{' '}
+              {data.what_tool_does.substring(0, 150)}...
+            </p>
+          ) : (
+            <p className="text-sm text-slate-500">Loading...</p>
+          )}
         </div>
       )}
 
@@ -125,6 +118,17 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
             <div className="p-8 text-center">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
               <p className="text-slate-500">Loading explanation...</p>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center">
+              <div className="text-red-500 text-4xl mb-3">⚠️</div>
+              <p className="text-red-700 font-semibold mb-2">Failed to Load Global Explanation</p>
+              <p className="text-red-600 text-sm">{error}</p>
+              <p className="text-slate-500 text-xs mt-2">The backend API must be running and accessible.</p>
+            </div>
+          ) : !data ? (
+            <div className="p-8 text-center">
+              <p className="text-slate-500">No data available</p>
             </div>
           ) : (
             <div className="p-6 space-y-6">

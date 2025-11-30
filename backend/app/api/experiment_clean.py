@@ -232,16 +232,12 @@ async def predict_credit(request: PredictionRequest):
             }
             
         elif request.explanation_layer == "counterfactual":
-            # Generate counterfactual (simplified version)
-            explanation = {
-                "type": "counterfactual",
-                "message": "What would need to change for approval",
-                "suggestions": [
-                    "Increase credit amount to improve risk ratio",
-                    "Longer employment duration increases stability",
-                    "Higher savings balance reduces risk"
-                ]
-            }
+            # Counterfactual explanations are generated via the /explanations/level3/counterfactuals endpoint
+            # This layer should not be used directly - redirect to proper endpoint
+            raise HTTPException(
+                status_code=400,
+                detail="Counterfactual explanations should be requested via /api/v1/explanations/level3/counterfactuals"
+            )
         
         # Store prediction in database with correct keys
         prediction_data = {
@@ -483,11 +479,10 @@ async def generate_natural_language_explanation(request: dict):
         }
         
     except Exception as e:
-        # Return fallback on error
-        return {
-            "success": False,
-            "explanation": "The decision was based on multiple factors from the credit application."
-        }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate explanation: {str(e)}"
+        )
 
 
 @router.get("/health")

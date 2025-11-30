@@ -35,6 +35,7 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
   const [narrative, setNarrative] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [isLLMGenerated, setIsLLMGenerated] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   // Check if any credit_history features are in the top features
   const hasCreditHistoryFeature = top5Features.some(f => isCreditHistoryFeature(f.feature))
@@ -61,24 +62,11 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
         } else {
           throw new Error('API error')
         }
-      } catch (error) {
-        console.error('Narrative API error:', error)
-        // Generate structured fallback
-        const positiveFactors = top5Features.filter(f => f.impact === 'positive')
-        const negativeFactors = top5Features.filter(f => f.impact === 'negative')
-        
-        let fallback = `**Decision Summary:** The credit application was ${decision.toUpperCase()} with ${(probability * 100).toFixed(0)}% confidence.\n\n`
-        
-        if (positiveFactors.length > 0) {
-          fallback += `**Risk-Increasing Factors:** ${positiveFactors.map(f => `${f.feature} (${f.value})`).join(', ')}.\n\n`
-        }
-        if (negativeFactors.length > 0) {
-          fallback += `**Risk-Decreasing Factors:** ${negativeFactors.map(f => `${f.feature} (${f.value})`).join(', ')}.\n\n`
-        }
-        
-        fallback += `The model analyzed ${shapFeatures.length} features in total. The primary drivers of this decision were the applicant's ${top5Features[0]?.feature || 'profile'} and overall financial stability indicators.`
-        
-        setNarrative(fallback)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to generate narrative'
+        console.error('[ERROR] Narrative API error:', errorMessage)
+        setError(errorMessage)
+        setNarrative('')
         setIsLLMGenerated(false)
       } finally {
         setIsLoading(false)
@@ -160,10 +148,18 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
                   <div className="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
                   <p className="text-gray-600">Generating narrative explanation...</p>
                 </div>
-              ) : (
+              ) : error ? (
+                <div className="text-red-700">
+                  <p className="font-semibold mb-2">⚠️ Failed to Generate Narrative</p>
+                  <p className="text-sm">{error}</p>
+                  <p className="text-xs text-red-500 mt-2">The backend narrative API must be running and accessible.</p>
+                </div>
+              ) : narrative ? (
                 <div className="text-gray-800 leading-relaxed">
                   {formatNarrative(narrative)}
                 </div>
+              ) : (
+                <p className="text-gray-500">No narrative available.</p>
               )}
             </div>
           </div>

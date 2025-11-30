@@ -140,12 +140,11 @@ async def generate_narrative(request: NarrativeRequest):
         
     except Exception as e:
         print(f"[ERROR] Narrative generation failed: {e}")
-        # Return template fallback on any error
-        return NarrativeResponse(
-            narrative=_generate_template_narrative(request),
-            top_features=[{"feature": f.feature, "value": f.value, "shap_value": f.shap_value, "impact": f.impact} for f in request.shap_features[:5]],
-            prediction=request.decision,
-            is_llm_generated=False
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate narrative explanation: {str(e)}"
         )
 
 

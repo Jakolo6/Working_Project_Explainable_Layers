@@ -162,16 +162,25 @@ async def clear_r2_bucket():
 @router.get("/dashboard-stats")
 async def get_dashboard_stats():
     """
-    Get aggregated experiment results for dashboard
-    (This would query Supabase for experiment data)
+    Get aggregated experiment results for dashboard.
+    Queries real data from Supabase - no mock data.
+    
+    Raises:
+        HTTPException: If database query fails
     """
-    # TODO: Implement when experiment data collection is active
-    return {
-        "total_sessions": 0,
-        "completed_sessions": 0,
-        "layer_ratings": {},
-        "message": "No experiment data yet"
-    }
+    try:
+        from app.services.supabase_service import SupabaseService
+        config = get_settings()
+        supabase = SupabaseService(config)
+        
+        stats = supabase.get_dashboard_stats()
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch dashboard statistics from database: {str(e)}"
+        )
 
 
 @router.get("/health")
