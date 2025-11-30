@@ -425,7 +425,7 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
                 )}
               </h3>
               <p className="text-sm text-gray-600">
-                {getFeatureDescription(getDisplayName(selectedFeature.feature))?.description || 'This factor influenced the credit decision.'}
+                {getFeatureDescription(selectedFeature.feature)?.description || getFeatureDescription(getDisplayName(selectedFeature.feature))?.description || 'This factor influenced the credit decision.'}
               </p>
             </div>
             <button 

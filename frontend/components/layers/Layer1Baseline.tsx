@@ -9,6 +9,41 @@ import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 
+// Simple display name mapping (same as in Layer2Dashboard)
+const FEATURE_DISPLAY_MAP: Record<string, string> = {
+  'Checking Account Status': 'Checking Account',
+  'Savings Account Status': 'Savings Account',
+  'Credit History': 'Credit History',
+  'Loan Purpose': 'Loan Purpose',
+  'Employment Duration': 'Employment',
+  'Housing Status': 'Housing',
+  'Property Ownership': 'Property',
+  'Other Debtors/Guarantors': 'Guarantors',
+  'Other Payment Plans': 'Other Plans',
+  'Job Type': 'Job Type',
+  'Telephone Registration': 'Telephone',
+  'Loan Duration (months)': 'Loan Duration',
+  'Credit Amount': 'Credit Amount',
+  'Installment Rate': 'Installment Rate',
+  'Years at Residence': 'Residence',
+  'Age': 'Age',
+  'Existing Credits': 'Existing Credits',
+  'Number of Dependents': 'Dependents',
+  'Monthly Payment Burden': 'Monthly Burden',
+  'Financial Stability Score': 'Stability Score',
+  'Credit Risk Ratio': 'Risk Ratio',
+  'Credit to Income Ratio': 'Credit/Income',
+  'Duration Risk Score': 'Duration Risk',
+}
+
+function getDisplayName(rawName: string): string {
+  if (FEATURE_DISPLAY_MAP[rawName]) return FEATURE_DISPLAY_MAP[rawName]
+  for (const [key, value] of Object.entries(FEATURE_DISPLAY_MAP)) {
+    if (rawName.toLowerCase().includes(key.toLowerCase())) return value
+  }
+  return rawName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 interface SHAPFeature {
   feature: string
   value: string
@@ -130,7 +165,7 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
             <tbody className="divide-y divide-gray-100">
               {sortedFeatures.map((feature, idx) => {
                 const isCreditHistory = isCreditHistoryFeature(feature.feature)
-                const description = getFeatureDescription(feature.feature)
+                const description = getFeatureDescription(feature.feature) || getFeatureDescription(getDisplayName(feature.feature))
                 const tooltipContent = isCreditHistory
                   ? `${description?.description || feature.feature}\n\n⚠️ ${CREDIT_HISTORY_WARNING_TEXT}`
                   : description?.description || 'This factor influenced the credit decision.'
