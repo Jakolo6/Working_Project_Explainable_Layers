@@ -134,8 +134,8 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     [sortedFeatures]
   )
   
-  const topSupportive = supportiveFeatures.slice(0, 2)
-  const topConcerns = concernFeatures.slice(0, 2)
+  const topSupportive = useMemo(() => supportiveFeatures.slice(0, 2), [supportiveFeatures])
+  const topConcerns = useMemo(() => concernFeatures.slice(0, 2), [concernFeatures])
   
   // Calculate net impact
   const totalSupportive = useMemo(() => 
@@ -175,8 +175,11 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     return groups
   }, [filteredFeatures])
 
-  // Generate AI summary
+  // Generate AI summary - only once when component mounts
   useEffect(() => {
+    // Skip if we already have a summary
+    if (aiSummary) return
+    
     const generateSummary = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
@@ -229,7 +232,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     }
     
     generateSummary()
-  }, [decision, probability, topSupportive, topConcerns])
+  }, [decision, probability, topSupportive, topConcerns, aiSummary])
 
   return (
     <div className="space-y-6">
