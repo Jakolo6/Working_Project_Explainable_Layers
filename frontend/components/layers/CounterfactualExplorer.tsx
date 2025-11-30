@@ -21,44 +21,44 @@ interface CounterfactualExplorerProps {
   shapFeatures: SHAPFeature[]
 }
 
-// Feature options for the sandbox - ordered from HIGHEST RISK to LOWEST RISK
-// Index 0 = highest risk, last index = lowest risk
+// Feature options for the sandbox - using DISPLAY VALUES from backend
+// riskLevel: positive = increases risk, negative = decreases risk
 const FEATURE_OPTIONS: Record<string, { label: string; options: { value: string; label: string; riskLevel: number }[] }> = {
   'Checking Account Status': {
     label: 'Checking Account',
     options: [
-      { value: 'no_checking', label: 'No checking account', riskLevel: 0.15 },
-      { value: 'lt_0_dm', label: 'Negative balance (< 0 DM)', riskLevel: 0.10 },
-      { value: '0_to_200_dm', label: 'Low balance (0-200 DM)', riskLevel: 0.05 },
-      { value: 'gte_200_dm', label: 'Good balance (≥ 200 DM)', riskLevel: -0.10 },
+      { value: 'No Checking Account', label: 'No checking account', riskLevel: 0.15 },
+      { value: 'Negative Balance (< 0 DM)', label: 'Negative balance (< 0 DM)', riskLevel: 0.10 },
+      { value: '0–200 DM', label: 'Low balance (0-200 DM)', riskLevel: 0.05 },
+      { value: '≥ 200 DM', label: 'Good balance (≥ 200 DM)', riskLevel: -0.10 },
     ]
   },
   'Savings Account Status': {
     label: 'Savings Account',
     options: [
-      { value: 'unknown', label: 'Unknown / None', riskLevel: 0.12 },
-      { value: 'lt_100_dm', label: 'Less than 100 DM', riskLevel: 0.08 },
-      { value: '100_to_500_dm', label: '100-500 DM', riskLevel: 0.02 },
-      { value: '500_to_1000_dm', label: '500-1,000 DM', riskLevel: -0.05 },
-      { value: 'gte_1000_dm', label: '1,000+ DM', riskLevel: -0.12 },
+      { value: 'No Savings', label: 'No savings', riskLevel: 0.12 },
+      { value: '< 100 DM', label: 'Less than 100 DM', riskLevel: 0.08 },
+      { value: '100–500 DM', label: '100-500 DM', riskLevel: 0.02 },
+      { value: '500–1000 DM', label: '500-1,000 DM', riskLevel: -0.05 },
+      { value: '≥ 1000 DM', label: '1,000+ DM', riskLevel: -0.12 },
     ]
   },
   'Employment Duration': {
     label: 'Employment',
     options: [
-      { value: 'unemployed', label: 'Unemployed', riskLevel: 0.15 },
-      { value: 'lt_1_year', label: 'Less than 1 year', riskLevel: 0.08 },
-      { value: '1_to_4_years', label: '1-4 years', riskLevel: 0.02 },
-      { value: '4_to_7_years', label: '4-7 years', riskLevel: -0.05 },
-      { value: 'gte_7_years', label: '7+ years', riskLevel: -0.10 },
+      { value: 'Unemployed', label: 'Unemployed', riskLevel: 0.15 },
+      { value: '< 1 Year', label: 'Less than 1 year', riskLevel: 0.08 },
+      { value: '1–4 Years', label: '1-4 years', riskLevel: 0.02 },
+      { value: '4–7 Years', label: '4-7 years', riskLevel: -0.05 },
+      { value: '≥ 7 Years', label: '7+ years', riskLevel: -0.10 },
     ]
   },
   'Housing Status': {
     label: 'Housing',
     options: [
-      { value: 'for_free', label: 'Living for free', riskLevel: 0.05 },
-      { value: 'rent', label: 'Renting', riskLevel: 0.02 },
-      { value: 'own', label: 'Own property', riskLevel: -0.08 },
+      { value: 'Living for Free', label: 'Living for free', riskLevel: 0.05 },
+      { value: 'Renting', label: 'Renting', riskLevel: 0.02 },
+      { value: 'Own Property', label: 'Own property', riskLevel: -0.08 },
     ]
   },
 }
@@ -363,10 +363,8 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
     for (const f of shapFeatures) {
       if (FEATURE_OPTIONS[f.feature]) {
         const options = FEATURE_OPTIONS[f.feature].options
-        const match = options.find(opt => 
-          f.value.toLowerCase().includes(opt.value.toLowerCase()) ||
-          opt.value.toLowerCase().includes(f.value.toLowerCase().replace(/[^a-z0-9]/g, '_'))
-        )
+        // Direct match on value (backend now returns display values)
+        const match = options.find(opt => opt.value === f.value)
         initial[f.feature] = match?.value || options[0].value
       }
     }
@@ -383,11 +381,8 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
       
       const options = FEATURE_OPTIONS[feature]?.options || []
       
-      // Find original option
-      const originalOption = options.find(opt => 
-        originalFeature.value.toLowerCase().includes(opt.value.toLowerCase()) ||
-        opt.value.toLowerCase().includes(originalFeature.value.toLowerCase().replace(/[^a-z0-9]/g, '_'))
-      )
+      // Find original option (direct match)
+      const originalOption = options.find(opt => opt.value === originalFeature.value)
       
       // Find new option
       const newOption = options.find(opt => opt.value === newValue)
@@ -667,9 +662,7 @@ export default function CounterfactualExplorer({ decision, probability, shapFeat
                       for (const f of shapFeatures) {
                         if (FEATURE_OPTIONS[f.feature]) {
                           const options = FEATURE_OPTIONS[f.feature].options
-                          const match = options.find(opt => 
-                            f.value.toLowerCase().includes(opt.value.toLowerCase())
-                          )
+                          const match = options.find(opt => opt.value === f.value)
                           initial[f.feature] = match?.value || options[0].value
                         }
                       }
