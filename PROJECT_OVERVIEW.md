@@ -26,8 +26,8 @@
 |-------|------|-----------|-------------|
 | 1 | Baseline SHAP Explanation | `Layer1Baseline.tsx` | Simple SHAP values table with global model context |
 | 2 | Interactive Dashboard | `Layer2Dashboard.tsx` | Visual dashboard with charts, AI summary, grouped features |
-| 3 | Narrative Explanation | `Layer2ShortText.tsx` | LLM-generated natural language explanation with chatbot |
-| 4 | Counterfactual Analysis | `CounterfactualExplorer.tsx` | What-if scenarios showing how to change the decision |
+| 3 | Narrative Explanation | `Layer3Narrative.tsx` | LLM-generated natural language explanation with chatbot |
+| 4 | Counterfactual Analysis | `Layer4Counterfactual.tsx` | What-if scenarios showing how to change the decision |
 
 **Supporting Components:**
 - `GlobalModelExplanation.tsx` - Collapsible global model context (used by all layers)

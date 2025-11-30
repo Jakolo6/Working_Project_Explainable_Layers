@@ -8,8 +8,8 @@ import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
 import Layer1Baseline from '@/components/layers/Layer1Baseline'
 import Layer2Dashboard from '@/components/layers/Layer2Dashboard'
-import Layer2ShortText from '@/components/layers/Layer2ShortText'
-import CounterfactualExplorer from '@/components/layers/CounterfactualExplorer'
+import Layer3Narrative from '@/components/layers/Layer3Narrative'
+import Layer4Counterfactual from '@/components/layers/Layer4Counterfactual'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
 
@@ -261,14 +261,14 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             />
           )}
           {currentLayerIndex === 2 && (
-            <Layer2ShortText
+            <Layer3Narrative
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 3 && (
-            <CounterfactualExplorer
+            <Layer4Counterfactual
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}

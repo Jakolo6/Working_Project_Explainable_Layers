@@ -1,4 +1,4 @@
-// CounterfactualExplorer.tsx - Counterfactual explanation layer with CORRECT probability logic
+// Layer 4: Counterfactual Explanation - What-if scenarios showing how to change the decision
 // Shows what changes would flip the decision, with consistent probability calculations
 
 'use client'
@@ -258,7 +258,7 @@ function calculateNewProbability(
   }
 }
 
-export default function CounterfactualExplorer({ decision, probability, shapFeatures }: CounterfactualExplorerProps) {
+export default function Layer4Counterfactual({ decision, probability, shapFeatures }: CounterfactualExplorerProps) {
   const [sandboxValues, setSandboxValues] = useState<Record<string, string>>({})
   const [showSandbox, setShowSandbox] = useState(false)
   

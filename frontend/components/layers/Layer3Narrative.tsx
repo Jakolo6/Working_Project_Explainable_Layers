@@ -1,4 +1,4 @@
-// Layer 2: Narrative LLM Explanation - Natural language combining global + local SHAP
+// Layer 3: Narrative LLM Explanation - Natural language combining global + local SHAP
 
 'use client'
 
@@ -23,8 +23,8 @@ interface SHAPFeature {
   impact: 'positive' | 'negative'
 }
 
-// Props for Layer2ShortText component
-interface Layer2ShortTextProps {
+// Props for Layer3Narrative component
+interface Layer3NarrativeProps {
   // Decision outcome ('approved' or 'rejected')
   decision: 'approved' | 'rejected'
   // Model confidence (probability of decision)
@@ -33,7 +33,7 @@ interface Layer2ShortTextProps {
   shapFeatures: SHAPFeature[]
 }
 
-export default function Layer2ShortText({ decision, probability, shapFeatures }: Layer2ShortTextProps) {
+export default function Layer3Narrative({ decision, probability, shapFeatures }: Layer3NarrativeProps) {
   const top5Features = shapFeatures.slice(0, 5)
   const [narrative, setNarrative] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
