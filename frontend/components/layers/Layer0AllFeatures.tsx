@@ -7,6 +7,7 @@ import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
 import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 
 interface SHAPFeature {
   feature: string
@@ -197,6 +198,9 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
           <div className="text-sm text-gray-600">Were Favorable</div>
         </div>
       </div>
+
+      {/* Credit History Disclaimer - Always visible above table */}
+      <CreditHistoryDisclaimer />
 
       {/* All Features Table */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">

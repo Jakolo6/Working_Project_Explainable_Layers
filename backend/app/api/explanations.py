@@ -361,3 +361,74 @@ def _suggest_change(feature: SHAPFeature) -> str:
         return str(int(num_val * 0.8))
     else:
         return f"Improved {feature.feature}"
+
+
+# ============================================================================
+# CHATBOT ENDPOINT
+# ============================================================================
+
+class ChatMessage(BaseModel):
+    role: str  # 'user' or 'assistant'
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+    system_context: str
+    decision: str
+    probability: float
+    shap_features: List[SHAPFeature]
+
+class ChatResponse(BaseModel):
+    response: str
+    is_llm_generated: bool
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_about_decision(request: ChatRequest):
+    """
+    Interactive chatbot for bank clerks to ask questions about credit decisions.
+    Uses OpenAI API with global model context and local applicant SHAP values.
+    """
+    try:
+        openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        
+        if not openai_key:
+            return ChatResponse(
+                response="Chat functionality requires an OpenAI API key. Please configure OPENAI_API_KEY in the environment.",
+                is_llm_generated=False
+            )
+        
+        from openai import OpenAI
+        client = OpenAI(api_key=openai_key)
+        
+        # Build messages for OpenAI
+        openai_messages = [
+            {"role": "system", "content": request.system_context}
+        ]
+        
+        # Add conversation history
+        for msg in request.messages:
+            openai_messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=openai_messages,
+            max_tokens=500,
+            temperature=0.4
+        )
+        
+        return ChatResponse(
+            response=response.choices[0].message.content,
+            is_llm_generated=True
+        )
+        
+    except Exception as e:
+        print(f"[ERROR] Chat endpoint failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Chat failed: {str(e)}"
+        )

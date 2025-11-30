@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
+import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
+import ExplanationChatbot from '@/components/ExplanationChatbot'
 
 // Interface for SHAP feature data
 interface SHAPFeature {
@@ -165,6 +167,9 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
           </div>
         </div>
 
+        {/* Credit History Disclaimer */}
+        <CreditHistoryDisclaimer />
+
         {/* Top 5 Features Table */}
         <div className="bg-slate-50 rounded-lg p-4 mb-6">
           <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
@@ -223,7 +228,7 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
         )}
 
         {/* Footer Note */}
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-6">
           <div className="flex items-start gap-2">
             <span className="text-lg">💡</span>
             <p className="text-sm text-blue-800">
@@ -236,6 +241,13 @@ export default function Layer2ShortText({ decision, probability, shapFeatures }:
             </p>
           </div>
         </div>
+
+        {/* Interactive Chatbot */}
+        <ExplanationChatbot
+          decision={decision}
+          probability={probability}
+          shapFeatures={shapFeatures}
+        />
       </div>
     </div>
   )

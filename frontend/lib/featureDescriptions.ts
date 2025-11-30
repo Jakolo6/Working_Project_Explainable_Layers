@@ -10,7 +10,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Checking Account Status
   'Checking Account Status': {
     name: 'Checking Account Status',
-    description: 'Status of existing checking account',
+    description: 'The balance status of the applicant\'s checking account. A healthy checking account with regular deposits suggests stable cash flow and lower default risk. Overdrawn accounts or no account may indicate financial stress.',
     values: {
       'lt_0_dm': 'Less than 0 DM – account is currently overdrawn',
       '0_to_200_dm': '0 to under 200 DM – small positive balance',
@@ -22,13 +22,13 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Duration
   'Loan Duration (months)': {
     name: 'Loan Duration (months)',
-    description: 'The number of months for which the credit is planned. Indicates how long repayment will run.'
+    description: 'How long the loan will be repaid over. Longer durations mean more time for circumstances to change, potentially increasing risk. Shorter loans are typically seen as lower risk but require higher monthly payments.'
   },
 
   // Credit History
   'Credit History': {
     name: 'Credit History',
-    description: 'Previous credit repayment behavior',
+    description: '⚠️ IMPORTANT: This feature shows COUNTERINTUITIVE patterns in this 1994 dataset due to historical selection bias. The model learned that "critical" history correlates with LOWER default rates (17%) while "all_paid" shows HIGHER rates (57%). This reflects how banks in 1994 were more cautious with risky-looking applicants. Do NOT use this feature\'s direction for real-world decisions.',
     values: {
       'no_credits_all_paid': 'No previous credits or all repaid on time – consistent past repayment',
       'all_paid_this_bank': 'All credits at this bank repaid on time – good internal repayment record',
@@ -41,7 +41,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Purpose
   'Loan Purpose': {
     name: 'Loan Purpose',
-    description: 'Intended use of the loan',
+    description: 'What the loan will be used for. Different purposes carry different risk profiles. Cars and real estate serve as collateral, while education may indicate future earning potential. Vacation or consumer goods loans are typically higher risk.',
     values: {
       'new_car': 'Car (new) – loan intended for a new vehicle',
       'used_car': 'Car (used) – loan intended for a used vehicle',
@@ -59,13 +59,13 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Credit Amount
   'Credit Amount': {
     name: 'Credit Amount',
-    description: 'The total loan amount requested. Shows the size of the credit need.'
+    description: 'The total loan amount requested in Deutsche Marks (DM). Larger loans represent greater financial exposure for the bank. The risk depends on whether the amount is proportional to the applicant\'s income and assets.'
   },
 
   // Savings Account
   'Savings Account Status': {
     name: 'Savings Account/Bonds',
-    description: 'Level of savings or bonds held',
+    description: 'The applicant\'s savings buffer. Higher savings indicate financial discipline and a safety net for unexpected expenses. This reduces default risk as the applicant can draw on savings if income is disrupted.',
     values: {
       'lt_100_dm': 'Less than 100 DM – low savings recorded',
       '100_to_500_dm': '100 to under 500 DM – moderate savings',
@@ -78,7 +78,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Employment Duration
   'Employment Duration': {
     name: 'Present Employment Since',
-    description: 'Duration of current employment',
+    description: 'How long the applicant has been in their current job. Longer employment suggests job stability and reliable income. Frequent job changes or unemployment increases uncertainty about future repayment ability.',
     values: {
       'unemployed': 'Unemployed – currently no employment',
       'lt_1_year': 'Employed less than 1 year – short employment duration',
@@ -91,7 +91,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Installment Rate (percentage of income)
   'Installment Rate': {
     name: 'Installment Rate',
-    description: 'Percentage of available income used for monthly installments. Shows how much of the person\'s income goes into repayment.'
+    description: 'What percentage of disposable income goes to loan payments. Higher rates (3-4) mean the applicant is stretching their budget thin, leaving less room for unexpected expenses. Lower rates (1-2) suggest comfortable repayment capacity.'
   },
 
   // Personal Status
@@ -127,7 +127,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Property Ownership
   'Property Ownership': {
     name: 'Property',
-    description: 'Type of property or assets owned',
+    description: 'What assets the applicant owns. Real estate ownership indicates wealth accumulation and can serve as collateral. Having no property or only unknown assets suggests limited financial security.',
     values: {
       'real_estate': 'Real estate – owns property',
       'savings_insurance': 'Savings agreement or life insurance – owns long-term financial assets',
@@ -139,7 +139,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Age
   'Age': {
     name: 'Age in Years',
-    description: 'The applicant\'s age. Reflects current life stage.'
+    description: 'The applicant\'s age in years. Middle-aged applicants (35-55) often have established careers and stable income. Very young applicants may lack credit history, while older applicants approaching retirement may have reduced future income.'
   },
 
   // Other Installments
@@ -156,7 +156,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Housing Status
   'Housing Status': {
     name: 'Housing',
-    description: 'Housing situation',
+    description: 'The applicant\'s living situation. Homeowners have demonstrated ability to manage large financial commitments. Renters have ongoing housing costs that compete with loan payments. Free housing reduces monthly expenses.',
     values: {
       'rent': 'Rent – pays rent for housing',
       'own': 'Own – lives in owned property',
@@ -167,7 +167,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Existing Credits
   'Existing Credits': {
     name: 'Number of Existing Credits at This Bank',
-    description: 'Shows how many credits the applicant already has here. Indicates existing credit relationships with the bank.'
+    description: 'How many active loans the applicant has with this bank. Multiple existing credits mean the applicant is already managing debt obligations. Too many credits may indicate over-extension.'
   },
 
   // Employment Type
@@ -185,7 +185,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Dependents
   'Number of Dependents': {
     name: 'Number of People Being Liable to Provide Maintenance For',
-    description: 'Number of individuals the applicant supports financially. Indicates dependents or family responsibilities.'
+    description: 'How many people financially depend on the applicant (children, elderly parents, etc.). More dependents mean higher living expenses, leaving less disposable income for loan repayment.'
   },
 
   // Telephone
@@ -211,17 +211,17 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Engineered Features (Calculated Risk Metrics)
   'Monthly Payment Burden': {
     name: 'Monthly Payment Burden',
-    description: 'Monthly payment amount calculated as Credit Amount ÷ Duration. Shows the actual monthly payment burden in DM/month. Higher values indicate larger monthly payments that may strain finances.'
+    description: 'The monthly payment amount (Credit Amount ÷ Duration). This is what the applicant must pay each month. Higher burdens strain monthly budgets and increase default risk if income drops. Lower burdens are more manageable.'
   },
 
   'Financial Stability Score': {
     name: 'Financial Stability Score', 
-    description: 'Combined stability metric calculated as Age × Employment Years. Reflects overall life and employment stability. Higher scores indicate more established, stable borrowers with longer employment history.'
+    description: 'A combined metric (Age × Employment Years) measuring life stability. Higher scores indicate mature applicants with long job tenure - typically the most reliable borrowers. Low scores suggest young or job-hopping applicants with less predictable income.'
   },
 
   'Credit Risk Ratio': {
     name: 'Credit Risk Ratio',
-    description: 'Risk metric calculated as Credit Amount ÷ (Age × 100). Measures credit amount relative to borrower maturity and earning potential. Higher ratios indicate larger loans relative to expected income capacity.'
+    description: 'Loan size relative to age-based earning potential (Credit Amount ÷ Age × 100). High ratios mean the applicant is borrowing a lot relative to their life stage. Young people with large loans have high ratios and higher risk.'
   },
 
   'Credit to Income Ratio': {
@@ -231,7 +231,33 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
 
   'Duration Risk Score': {
     name: 'Duration Risk Score',
-    description: 'Combined risk metric calculated as Duration × Credit Amount. Captures total financial exposure over loan lifetime. Higher scores indicate larger total commitments that compound risk over time.'
+    description: 'Total exposure metric (Duration × Credit Amount). Large loans over long periods create maximum risk exposure. A 48-month loan for 10,000 DM has much higher duration risk than a 12-month loan for 2,000 DM.'
+  },
+
+  // Additional features that may appear
+  'Years at Residence': {
+    name: 'Years at Current Residence',
+    description: 'How long the applicant has lived at their current address. Longer residence indicates stability and makes the applicant easier to contact. Frequent moves may suggest instability or difficulty paying rent.'
+  },
+
+  'Other Debtors/Guarantors': {
+    name: 'Other Debtors/Guarantors',
+    description: 'Whether someone else shares responsibility for the loan. A guarantor or co-applicant provides additional security - if the primary borrower defaults, the bank can pursue the guarantor.'
+  },
+
+  'Other Payment Plans': {
+    name: 'Other Payment Plans',
+    description: 'Whether the applicant has other installment commitments (store credit, other bank loans). Additional payment obligations reduce available income for this loan and increase overall debt burden.'
+  },
+
+  'Job Type': {
+    name: 'Job Type',
+    description: 'The applicant\'s employment classification. Management and skilled positions typically offer higher, more stable income. Unskilled or unemployed applicants have less predictable earning capacity.'
+  },
+
+  'Telephone Registration': {
+    name: 'Telephone Registration',
+    description: 'Whether the applicant has a registered telephone. In 1994, having a phone registered in your name indicated residential stability and made you contactable for payment reminders.'
   }
 }
 

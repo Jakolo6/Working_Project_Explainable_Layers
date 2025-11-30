@@ -8,6 +8,7 @@ import LocalDecisionSummary from './LocalDecisionSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 
 interface SHAPFeature {
   feature: string
@@ -106,6 +107,9 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
             <p className="text-gray-600">Technical analysis of local feature contributions</p>
           </div>
         </div>
+
+        {/* Credit History Disclaimer */}
+        <CreditHistoryDisclaimer />
 
         {/* Waterfall Plot (CSS-based) */}
         <div className="bg-slate-50 rounded-lg p-4 mb-6">
