@@ -6,7 +6,7 @@ import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription, getValueDescription } from '@/lib/featureDescriptions'
-import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 
 interface SHAPFeature {
@@ -149,9 +149,6 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
   const riskIncreasingFeatures = sortedFeatures.filter(f => f.impact === 'positive')
   const riskDecreasingFeatures = sortedFeatures.filter(f => f.impact === 'negative')
   
-  // Check if credit_history features are present (need warning)
-  const hasCreditHistoryFeature = sortedFeatures.some(f => isCreditHistoryFeature(f.feature))
-  
   return (
     <div className="space-y-6">
       {/* Global Model Explanation - How the tool works in general with SHAP visualizations */}
@@ -179,6 +176,27 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
             <span className="font-semibold">
               Decision: {decision.toUpperCase()} ({(probability * 100).toFixed(1)}% confidence)
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* SHAP Value Explanation - Always show at the beginning */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <h4 className="text-sm font-semibold text-blue-900 mb-2">📊 Understanding Impact Values</h4>
+        <div className="grid md:grid-cols-2 gap-3 text-sm">
+          <div className="flex items-start gap-2">
+            <span className="text-red-500 font-bold text-lg">+</span>
+            <div>
+              <span className="font-medium text-red-700">Positive values (red)</span>
+              <p className="text-gray-600 text-xs">Increase default risk → push toward rejection</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-green-500 font-bold text-lg">−</span>
+            <div>
+              <span className="font-medium text-green-700">Negative values (green)</span>
+              <p className="text-gray-600 text-xs">Decrease default risk → support approval</p>
+            </div>
           </div>
         </div>
       </div>
@@ -298,19 +316,12 @@ export default function Layer0AllFeatures({ decision, probability, shapFeatures 
         </div>
       </div>
 
-      {/* Credit History Warning - if applicable */}
-      {hasCreditHistoryFeature && (
-        <CreditHistoryWarning showDetails={true} />
-      )}
-
       {/* Legend - Bank Clerk Friendly */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2">Understanding This Table</h4>
-        <div className="text-sm text-blue-800 space-y-1">
-          <p><strong>Impact Score:</strong> Shows how much each factor influenced the decision for this applicant</p>
-          <p><strong>Red items:</strong> <span className="text-red-600">Factors that raised concerns</span> (increased risk assessment)</p>
-          <p><strong>Green items:</strong> <span className="text-green-600">Factors that were favorable</span> (reduced risk assessment)</p>
-          <p><strong>Higher numbers:</strong> Indicate the factor had a stronger influence on the decision</p>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Reading This Table</h4>
+        <div className="text-sm text-gray-600 space-y-1">
+          <p><strong>Strength bar:</strong> Longer bars = stronger influence on the decision</p>
+          <p><strong>Features at top:</strong> Had the most impact on this specific decision</p>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
-import CreditHistoryWarning, { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 
 interface SHAPFeature {
@@ -52,9 +52,6 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
   
   const maxAbsShap = Math.max(...sortedFeatures.map(f => Math.abs(f.shap_value)))
   const baseValue = 0 // Base prediction value
-  
-  // Check if credit_history features are present (need warning)
-  const hasCreditHistoryFeature = sortedFeatures.some(f => isCreditHistoryFeature(f.feature))
   
   // Calculate cumulative SHAP for waterfall
   let cumulative = baseValue
@@ -105,6 +102,27 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
               Analytical SHAP Dashboard
             </h3>
             <p className="text-gray-600">Technical analysis of local feature contributions</p>
+          </div>
+        </div>
+
+        {/* SHAP Value Explanation - Always show at the beginning */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">📊 Understanding SHAP Values</h4>
+          <div className="grid md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-start gap-2">
+              <span className="text-red-500 font-bold text-lg">+</span>
+              <div>
+                <span className="font-medium text-red-700">Positive SHAP (red)</span>
+                <p className="text-gray-600 text-xs">Increases default risk → pushes toward rejection</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-green-500 font-bold text-lg">−</span>
+              <div>
+                <span className="font-medium text-green-700">Negative SHAP (green)</span>
+                <p className="text-gray-600 text-xs">Decreases default risk → supports approval</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -194,9 +212,8 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
                   <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">#</th>
                   <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Feature</th>
                   <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Value</th>
-                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">SHAP</th>
-                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">|SHAP|</th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase">Direction</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">SHAP Value</th>
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase">Effect</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -218,21 +235,18 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
                     <td className="px-4 py-2 text-slate-600 font-mono text-xs">
                       {formatValue(feature.feature, feature.value)}
                     </td>
-                    <td className={`px-4 py-2 text-right font-mono text-xs ${
+                    <td className={`px-4 py-2 text-right font-mono text-xs font-medium ${
                       feature.impact === 'positive' ? 'text-red-600' : 'text-green-600'
                     }`}>
                       {feature.shap_value > 0 ? '+' : ''}{feature.shap_value.toFixed(4)}
                     </td>
-                    <td className="px-4 py-2 text-right font-mono text-xs text-slate-500">
-                      {Math.abs(feature.shap_value).toFixed(4)}
-                    </td>
                     <td className="px-4 py-2 text-center">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                         feature.impact === 'positive' 
                           ? 'bg-red-100 text-red-700' 
                           : 'bg-green-100 text-green-700'
                       }`}>
-                        {feature.impact === 'positive' ? '↑' : '↓'}
+                        {feature.impact === 'positive' ? '↑ Risk' : '↓ Risk'}
                       </span>
                     </td>
                   </tr>
@@ -241,13 +255,6 @@ export default function Layer1Minimal({ decision, probability, shapFeatures }: L
             </table>
           </div>
         </div>
-
-        {/* Credit History Warning - if applicable */}
-        {hasCreditHistoryFeature && (
-          <div className="mt-4">
-            <CreditHistoryWarning compact={true} />
-          </div>
-        )}
 
         {/* Technical Legend */}
         <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
