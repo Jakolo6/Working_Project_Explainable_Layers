@@ -6,7 +6,38 @@
 
 ---
 
-## 🔄 **Latest Update: SHAP Value Grouping for One-Hot Encoded Features** (Nov 30, 2025)
+## 🔄 **Latest Update: Credit History Disclaimer, Chatbot & Improved Tooltips** (Nov 30, 2025)
+
+**Three Improvements Implemented:**
+
+1. **Credit History Disclaimer Banner**
+   - New `CreditHistoryDisclaimer` component displayed above all SHAP tables
+   - Warns users: "Ignore Credit History feature direction - it's counterintuitive"
+   - Explains the 1994 selection bias causing "critical" to show lower default rates
+   - Added to Layer 0, Layer 1, and Layer 2
+
+2. **Interactive Chatbot (Layer 2)**
+   - New `ExplanationChatbot` component with OpenAI integration
+   - Bank clerks can ask questions about the credit decision
+   - Context includes:
+     - Global model analysis from R2 (`global_xgboost_analysis.txt`)
+     - Local applicant SHAP values and decision
+   - Suggested questions for quick start
+   - Backend endpoint: `POST /api/v1/explanations/chat`
+
+3. **Improved Feature Tooltips**
+   - Updated `featureDescriptions.ts` with meaningful explanations
+   - Each tooltip now explains WHY the feature matters for credit risk
+   - Example: "Checking Account Status" now explains cash flow implications
+   - Credit History tooltip includes explicit warning about counterintuitive patterns
+
+**New Files:**
+- `frontend/components/CreditHistoryDisclaimer.tsx`
+- `frontend/components/ExplanationChatbot.tsx`
+
+---
+
+## 🔄 **Previous Update: SHAP Value Grouping for One-Hot Encoded Features** (Nov 30, 2025)
 
 **Problem Solved:**
 - Previously, the local explanation table showed ~60 rows (one per one-hot encoded column)
