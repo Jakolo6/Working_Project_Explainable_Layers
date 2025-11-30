@@ -53,6 +53,30 @@ class CounterfactualResponse(BaseModel):
 
 
 # ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def _get_default_global_context() -> str:
+    """Return default global context when R2 assets are unavailable."""
+    return """This AI model analyzes credit applications using the 1994 German Credit Dataset.
+
+KEY FACTORS THE MODEL CONSIDERS:
+- Checking Account Status: Higher balances indicate better financial management
+- Loan Duration: Shorter loans are generally less risky
+- Savings Account: More savings provide a financial safety buffer
+- Employment Duration: Stable, long-term employment reduces risk
+- Credit Amount: Larger amounts relative to the applicant's profile increase risk
+- Age: Middle-aged applicants (30-55) typically have the most stable profiles
+
+IMPORTANT DATA LIMITATION:
+The Credit History feature shows counterintuitive patterns due to historical selection bias. In 1994, banks were more cautious with applicants who had problematic credit histories, approving only the most creditworthy among them. This means:
+- Applicants labeled 'critical' in the training data had a 17% default rate (lowest)
+- Applicants labeled 'all paid' had a 57% default rate (highest)
+
+This is a known data anomaly that we preserve for research transparency."""
+
+
+# ============================================================================
 # LEVEL 2: NARRATIVE LLM ENDPOINT
 # ============================================================================
 
@@ -114,13 +138,20 @@ async def _generate_llm_narrative(request: NarrativeRequest, api_key: str) -> st
             if assets.get("available") and assets.get("narrative"):
                 global_context = assets["narrative"]
             else:
-                global_context = "This model analyzes credit applications based on factors like checking account status, loan duration, savings, and employment history."
+                global_context = _get_default_global_context()
         except Exception:
-            global_context = "This model analyzes credit applications based on factors like checking account status, loan duration, savings, and employment history."
+            global_context = _get_default_global_context()
         
         # Build context from SHAP features
         positive_features = [f for f in request.shap_features if f.impact == 'positive']
         negative_features = [f for f in request.shap_features if f.impact == 'negative']
+        
+        # Check if Credit History is among the features to add special context
+        credit_history_note = ""
+        for f in request.shap_features:
+            if "credit history" in f.feature.lower() or "credit_history" in f.feature.lower():
+                credit_history_note = f"\n\nNOTE: This applicant's Credit History is '{f.value}'. "
+                break
         
         features_summary = {
             "decision": request.decision,
@@ -136,21 +167,28 @@ Write in simple, everyday language that a non-technical person can understand.
 NEVER use technical terms like: SHAP, feature importance, log-odds, probability scores, model output, prediction values.
 INSTEAD use terms like: factors, indicators, patterns, assessment, analysis.
 
+IMPORTANT CONTEXT ABOUT THE DATA:
+This AI model was trained on the 1994 German Credit Dataset. Due to historical lending practices from that era, some patterns in the data may seem counterintuitive:
+- The "Credit History" feature shows unusual patterns because banks in 1994 were more cautious with applicants who had problematic histories, approving only the most creditworthy among them.
+- This means applicants with "critical" credit history in the training data actually had lower default rates than those with "all paid" history.
+- When explaining Credit History impacts, acknowledge this is based on historical patterns that may not reflect modern expectations.
+
 The explanation should:
 1. Clearly state the decision outcome
 2. Explain the main reasons in human terms
 3. Reference the applicant's specific situation
 4. Be honest and balanced (mention both positive and concerning factors if present)
+5. If Credit History appears counterintuitive, briefly note it reflects historical lending patterns
 
-Keep the explanation under 120 words. Use **bold** for key points."""
+Keep the explanation under 150 words. Use **bold** for key points."""
 
         user_prompt = f"""GLOBAL MODEL CONTEXT:
-{global_context}
+{global_context}{credit_history_note}
 
 THIS APPLICANT'S ANALYSIS:
 {json.dumps(features_summary, indent=2)}
 
-Write a clear explanation for this specific decision that a bank clerk could share with the customer."""
+Write a clear explanation for this specific decision that a bank clerk could share with the customer. If Credit History shows an unexpected pattern (e.g., 'critical' history helping approval or 'all paid' hurting it), briefly explain this reflects historical data patterns."""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -186,6 +224,16 @@ def _generate_template_narrative(request: NarrativeRequest) -> str:
     if negative:
         favorable_factors = ", ".join([f"**{f.feature}** ({f.value})" for f in negative[:3]])
         narrative += f"**Risk-Decreasing Factors:** {favorable_factors}. These factors helped reduce the overall risk assessment.\n\n"
+    
+    # Check for Credit History and add context if present
+    credit_history_feature = None
+    for f in request.shap_features:
+        if "credit history" in f.feature.lower() or "credit_history" in f.feature.lower():
+            credit_history_feature = f
+            break
+    
+    if credit_history_feature:
+        narrative += "**Note on Credit History:** This model was trained on 1994 German banking data. Due to historical lending practices, the Credit History feature may show counterintuitive patterns—banks at that time were more cautious with applicants who had problematic histories, approving only the most creditworthy among them.\n\n"
     
     total = len(request.all_features) if request.all_features else len(request.shap_features)
     narrative += f"The model analyzed **{total} features** in total. The balance between risk-increasing and risk-decreasing factors determined the final outcome."
