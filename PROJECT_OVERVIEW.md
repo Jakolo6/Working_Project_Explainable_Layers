@@ -2,11 +2,53 @@
 
 > 🎉 **PROJECT STATUS: PRODUCTION READY - AUDITED & VERIFIED**  
 > ✅ Bank-clerk-friendly | ✅ Clear global/local separation | ✅ SHAP semantics verified | ✅ Data anomaly documented  
-> 📅 Last Updated: November 29, 2025
+> 📅 Last Updated: November 30, 2025
 
 ---
 
-## 🔄 **Latest Update: Credit History Warnings & Data Anomaly Documentation** (Nov 29, 2025)
+## 🔄 **Latest Update: Global Explanation Package & Admin Redesign** (Nov 30, 2025)
+
+**New Global Explanation Generator:**
+- 📊 **Feature Importance Chart** - Mean |SHAP| bar chart showing which factors matter most
+- 📈 **SHAP Summary Plot** - Dot plot showing how each feature affects risk
+- 📉 **Dependence Plots** - Individual plots for top 6 features
+- 📊 **Distribution Histograms** - Feature distributions in training data
+- 📝 **Plain-Language Narrative** - Non-technical explanation of model behavior
+- ⚠️ **Dataset Summary & Disclaimers** - Including credit_history anomaly documentation
+
+**New Backend Service:**
+- `backend/app/services/global_explanation_generator.py` - Generates complete explanation package
+- Computes SHAP values on sample data (300 records)
+- Creates matplotlib visualizations
+- Uploads all assets to R2 under `global_explanation/` folder
+- Generates manifest.json for tracking
+
+**New API Endpoints:**
+- `POST /api/v1/admin/generate-global-explanation` - Generate and upload package
+- `GET /api/v1/admin/global-explanation` - Get metadata and narrative
+- `GET /api/v1/admin/global-explanation-image/{filename}` - Serve images
+- `GET /api/v1/admin/asset-status` - Check status of all managed assets
+
+**Redesigned Admin Page:**
+- 🎯 **Focused Interface** - Three main actions only
+- 📊 **Asset Status Cards** - Shows availability and last update time for model, global explanation, and performance stats
+- 🔘 **Action Buttons** - Retrain Model, Generate Global Explanation, Refresh Status
+- 🖼️ **Preview Section** - Shows generated SHAP visualizations when available
+
+**Updated GlobalModelExplanation Component:**
+- Now supports `showVisualizations` prop
+- Tab navigation between Overview and SHAP Visualizations
+- Displays feature importance, SHAP summary, and distributions from R2
+
+**Mock/Fallback Data Audit Completed:**
+- ❌ Removed all fallback data from frontend components
+- ❌ Removed silent error handling that returned mock data
+- ✅ All components now show explicit error messages when API fails
+- ✅ Backend returns HTTP 500 with clear error details
+
+---
+
+## 🔄 **Previous Update: Credit History Warnings & Data Anomaly Documentation** (Nov 29, 2025)
 
 **Deep Alignment Analysis Discovery:**
 - 🔬 Discovered `credit_history` feature has **counterintuitive patterns** in the 1994 German Credit data

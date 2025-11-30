@@ -1,5 +1,6 @@
 // GlobalModelExplanation.tsx - Bank-clerk-friendly explanation of how the model works globally
 // This component appears at the top of ALL explanation layers with identical content
+// Now includes SHAP visualizations from R2 storage
 
 'use client'
 
@@ -17,18 +18,22 @@ interface GlobalExplanationData {
 
 interface GlobalModelExplanationProps {
   defaultExpanded?: boolean
+  showVisualizations?: boolean
 }
 
-export default function GlobalModelExplanation({ defaultExpanded = false }: GlobalModelExplanationProps) {
+export default function GlobalModelExplanation({ defaultExpanded = false, showVisualizations = false }: GlobalModelExplanationProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [data, setData] = useState<GlobalExplanationData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hasVisualizations, setHasVisualizations] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'visualizations'>('overview')
+  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     const fetchGlobalExplanation = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
         if (!apiUrl) {
           throw new Error('API URL not configured')
         }
@@ -50,6 +55,19 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
           important_note: result.important_note
         })
         setError(null)
+        
+        // Check if visualizations are available
+        if (showVisualizations) {
+          try {
+            const vizResponse = await fetch(`${apiUrl}/api/v1/admin/global-explanation`)
+            if (vizResponse.ok) {
+              const vizData = await vizResponse.json()
+              setHasVisualizations(vizData.available === true)
+            }
+          } catch {
+            // Visualizations not available, that's okay
+          }
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load global explanation'
         console.error('[ERROR] Global explanation fetch failed:', errorMessage)
@@ -60,7 +78,7 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
     }
 
     fetchGlobalExplanation()
-  }, [])
+  }, [apiUrl, showVisualizations])
 
   return (
     <div className="mb-6">
@@ -132,6 +150,93 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
             </div>
           ) : (
             <div className="p-6 space-y-6">
+              {/* Tab Navigation (if visualizations available) */}
+              {hasVisualizations && (
+                <div className="flex border-b border-gray-200">
+                  <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`px-4 py-2 font-medium text-sm border-b-2 transition ${
+                      activeTab === 'overview'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    📋 Overview
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('visualizations')}
+                    className={`px-4 py-2 font-medium text-sm border-b-2 transition ${
+                      activeTab === 'visualizations'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    📊 SHAP Visualizations
+                  </button>
+                </div>
+              )}
+
+              {/* Visualizations Tab */}
+              {activeTab === 'visualizations' && hasVisualizations && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <p className="text-sm text-blue-800">
+                      <strong>About these charts:</strong> These visualizations show how the model weighs different factors 
+                      when making credit decisions. They are generated from real SHAP (SHapley Additive exPlanations) analysis 
+                      of the trained model.
+                    </p>
+                  </div>
+                  
+                  {/* Feature Importance Chart */}
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-semibold text-gray-800">Feature Importance</h4>
+                      <p className="text-sm text-gray-600">Which factors have the biggest impact on decisions</p>
+                    </div>
+                    <div className="p-4">
+                      <img 
+                        src={`${apiUrl}/api/v1/admin/global-explanation-image/feature_importance.png`}
+                        alt="Feature Importance Chart"
+                        className="w-full rounded"
+                      />
+                    </div>
+                  </div>
+
+                  {/* SHAP Summary Plot */}
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-semibold text-gray-800">SHAP Summary</h4>
+                      <p className="text-sm text-gray-600">How each feature affects risk (red = increases risk, blue = decreases risk)</p>
+                    </div>
+                    <div className="p-4">
+                      <img 
+                        src={`${apiUrl}/api/v1/admin/global-explanation-image/shap_summary.png`}
+                        alt="SHAP Summary Plot"
+                        className="w-full rounded"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Feature Distributions */}
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-semibold text-gray-800">Feature Distributions</h4>
+                      <p className="text-sm text-gray-600">Distribution of key features in the training data</p>
+                    </div>
+                    <div className="p-4">
+                      <img 
+                        src={`${apiUrl}/api/v1/admin/global-explanation-image/distributions.png`}
+                        alt="Feature Distributions"
+                        className="w-full rounded"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Overview Tab (default content) */}
+              {activeTab === 'overview' && (
+                <>
               {/* What the Tool Does */}
               <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-5 border border-slate-200">
                 <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
@@ -254,6 +359,8 @@ export default function GlobalModelExplanation({ defaultExpanded = false }: Glob
                   </div>
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
-# Simplified Admin API - Local-First Approach
-# Only serves data from R2, no upload endpoints
+# Admin API - Model Management and Global Explanation Generation
+# Focused endpoints for uploading models, generating explanations, and managing assets
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -8,6 +8,7 @@ from botocore.config import Config
 from app.config import get_settings
 import json
 import io
+from datetime import datetime
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
@@ -22,6 +23,62 @@ def create_r2_client():
         aws_secret_access_key=config.r2_secret_access_key,
         config=Config(signature_version='s3v4', region_name='auto')
     )
+
+
+# =============================================================================
+# ASSET STATUS ENDPOINTS
+# =============================================================================
+
+@router.get("/asset-status")
+async def get_asset_status():
+    """
+    Get the status and last update time for all managed assets.
+    Returns info about: model, global explanation, performance stats.
+    """
+    try:
+        config = get_settings()
+        r2 = create_r2_client()
+        
+        assets = {
+            "model": {
+                "key": "models/xgboost_model.pkl",
+                "name": "XGBoost Credit Risk Model",
+                "available": False,
+                "last_modified": None
+            },
+            "global_explanation": {
+                "key": "global_explanation/manifest.json",
+                "name": "Global Explanation Package",
+                "available": False,
+                "last_modified": None
+            },
+            "performance_stats": {
+                "key": "models/metrics.json",
+                "name": "Model Performance Statistics",
+                "available": False,
+                "last_modified": None
+            }
+        }
+        
+        for asset_name, asset_info in assets.items():
+            try:
+                response = r2.head_object(
+                    Bucket=config.r2_bucket_name,
+                    Key=asset_info["key"]
+                )
+                assets[asset_name]["available"] = True
+                assets[asset_name]["last_modified"] = response["LastModified"].isoformat()
+            except:
+                pass
+        
+        return {
+            "success": True,
+            "assets": assets,
+            "checked_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check asset status: {str(e)}")
 
 
 @router.get("/eda-stats")
@@ -207,6 +264,105 @@ async def health_check():
             "r2_connected": False,
             "error": str(e)
         }
+
+
+# =============================================================================
+# GLOBAL EXPLANATION ENDPOINTS
+# =============================================================================
+
+@router.post("/generate-global-explanation")
+async def generate_global_explanation():
+    """
+    Generate and upload the complete global explanation package to R2.
+    
+    This creates:
+    - Feature importance bar chart (mean |SHAP|)
+    - SHAP summary dot plot
+    - Dependence plots for top features
+    - Distribution histograms
+    - Dataset summary with disclaimers
+    - Plain-language narrative
+    
+    All assets are stored in R2 under 'global_explanation/' folder.
+    """
+    try:
+        from app.services.global_explanation_generator import GlobalExplanationGenerator
+        
+        generator = GlobalExplanationGenerator()
+        result = generator.generate_full_package()
+        
+        return result
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate global explanation: {str(e)}"
+        )
+
+
+@router.get("/global-explanation")
+async def get_global_explanation():
+    """
+    Get the global explanation metadata and narrative from R2.
+    Images are served via /global-explanation-image/{filename}
+    """
+    try:
+        from app.services.global_explanation_generator import get_global_explanation_assets
+        
+        assets = get_global_explanation_assets()
+        
+        if not assets.get("available"):
+            raise HTTPException(
+                status_code=404,
+                detail="Global explanation not generated yet. Use POST /generate-global-explanation first."
+            )
+        
+        return assets
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve global explanation: {str(e)}"
+        )
+
+
+@router.get("/global-explanation-image/{filename}")
+async def get_global_explanation_image(filename: str):
+    """
+    Get a global explanation image from R2.
+    Valid filenames: feature_importance.png, shap_summary.png, distributions.png, dependence_*.png
+    """
+    try:
+        config = get_settings()
+        r2 = create_r2_client()
+        
+        # Validate filename
+        if not filename.endswith('.png'):
+            raise HTTPException(status_code=400, detail="Only PNG images are supported")
+        
+        key = f'global_explanation/{filename}'
+        
+        response = r2.get_object(
+            Bucket=config.r2_bucket_name,
+            Key=key
+        )
+        
+        image_data = response['Body'].read()
+        
+        return StreamingResponse(
+            io.BytesIO(image_data),
+            media_type='image/png',
+            headers={'Cache-Control': 'public, max-age=86400'}
+        )
+        
+    except r2.exceptions.NoSuchKey:
+        raise HTTPException(status_code=404, detail=f"Image {filename} not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load image: {str(e)}")
 
 
 # =============================================================================
