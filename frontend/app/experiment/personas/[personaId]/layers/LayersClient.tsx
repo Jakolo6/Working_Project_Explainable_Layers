@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
-import Layer0AllFeatures from '@/components/layers/Layer0AllFeatures'
-import DecisionInsights from '@/components/layers/DecisionInsights'
+import Layer1Baseline from '@/components/layers/Layer1Baseline'
+import Layer2Dashboard from '@/components/layers/Layer2Dashboard'
 import Layer2ShortText from '@/components/layers/Layer2ShortText'
 import CounterfactualExplorer from '@/components/layers/CounterfactualExplorer'
 
@@ -41,8 +41,8 @@ interface LayersClientProps {
 }
 
 const LAYER_NAMES = [
-  'Complete SHAP Analysis',
-  'Analytical Dashboard',
+  'Baseline SHAP Explanation',
+  'Interactive Dashboard',
   'Narrative Explanation',
   'Counterfactual Analysis'
 ]
@@ -247,14 +247,14 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         {/* Current Layer Display */}
         <div className="mb-8">
           {currentLayerIndex === 0 && (
-            <Layer0AllFeatures
+            <Layer1Baseline
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
             />
           )}
           {currentLayerIndex === 1 && (
-            <DecisionInsights
+            <Layer2Dashboard
               decision={prediction.decision}
               probability={prediction.probability}
               shapFeatures={prediction.shap_features}
