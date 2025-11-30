@@ -1,13 +1,11 @@
-# Explanations API - Global, Level 2 Narrative, and Level 3 Counterfactual endpoints
+# Explanations API - Narrative and Counterfactual endpoints for individual predictions
+# Global explanation is handled by /api/v1/admin/global-explanation (R2-based)
 
 import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 import json
-
-# Old service deprecated - now using R2-based global explanation
-# from app.services.global_explanation_service import get_global_explanation_service
 
 router = APIRouter(prefix="/api/v1/explanations", tags=["explanations"])
 
@@ -52,53 +50,6 @@ class CounterfactualScenario(BaseModel):
 class CounterfactualResponse(BaseModel):
     original: Dict[str, Any]
     counterfactuals: List[CounterfactualScenario]
-
-
-class GlobalExplanationResponse(BaseModel):
-    """Response model for global model explanation."""
-    model_name: str
-    what_tool_does: str
-    how_it_decides: str
-    approval_patterns: List[str]
-    risk_patterns: List[str]
-    uncertainty_note: str
-    important_note: str
-    clerk_narrative: str
-    feature_details: List[Dict[str, Any]]
-    llm_context: str
-
-
-# ============================================================================
-# GLOBAL MODEL EXPLANATION ENDPOINT (DEPRECATED - Use /admin/global-explanation)
-# ============================================================================
-
-@router.get("/global")
-async def get_global_explanation():
-    """
-    DEPRECATED: This endpoint now redirects to the R2-based global explanation.
-    Use /api/v1/admin/global-explanation for the new R2-based global explanation.
-    
-    This endpoint is kept for backward compatibility but returns data from R2.
-    """
-    try:
-        from app.services.global_explanation_generator import get_global_explanation_assets
-        
-        assets = get_global_explanation_assets()
-        
-        if not assets.get("available"):
-            raise HTTPException(
-                status_code=404,
-                detail="Global explanation not generated. Use admin panel to generate it first."
-            )
-        
-        # Return R2-based data in a compatible format
-        return assets
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"[ERROR] Global explanation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get global explanation: {str(e)}")
 
 
 # ============================================================================

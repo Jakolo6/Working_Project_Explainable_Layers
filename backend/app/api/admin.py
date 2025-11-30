@@ -331,10 +331,12 @@ async def get_global_explanation():
 
 
 @router.get("/global-explanation-image/{filename}")
+@router.head("/global-explanation-image/{filename}")
 async def get_global_explanation_image(filename: str):
     """
     Get a global explanation image from R2.
     Valid filenames: feature_importance.png, shap_summary.png, distributions.png, dependence_*.png
+    Supports both GET and HEAD requests.
     """
     try:
         config = get_settings()
@@ -343,6 +345,10 @@ async def get_global_explanation_image(filename: str):
         # Validate filename
         if not filename.endswith('.png'):
             raise HTTPException(status_code=400, detail="Only PNG images are supported")
+        
+        # Security: prevent path traversal
+        if '..' in filename or '/' in filename:
+            raise HTTPException(status_code=400, detail="Invalid filename")
         
         key = f'global_explanation/{filename}'
         
@@ -356,12 +362,19 @@ async def get_global_explanation_image(filename: str):
         return StreamingResponse(
             io.BytesIO(image_data),
             media_type='image/png',
-            headers={'Cache-Control': 'public, max-age=86400'}
+            headers={
+                'Cache-Control': 'public, max-age=86400',
+                'Content-Length': str(len(image_data))
+            }
         )
         
     except r2.exceptions.NoSuchKey:
-        raise HTTPException(status_code=404, detail=f"Image {filename} not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Image '{filename}' not found in R2. Generate global explanation from admin panel first."
+        )
     except Exception as e:
+        print(f"[ERROR] Failed to load global explanation image {filename}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load image: {str(e)}")
 
 

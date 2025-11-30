@@ -9,6 +9,11 @@ import React, { useState, useEffect } from 'react'
 interface GlobalExplanationR2Data {
   available: boolean
   narrative?: string
+  manifest?: {
+    generated_at: string
+    files: Record<string, string>
+    version: string
+  }
   dataset_summary?: {
     top_features: string[]
     feature_importance: Record<string, number>
@@ -269,19 +274,29 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
                       <strong>About these charts:</strong> These visualizations show how the model weighs different factors 
                       when making credit decisions. They are generated from real SHAP analysis of the trained model.
                     </p>
+                    {data.manifest?.generated_at && (
+                      <p className="text-xs text-blue-600 mt-2">
+                        Generated: {new Date(data.manifest.generated_at).toLocaleString()}
+                      </p>
+                    )}
                   </div>
                   
                   {/* Feature Importance Chart */}
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-semibold text-gray-800">Feature Importance</h4>
-                      <p className="text-sm text-gray-600">Which factors have the biggest impact on decisions</p>
+                      <h4 className="font-semibold text-gray-800">📊 Feature Importance</h4>
+                      <p className="text-sm text-gray-600">Which factors have the biggest impact on decisions (mean |SHAP|)</p>
                     </div>
                     <div className="p-4">
                       <img 
                         src={`${apiUrl}/api/v1/admin/global-explanation-image/feature_importance.png`}
                         alt="Feature Importance Chart"
                         className="w-full rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = '<p class="text-red-500 text-center py-8">Failed to load image. Generate global explanation from admin panel.</p>'
+                        }}
                       />
                     </div>
                   </div>
@@ -289,22 +304,57 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
                   {/* SHAP Summary Plot */}
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-semibold text-gray-800">SHAP Summary</h4>
-                      <p className="text-sm text-gray-600">How each feature affects risk (red = increases risk, blue = decreases risk)</p>
+                      <h4 className="font-semibold text-gray-800">🔴🔵 SHAP Summary</h4>
+                      <p className="text-sm text-gray-600">How each feature affects risk (red = high value, blue = low value)</p>
                     </div>
                     <div className="p-4">
                       <img 
                         src={`${apiUrl}/api/v1/admin/global-explanation-image/shap_summary.png`}
                         alt="SHAP Summary Plot"
                         className="w-full rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = '<p class="text-red-500 text-center py-8">Failed to load image.</p>'
+                        }}
                       />
                     </div>
                   </div>
 
+                  {/* Dependence Plots */}
+                  {data.manifest?.files && Object.keys(data.manifest.files).filter(f => f.startsWith('dependence_')).length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h4 className="font-semibold text-gray-800">📈 Dependence Plots</h4>
+                        <p className="text-sm text-gray-600">How individual features affect predictions</p>
+                      </div>
+                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.keys(data.manifest.files)
+                          .filter(f => f.startsWith('dependence_'))
+                          .map(filename => (
+                            <div key={filename} className="border rounded-lg overflow-hidden">
+                              <img 
+                                src={`${apiUrl}/api/v1/admin/global-explanation-image/${filename}`}
+                                alt={`Dependence plot for ${filename.replace('dependence_', '').replace('.png', '')}`}
+                                className="w-full"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.style.display = 'none'
+                                }}
+                              />
+                              <p className="text-xs text-gray-600 text-center py-1 bg-gray-50">
+                                {getDisplayName(filename.replace('dependence_', '').replace('.png', ''))}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Feature Distributions */}
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-semibold text-gray-800">Feature Distributions</h4>
+                      <h4 className="font-semibold text-gray-800">📉 Feature Distributions</h4>
                       <p className="text-sm text-gray-600">Distribution of key features in the training data</p>
                     </div>
                     <div className="p-4">
@@ -312,6 +362,11 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
                         src={`${apiUrl}/api/v1/admin/global-explanation-image/distributions.png`}
                         alt="Feature Distributions"
                         className="w-full rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = '<p class="text-red-500 text-center py-8">Failed to load image.</p>'
+                        }}
                       />
                     </div>
                   </div>
