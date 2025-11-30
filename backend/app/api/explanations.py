@@ -156,9 +156,16 @@ async def _generate_llm_narrative(request: NarrativeRequest, api_key: str) -> st
         from openai import OpenAI
         client = OpenAI(api_key=api_key)
         
-        # Get global context for the LLM
-        global_service = get_global_explanation_service()
-        global_context = global_service.get_llm_context()
+        # Get global context from R2-based explanation
+        try:
+            from app.services.global_explanation_generator import get_global_explanation_assets
+            assets = get_global_explanation_assets()
+            if assets.get("available") and assets.get("narrative"):
+                global_context = assets["narrative"]
+            else:
+                global_context = "This model analyzes credit applications based on factors like checking account status, loan duration, savings, and employment history."
+        except Exception:
+            global_context = "This model analyzes credit applications based on factors like checking account status, loan duration, savings, and employment history."
         
         # Build context from SHAP features
         positive_features = [f for f in request.shap_features if f.impact == 'positive']
