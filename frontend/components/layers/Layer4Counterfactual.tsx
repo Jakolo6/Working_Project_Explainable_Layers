@@ -615,6 +615,12 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
         
         {showSandbox && (
           <div className="p-6 border-t border-gray-100">
+            {/* Instruction */}
+            <p className="text-sm text-gray-500 mb-4 flex items-center gap-2">
+              <Info size={16} className="text-indigo-500" />
+              Change any value below — the estimated decision updates automatically.
+            </p>
+            
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               {Object.entries(FEATURE_OPTIONS).map(([featureName, config]) => {
                 const currentFeature = shapFeatures.find(f => f.feature === featureName)
@@ -688,9 +694,10 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                       setSandboxValues(initial)
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                    title="Reset all values to the applicant's original values"
                   >
                     <RefreshCw size={16} />
-                    Reset
+                    Reset to Original
                   </button>
                 </div>
               </div>
