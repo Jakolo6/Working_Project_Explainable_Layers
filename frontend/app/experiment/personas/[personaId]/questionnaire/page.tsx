@@ -1,6 +1,5 @@
 // Per-persona post-questionnaire page
 // Shown after completing all 4 layers for a persona
-// Updated: 2025-12-02
 
 'use client'
 
@@ -10,6 +9,15 @@ import Link from 'next/link'
 import { getPersona, type PersonaInfo } from '@/lib/personas'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
+
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  return [
+    { personaId: 'elderly-woman' },
+    { personaId: 'young-entrepreneur' },
+    { personaId: 'middle-aged-employee' },
+  ]
+}
 
 export default function PersonaQuestionnairePage() {
   const params = useParams()
