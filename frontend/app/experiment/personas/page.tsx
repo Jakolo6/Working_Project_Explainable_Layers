@@ -68,6 +68,7 @@ export default function PersonaSelectionPage() {
     sessionId: null,
     error: null,
   })
+  const [completedPersonas, setCompletedPersonas] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const storedSessionId = typeof window !== 'undefined' ? window.localStorage.getItem(SESSION_STORAGE_KEY) : null
@@ -75,6 +76,15 @@ export default function PersonaSelectionPage() {
       setSessionState({ status: 'invalid', sessionId: null, error: 'Session not found. Please start the experiment first.' })
       return
     }
+
+    // Check which personas are completed
+    const completed = new Set<string>()
+    PERSONAS.forEach(p => {
+      if (localStorage.getItem(`completed_${p.id}`) === 'true') {
+        completed.add(p.id)
+      }
+    })
+    setCompletedPersonas(completed)
 
     const controller = new AbortController()
 
@@ -139,8 +149,36 @@ export default function PersonaSelectionPage() {
       )
     }
 
+    const allCompleted = completedPersonas.size === PERSONAS.length
+    const completedCount = completedPersonas.size
+
     return (
       <div className="space-y-8">
+        {/* Progress indicator */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-gray-900">Your Progress</h2>
+            <span className="text-sm text-gray-600">{completedCount} of {PERSONAS.length} personas completed</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-green-500 h-3 rounded-full transition-all duration-500"
+              style={{ width: `${(completedCount / PERSONAS.length) * 100}%` }}
+            />
+          </div>
+          {allCompleted && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 font-medium mb-3">🎉 All personas completed! You can now finish the experiment.</p>
+              <Link
+                href="/experiment/complete"
+                className="inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white hover:bg-green-700 transition"
+              >
+                Continue to Final Questionnaire →
+              </Link>
+            </div>
+          )}
+        </div>
+
         <section className="rounded-xl bg-blue-50 border border-blue-200 p-8 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">🏦 You are a Bank Clerk</h2>
           <div className="space-y-3 text-gray-700">
@@ -151,36 +189,76 @@ export default function PersonaSelectionPage() {
               <strong>Your task:</strong> For each customer, you'll enter their information into the system and the AI will generate a credit decision (Approved or Rejected).
             </p>
             <p>
-              <strong>What happens next:</strong> After the AI makes its decision, you'll see 5 different explanation formats. Rate each one on trust, understanding, usefulness, and mental effort.
+              <strong>What happens next:</strong> After the AI makes its decision, you'll see 4 different explanation formats. Rate each one based on understanding, communicability, fairness, cognitive load, and reliance intention.
             </p>
           </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {PERSONAS.map((persona) => (
-            <article key={persona.id} className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <header className="mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">{persona.title}</h3>
-                <p className="mt-1 text-sm text-gray-600">{persona.subtitle}</p>
-              </header>
-              <p className="text-sm text-gray-700 flex-1">{persona.context}</p>
-              <ul className="mt-4 space-y-2 text-sm text-gray-600">
-                {persona.keyFactors.map((factor) => (
-                  <li key={factor} className="flex items-start">
-                    <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
-                    <span>{factor}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={`/experiment/personas/${persona.id}`}
-                className="mt-6 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+          {PERSONAS.map((persona) => {
+            const isCompleted = completedPersonas.has(persona.id)
+            
+            return (
+              <article 
+                key={persona.id} 
+                className={`flex flex-col rounded-xl border p-6 shadow-sm transition ${
+                  isCompleted 
+                    ? 'border-green-200 bg-green-50/50' 
+                    : 'border-gray-200 bg-white'
+                }`}
               >
-                Start with this Customer →
-              </Link>
-            </article>
-          ))}
+                <header className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-gray-900">{persona.title}</h3>
+                    {isCompleted && (
+                      <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Completed
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-gray-600">{persona.subtitle}</p>
+                </header>
+                <p className="text-sm text-gray-700 flex-1">{persona.context}</p>
+                <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                  {persona.keyFactors.map((factor) => (
+                    <li key={factor} className="flex items-start">
+                      <span className={`mt-1 mr-2 h-2 w-2 rounded-full ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}></span>
+                      <span>{factor}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/experiment/personas/${persona.id}`}
+                  className={`mt-6 inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition ${
+                    isCompleted
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isCompleted ? 'Review Again' : 'Start with this Customer'} →
+                </Link>
+              </article>
+            )
+          })}
         </div>
+
+        {/* Option to end early */}
+        {completedCount > 0 && !allCompleted && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <p className="text-amber-800 text-sm mb-3">
+              <strong>Want to finish early?</strong> You can complete the final questionnaire now, but we encourage you to try all three personas for a complete experience.
+            </p>
+            <Link
+              href="/experiment/complete"
+              className="inline-flex items-center text-amber-700 hover:text-amber-900 text-sm font-medium"
+            >
+              Skip to Final Questionnaire →
+            </Link>
+          </div>
+        )}
       </div>
     )
   }
@@ -189,8 +267,8 @@ export default function PersonaSelectionPage() {
     <main className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="mb-8">
-          <Link href="/experiment/pre" className="text-blue-600 hover:text-blue-700">
-            ← Back to Questionnaire
+          <Link href="/" className="text-blue-600 hover:text-blue-700">
+            ← Back to Home
           </Link>
           <h1 className="mt-4 text-4xl font-bold text-gray-900">Persona Exploration Hub</h1>
           <p className="mt-3 text-lg text-gray-600">
