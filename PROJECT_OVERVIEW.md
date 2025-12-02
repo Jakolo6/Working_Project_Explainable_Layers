@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md
 
 > 🎉 **PROJECT STATUS: PRODUCTION READY - CLEANED & OPTIMIZED**  
-> ✅ 4 Explanation Layers | ✅ Clean Codebase | ✅ Single Schema File  
-> 📅 Last Updated: November 30, 2025
+> ✅ 4 Explanation Layers | ✅ Clean Codebase | ✅ Updated Questionnaires  
+> 📅 Last Updated: December 2, 2025
 
 ---
 
@@ -91,16 +91,26 @@
 5. `post_questionnaires` - Post-experiment questionnaire
 
 **Data Flow:**
-1. Participant starts → `sessions`
-2. Pre-questionnaire → `pre_experiment_responses`
-3. For each persona (3 total):
+1. Consent + Baseline questionnaire → `sessions` (consent_given + Q1-Q5)
+2. For each persona (3 total):
    - Generate prediction → `predictions`
-   - Rate each layer (4 total) → `layer_ratings`
-4. Post-questionnaire → `post_questionnaires`
+   - Rate each layer (4 total) → `layer_ratings` (5 Likert items + comment)
+3. Post-questionnaire → `post_questionnaires` (Q1-Q6)
 
 ---
 
 ## 5. Experiment Design
+
+**Consent Screen:**
+- Required checkbox: "I agree and want to participate"
+- Consent stored as `consent_given` boolean
+
+**Baseline Questionnaire (before personas):**
+1. Participant Background (banking/data_analytics/student/other)
+2. Credit Experience (none/some/regular/expert)
+3. AI Familiarity (Likert 1-5)
+4. Preferred Explanation Style (technical/visual/narrative/action_oriented)
+5. Background Notes (optional free text)
 
 **3 Personas:**
 - Maria (67, retired): €4,000 home renovation
@@ -113,11 +123,21 @@
 3. Narrative Explanation
 4. Counterfactual Analysis
 
-**Rating Metrics (1-5 scale):**
-- Trust
-- Understanding
-- Usefulness
-- Mental Effort
+**Layer Rating Metrics (Likert 1-5):**
+1. Understanding - "This explanation helped me understand why the decision was made"
+2. Communicability - "I could use this explanation to communicate the decision"
+3. Perceived Fairness - "This explanation feels fair and appropriate"
+4. Cognitive Load - "I found this explanation mentally demanding"
+5. Reliance Intention - "I would rely on this explanation in a real scenario"
+6. Optional comment - "What was most/least helpful?"
+
+**Post-Experiment Questionnaire:**
+1. Most helpful layer (layer_1-4)
+2. Most trusted layer (layer_1-4)
+3. Best for customer communication (layer_1-4)
+4. Overall intuitiveness (Likert 1-5)
+5. AI usefulness for work (Likert 1-5)
+6. Improvement suggestions (optional)
 
 **Total per participant:** 3 personas × 4 layers = 12 layer ratings
 
@@ -126,8 +146,7 @@
 ## 6. API Endpoints
 
 ### Experiment Flow
-- `POST /api/v1/experiment/create_session` - Start session
-- `POST /api/v1/experiment/pre_response` - Pre-questionnaire
+- `POST /api/v1/experiment/session` - Create session with consent + baseline questions
 - `POST /api/v1/experiment/predict_persona` - Get AI prediction
 - `POST /api/v1/experiment/rate-layer` - Submit layer rating
 - `POST /api/v1/experiment/post-questionnaire` - Post-questionnaire

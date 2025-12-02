@@ -1,4 +1,4 @@
-// Registration page for starting an experiment session
+// Registration page for starting an experiment session with consent
 
 'use client'
 
@@ -6,26 +6,47 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 interface SessionForm {
-  participant_name: string
-  participant_age: string
-  participant_profession: string
-  finance_experience: 'none' | 'basic' | 'intermediate' | 'advanced'
-  ai_familiarity: 'none' | 'basic' | 'intermediate' | 'advanced'
+  participant_background: string
+  credit_experience: string
+  ai_familiarity: number
+  preferred_explanation_style: string
+  background_notes: string
 }
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 
-const financeOptions: SessionForm['finance_experience'][] = ['none', 'basic', 'intermediate', 'advanced']
-const aiOptions: SessionForm['ai_familiarity'][] = ['none', 'basic', 'intermediate', 'advanced']
+const BACKGROUND_OPTIONS = [
+  { value: 'banking', label: 'Banking / Credit / Risk / Retail Banking' },
+  { value: 'data_analytics', label: 'Data / Analytics / BI / Machine Learning' },
+  { value: 'student', label: 'Student (Business / Analytics / related fields)' },
+  { value: 'other', label: 'Other' }
+]
+
+const CREDIT_EXPERIENCE_OPTIONS = [
+  { value: 'none', label: 'None' },
+  { value: 'some', label: 'Some (case studies / projects / junior experience)' },
+  { value: 'regular', label: 'Regular part of my work' },
+  { value: 'expert', label: 'Expert level' }
+]
+
+const EXPLANATION_STYLE_OPTIONS = [
+  { value: 'technical', label: 'Technical' },
+  { value: 'visual', label: 'Visual' },
+  { value: 'narrative', label: 'Narrative' },
+  { value: 'action_oriented', label: 'Action-oriented ("what needs to change?")' }
+]
+
 const SESSION_STORAGE_KEY = 'experiment_session_id'
 
 export default function ExperimentStartPage() {
+  const [consentGiven, setConsentGiven] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<SessionForm>({
-    participant_name: '',
-    participant_age: '',
-    participant_profession: '',
-    finance_experience: 'none',
-    ai_familiarity: 'none',
+    participant_background: '',
+    credit_experience: '',
+    ai_familiarity: 0,
+    preferred_explanation_style: '',
+    background_notes: '',
   })
   const [status, setStatus] = useState<FormStatus>('idle')
   const [sessionId, setSessionId] = useState<string>('')
@@ -41,15 +62,22 @@ export default function ExperimentStartPage() {
     }
   }, [])
 
-  const handleChange = (field: keyof SessionForm) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }))
+  const handleChange = (field: keyof SessionForm) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const value = field === 'ai_familiarity' ? Number(event.target.value) : event.target.value
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleConsentContinue = () => {
+    if (consentGiven) {
+      setShowForm(true)
+    }
   }
 
   const validateForm = () => {
-    if (!form.participant_name.trim()) return 'Please enter your name.'
-    const age = Number(form.participant_age)
-    if (!Number.isFinite(age) || age < 18 || age > 100) return 'Please enter a valid age between 18 and 100.'
-    if (!form.participant_profession.trim()) return 'Please provide your current role or field.'
+    if (!form.participant_background) return 'Please select your background.'
+    if (!form.credit_experience) return 'Please select your credit experience level.'
+    if (form.ai_familiarity === 0) return 'Please rate your familiarity with AI decision systems.'
+    if (!form.preferred_explanation_style) return 'Please select your preferred explanation style.'
     return null
   }
 
@@ -70,11 +98,12 @@ export default function ExperimentStartPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          participant_name: form.participant_name.trim(),
-          participant_age: Number(form.participant_age),
-          participant_profession: form.participant_profession.trim(),
-          finance_experience: form.finance_experience,
+          consent_given: consentGiven,
+          participant_background: form.participant_background,
+          credit_experience: form.credit_experience,
           ai_familiarity: form.ai_familiarity,
+          preferred_explanation_style: form.preferred_explanation_style,
+          background_notes: form.background_notes.trim(),
         }),
       })
 
@@ -96,107 +125,169 @@ export default function ExperimentStartPage() {
     }
   }
 
+  // Consent screen
+  if (!showForm) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 py-12">
+          <div className="mb-8">
+            <Link href="/" className="text-blue-600 hover:text-blue-700">← Back to Home</Link>
+            <h1 className="text-4xl font-bold text-gray-900 mt-4 mb-3">Research Consent</h1>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8">
+              <p className="text-gray-700 leading-relaxed">
+                By participating in this study, you agree that your anonymized answers may be used for 
+                academic research within the Master's program at Nova School of Business and Economics. 
+                No personal data will be shared or attributed to you.
+              </p>
+            </div>
+
+            <label className="flex items-start gap-3 cursor-pointer mb-8">
+              <input
+                type="checkbox"
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+                className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-gray-700 font-medium">
+                I agree and want to participate
+              </span>
+            </label>
+
+            <button
+              onClick={handleConsentContinue}
+              disabled={!consentGiven}
+              className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Continue to Questionnaire →
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="mb-8">
           <Link href="/" className="text-blue-600 hover:text-blue-700">← Back to Home</Link>
-          <h1 className="text-4xl font-bold text-gray-900 mt-4 mb-3">Start Experiment Session</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mt-4 mb-3">Baseline Questionnaire</h1>
           <p className="text-lg text-gray-600">
-            Provide a few details so we can generate a participant session ID. This session ID will link
-            all questionnaire responses, predictions, and explanation feedback throughout the study.
+            Please answer these questions before viewing any AI explanations.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+          {/* Q1: Participant Background */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="participant_name">
-              Full Name
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              1. What best describes your professional background? *
             </label>
-            <input
-              id="participant_name"
-              name="participant_name"
-              type="text"
-              value={form.participant_name}
-              onChange={handleChange('participant_name')}
+            <div className="space-y-2">
+              {BACKGROUND_OPTIONS.map((option) => (
+                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="participant_background"
+                    value={option.value}
+                    checked={form.participant_background === option.value}
+                    onChange={handleChange('participant_background')}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-700">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Q2: Credit Experience */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              2. What is your experience with credit-related decision-making? *
+            </label>
+            <div className="space-y-2">
+              {CREDIT_EXPERIENCE_OPTIONS.map((option) => (
+                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="credit_experience"
+                    value={option.value}
+                    checked={form.credit_experience === option.value}
+                    onChange={handleChange('credit_experience')}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-700">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Q3: AI Familiarity (Likert 1-5) */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              3. How familiar are you with AI decision systems? *
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, ai_familiarity: value }))}
+                  className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
+                    form.ai_familiarity === value
+                      ? 'border-blue-600 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>Not familiar at all</span>
+              <span>Very familiar</span>
+            </div>
+          </div>
+
+          {/* Q4: Preferred Explanation Style */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              4. Before seeing any explanations, which style do you think you would prefer? *
+            </label>
+            <div className="space-y-2">
+              {EXPLANATION_STYLE_OPTIONS.map((option) => (
+                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="preferred_explanation_style"
+                    value={option.value}
+                    checked={form.preferred_explanation_style === option.value}
+                    onChange={handleChange('preferred_explanation_style')}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-700">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Optional: Background Notes */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="background_notes">
+              5. In one sentence: anything about your background that may influence how you interpret explanations? (Optional)
+            </label>
+            <textarea
+              id="background_notes"
+              name="background_notes"
+              rows={2}
+              value={form.background_notes}
+              onChange={handleChange('background_notes')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              placeholder="e.g., Alex Johnson"
-              required
+              placeholder="e.g., I have worked with SHAP values before..."
             />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="participant_age">
-                Age
-              </label>
-              <input
-                id="participant_age"
-                name="participant_age"
-                type="number"
-                min={18}
-                max={100}
-                value={form.participant_age}
-                onChange={handleChange('participant_age')}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="e.g., 32"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="participant_profession">
-                Current Profession / Role
-              </label>
-              <input
-                id="participant_profession"
-                name="participant_profession"
-                type="text"
-                value={form.participant_profession}
-                onChange={handleChange('participant_profession')}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="e.g., Financial analyst"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="finance_experience">
-                Banking / Finance Experience
-              </label>
-              <select
-                id="finance_experience"
-                name="finance_experience"
-                value={form.finance_experience}
-                onChange={handleChange('finance_experience')}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                {financeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="ai_familiarity">
-                Familiarity with AI Systems
-              </label>
-              <select
-                id="ai_familiarity"
-                name="ai_familiarity"
-                value={form.ai_familiarity}
-                onChange={handleChange('ai_familiarity')}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                {aiOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {errorMessage && (
@@ -208,18 +299,14 @@ export default function ExperimentStartPage() {
           {sessionId && (
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800">
               <p className="font-semibold mb-2">✓ Session created successfully!</p>
-              <p>
-                <span className="font-semibold">Session ID:</span>{' '}
-                <span className="font-mono text-green-900 bg-white px-2 py-1 rounded">{sessionId}</span>
-              </p>
               <p className="mt-3 text-gray-700">
-                Your session ID has been saved. Click below to continue to the pre-experiment questionnaire.
+                Your responses have been saved. Click below to start reviewing the credit applicants.
               </p>
               <Link
-                href="/experiment/pre"
+                href="/experiment/personas"
                 className="mt-4 inline-block w-full text-center rounded-lg bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-700 transition"
               >
-                Continue to Pre-Experiment Questionnaire →
+                Continue to Credit Applicants →
               </Link>
             </div>
           )}
@@ -234,11 +321,12 @@ export default function ExperimentStartPage() {
         </form>
 
         <div className="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-6 text-sm text-blue-800">
-          <h2 className="text-lg font-semibold text-blue-900 mb-2">Next Steps</h2>
+          <h2 className="text-lg font-semibold text-blue-900 mb-2">What's Next</h2>
           <ol className="list-decimal list-inside space-y-1">
-            <li>Copy your Session ID and store it securely.</li>
-            <li>Continue to the pre-experiment questionnaire (coming next).</li>
-            <li>Use the same Session ID for all subsequent experiment stages.</li>
+            <li>You will review 3 credit applicant profiles</li>
+            <li>For each applicant, you'll see 4 different AI explanation styles</li>
+            <li>Rate each explanation on understanding, fairness, and usefulness</li>
+            <li>Complete a short final questionnaire</li>
           </ol>
         </div>
       </div>

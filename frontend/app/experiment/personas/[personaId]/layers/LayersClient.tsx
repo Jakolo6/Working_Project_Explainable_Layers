@@ -28,10 +28,11 @@ interface PredictionData {
 }
 
 interface LayerRating {
-  trust: number
   understanding: number
-  usefulness: number
-  mental_effort: number
+  communicability: number
+  perceived_fairness: number
+  cognitive_load: number
+  reliance_intention: number
   comment: string
   time_spent_seconds: number
 }
@@ -58,10 +59,11 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const [currentLayerIndex, setCurrentLayerIndex] = useState(0)
   const [layerStartTime, setLayerStartTime] = useState(Date.now())
   const [ratings, setRatings] = useState<LayerRating>({
-    trust: 0,
     understanding: 0,
-    usefulness: 0,
-    mental_effort: 0,
+    communicability: 0,
+    perceived_fairness: 0,
+    cognitive_load: 0,
+    reliance_intention: 0,
     comment: '',
     time_spent_seconds: 0
   })
@@ -103,9 +105,10 @@ export default function LayersClient({ personaId }: LayersClientProps) {
 
   const handleSubmitRating = async () => {
     // Validate ratings
-    if (ratings.trust === 0 || ratings.understanding === 0 || 
-        ratings.usefulness === 0 || ratings.mental_effort === 0) {
-      setError('Please rate all four dimensions before continuing.')
+    if (ratings.understanding === 0 || ratings.communicability === 0 || 
+        ratings.perceived_fairness === 0 || ratings.cognitive_load === 0 ||
+        ratings.reliance_intention === 0) {
+      setError('Please rate all five dimensions before continuing.')
       return
     }
 
@@ -124,10 +127,11 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           persona_id: personaId,
           layer_number: currentLayerIndex + 1,
           layer_name: LAYER_NAMES[currentLayerIndex],
-          trust_rating: ratings.trust,
           understanding_rating: ratings.understanding,
-          usefulness_rating: ratings.usefulness,
-          mental_effort_rating: ratings.mental_effort,
+          communicability_rating: ratings.communicability,
+          perceived_fairness_rating: ratings.perceived_fairness,
+          cognitive_load_rating: ratings.cognitive_load,
+          reliance_intention_rating: ratings.reliance_intention,
           comment: ratings.comment,
           time_spent_seconds: timeSpent
         })
@@ -142,10 +146,11 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         setCurrentLayerIndex(currentLayerIndex + 1)
         setLayerStartTime(Date.now())
         setRatings({
-          trust: 0,
           understanding: 0,
-          usefulness: 0,
-          mental_effort: 0,
+          communicability: 0,
+          perceived_fairness: 0,
+          cognitive_load: 0,
+          reliance_intention: 0,
           comment: '',
           time_spent_seconds: 0
         })
@@ -289,36 +294,10 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           )}
 
           <div className="space-y-6">
-            {/* Trust Rating */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                1. How much do you trust this explanation? *
-              </label>
-              <div className="flex gap-4">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleRatingChange('trust', value)}
-                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                      ratings.trust === value
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Not at all</span>
-                <span>Completely</span>
-              </div>
-            </div>
-
             {/* Understanding Rating */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                2. How well do you understand the AI's decision? *
+                1. This explanation helped me understand why the decision was made. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
@@ -336,23 +315,23 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Not at all</span>
-                <span>Completely</span>
+                <span>Strongly disagree</span>
+                <span>Strongly agree</span>
               </div>
             </div>
 
-            {/* Usefulness Rating */}
+            {/* Communicability Rating */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                3. How useful is this explanation for your work? *
+                2. I could use this explanation to communicate the decision to an applicant or stakeholder. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
-                    onClick={() => handleRatingChange('usefulness', value)}
+                    onClick={() => handleRatingChange('communicability', value)}
                     className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                      ratings.usefulness === value
+                      ratings.communicability === value
                         ? 'border-blue-600 bg-blue-50 text-blue-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
                     }`}
@@ -362,23 +341,23 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Not useful</span>
-                <span>Very useful</span>
+                <span>Strongly disagree</span>
+                <span>Strongly agree</span>
               </div>
             </div>
 
-            {/* Mental Effort Rating */}
+            {/* Perceived Fairness Rating */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                4. How much mental effort did it take to understand? *
+                3. This explanation feels fair and appropriate toward the applicant. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
-                    onClick={() => handleRatingChange('mental_effort', value)}
+                    onClick={() => handleRatingChange('perceived_fairness', value)}
                     className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                      ratings.mental_effort === value
+                      ratings.perceived_fairness === value
                         ? 'border-blue-600 bg-blue-50 text-blue-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
                     }`}
@@ -388,22 +367,74 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Very easy</span>
-                <span>Very difficult</span>
+                <span>Strongly disagree</span>
+                <span>Strongly agree</span>
+              </div>
+            </div>
+
+            {/* Cognitive Load Rating */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                4. I found this explanation mentally demanding. *
+              </label>
+              <div className="flex gap-4">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => handleRatingChange('cognitive_load', value)}
+                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
+                      ratings.cognitive_load === value
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Strongly disagree</span>
+                <span>Strongly agree</span>
+              </div>
+            </div>
+
+            {/* Reliance Intention Rating */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                5. I would rely on this explanation in a real scenario. *
+              </label>
+              <div className="flex gap-4">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => handleRatingChange('reliance_intention', value)}
+                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
+                      ratings.reliance_intention === value
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Strongly disagree</span>
+                <span>Strongly agree</span>
               </div>
             </div>
 
             {/* Optional Comment */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                5. Any additional comments? (Optional)
+                6. What was the most helpful or least helpful aspect of this explanation? (Optional)
               </label>
               <textarea
                 value={ratings.comment}
                 onChange={(e) => handleRatingChange('comment', e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                rows={4}
-                placeholder="Share any thoughts about this explanation..."
+                rows={3}
+                placeholder="Share what worked well or what could be improved..."
               />
             </div>
 

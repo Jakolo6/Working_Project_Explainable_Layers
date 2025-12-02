@@ -16,11 +16,12 @@ export default function CompletePage() {
   const [submitted, setSubmitted] = useState(false)
   
   const [responses, setResponses] = useState({
-    overall_experience: 0,
-    explanation_helpfulness: 0,
-    preferred_layer: '',
-    would_trust_ai: 0,
-    comments: ''
+    most_helpful_layer: '',
+    most_trusted_layer: '',
+    best_for_customer: '',
+    overall_intuitiveness: 0,
+    ai_usefulness: 0,
+    improvement_suggestions: ''
   })
 
   useEffect(() => {
@@ -39,8 +40,9 @@ export default function CompletePage() {
 
   const handleSubmit = async () => {
     // Validate required fields
-    if (responses.overall_experience === 0 || responses.explanation_helpfulness === 0 || 
-        responses.would_trust_ai === 0 || !responses.preferred_layer) {
+    if (!responses.most_helpful_layer || !responses.most_trusted_layer || 
+        !responses.best_for_customer || responses.overall_intuitiveness === 0 ||
+        responses.ai_usefulness === 0) {
       setError('Please answer all required questions')
       return
     }
@@ -137,18 +139,100 @@ export default function CompletePage() {
           )}
 
           <div className="space-y-8">
-            {/* Question 1: Overall Experience */}
+            {/* Question 1: Most Helpful Layer */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                1. How would you rate your overall experience with this study? *
+                1. Which explanation layer was overall the most helpful for you? *
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: 'layer_1', label: 'Layer 1: Baseline SHAP Explanation (technical table)' },
+                  { value: 'layer_2', label: 'Layer 2: Interactive Dashboard (visual charts)' },
+                  { value: 'layer_3', label: 'Layer 3: Narrative Explanation (natural language + chatbot)' },
+                  { value: 'layer_4', label: 'Layer 4: Counterfactual Analysis (what-if scenarios)' }
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="most_helpful_layer"
+                      value={option.value}
+                      checked={responses.most_helpful_layer === option.value}
+                      onChange={(e) => handleResponseChange('most_helpful_layer', e.target.value)}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Question 2: Most Trusted Layer */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                2. Which explanation layer did you trust the most? *
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: 'layer_1', label: 'Layer 1: Baseline SHAP Explanation' },
+                  { value: 'layer_2', label: 'Layer 2: Interactive Dashboard' },
+                  { value: 'layer_3', label: 'Layer 3: Narrative Explanation' },
+                  { value: 'layer_4', label: 'Layer 4: Counterfactual Analysis' }
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="most_trusted_layer"
+                      value={option.value}
+                      checked={responses.most_trusted_layer === option.value}
+                      onChange={(e) => handleResponseChange('most_trusted_layer', e.target.value)}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Question 3: Best for Customer Communication */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                3. Which explanation layer would be most suitable for communicating with a customer? *
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: 'layer_1', label: 'Layer 1: Baseline SHAP Explanation' },
+                  { value: 'layer_2', label: 'Layer 2: Interactive Dashboard' },
+                  { value: 'layer_3', label: 'Layer 3: Narrative Explanation' },
+                  { value: 'layer_4', label: 'Layer 4: Counterfactual Analysis' }
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="best_for_customer"
+                      value={option.value}
+                      checked={responses.best_for_customer === option.value}
+                      onChange={(e) => handleResponseChange('best_for_customer', e.target.value)}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Question 4: Overall Intuitiveness */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                4. Across all personas and layers, how intuitive were the explanations overall? *
               </label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
-                    onClick={() => handleResponseChange('overall_experience', value)}
+                    type="button"
+                    onClick={() => handleResponseChange('overall_intuitiveness', value)}
                     className={`flex-1 py-3 rounded-lg border-2 transition ${
-                      responses.overall_experience === value
+                      responses.overall_intuitiveness === value
                         ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
@@ -158,23 +242,24 @@ export default function CompletePage() {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-                <span>Very poor</span>
-                <span>Excellent</span>
+                <span>Not intuitive at all</span>
+                <span>Very intuitive</span>
               </div>
             </div>
 
-            {/* Question 2: Explanation Helpfulness */}
+            {/* Question 5: AI Usefulness */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                2. How helpful were the different explanation styles in understanding the AI decisions? *
+                5. How useful would an AI explanation assistant be in your work or future work? *
               </label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
-                    onClick={() => handleResponseChange('explanation_helpfulness', value)}
+                    type="button"
+                    onClick={() => handleResponseChange('ai_usefulness', value)}
                     className={`flex-1 py-3 rounded-lg border-2 transition ${
-                      responses.explanation_helpfulness === value
+                      responses.ai_usefulness === value
                         ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
@@ -184,67 +269,22 @@ export default function CompletePage() {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-                <span>Not helpful</span>
-                <span>Very helpful</span>
+                <span>Not useful at all</span>
+                <span>Extremely useful</span>
               </div>
             </div>
 
-            {/* Question 3: Preferred Layer */}
+            {/* Question 6: Improvement Suggestions */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                3. Which explanation style did you find most useful? *
-              </label>
-              <select
-                value={responses.preferred_layer}
-                onChange={(e) => handleResponseChange('preferred_layer', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select an explanation style...</option>
-                <option value="Minimal">Minimal (single key factor)</option>
-                <option value="Feature Importance">Feature Importance (natural language summary)</option>
-                <option value="Detailed SHAP">Detailed SHAP (visual bar chart)</option>
-                <option value="Visual">Visual (contextual benchmarking)</option>
-                <option value="Counterfactual">Counterfactual (what-if scenarios)</option>
-              </select>
-            </div>
-
-            {/* Question 4: Trust in AI */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                4. After this experience, how likely would you be to trust AI-assisted credit decisions in real banking? *
-              </label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleResponseChange('would_trust_ai', value)}
-                    className={`flex-1 py-3 rounded-lg border-2 transition ${
-                      responses.would_trust_ai === value
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-                <span>Very unlikely</span>
-                <span>Very likely</span>
-              </div>
-            </div>
-
-            {/* Question 5: Additional Comments */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                5. Any additional comments or feedback? (Optional)
+                6. What would most improve this explanation system for real-world use? (Optional)
               </label>
               <textarea
-                value={responses.comments}
-                onChange={(e) => handleResponseChange('comments', e.target.value)}
+                value={responses.improvement_suggestions}
+                onChange={(e) => handleResponseChange('improvement_suggestions', e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 rows={4}
-                placeholder="Share any thoughts about the study, the explanations, or your experience..."
+                placeholder="Share your suggestions for improving the system..."
               />
             </div>
           </div>

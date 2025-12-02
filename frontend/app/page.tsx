@@ -1,147 +1,169 @@
-// Landing page - Introduction to the research platform
+// Landing page - Experiment participant welcome page
 
 import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Explainable AI in Financial Services
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      
+      {/* ============================================ */}
+      {/* 1. HERO SECTION */}
+      {/* ============================================ */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 py-16 md:py-24 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
+            Help Shape the Future of AI Transparency in Banking
           </h1>
-          <p className="text-xl text-gray-600 mb-2">
-            A Master's Thesis Research Platform
+          <p className="text-lg md:text-xl text-blue-100 mb-8">
+            A Master's Thesis Research Experiment by <strong>Nova SBE</strong> × <strong>zeb Consulting</strong>
           </p>
-          <p className="text-lg text-gray-500">
-            Nova School of Business and Economics × zeb Consulting
+          
+          <Link 
+            href="/experiment/start"
+            className="inline-block bg-white text-blue-700 px-10 py-4 rounded-xl hover:bg-blue-50 transition font-bold text-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            Start Experiment
+          </Link>
+          
+          <p className="mt-6 text-blue-200 text-sm">
+            <span className="inline-flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Time required: Approx. 10 minutes
+            </span>
+            <span className="mx-3">•</span>
+            <span>No technical expertise required</span>
+            <span className="mx-3">•</span>
+            <span>Mobile or Desktop</span>
           </p>
         </div>
+      </section>
 
-        {/* Project Overview */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">About This Study</h2>
-          <p className="text-lg text-gray-700 mb-4">
-            This research investigates how different explanation styles affect understanding and trust 
-            in AI-based credit decisions. As AI systems become increasingly prevalent in financial services, 
-            it's crucial to understand how to communicate their decisions effectively to both professionals 
-            and customers.
-          </p>
-          <p className="text-lg text-gray-700">
-            You will interact with a real credit scoring AI system, see multiple explanation formats, 
-            and share your perspectives on what helps you understand and trust these decisions.
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        
+        {/* ============================================ */}
+        {/* 2. THE CONTEXT - What & Why */}
+        {/* ============================================ */}
+        <section className="mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+            The Research Challenge
+          </h2>
+          
+          <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
+            <p>
+              Artificial Intelligence is increasingly deciding who gets approved for a loan and who 
+              gets rejected. But these AI models are often <strong>"black boxes"</strong>—complex 
+              systems that are hard for humans to understand.
+            </p>
+            <p>
+              My Master's Thesis asks a simple question: <em>Which type of explanation helps humans 
+              best understand, trust, and work with these AI decisions?</em>
+            </p>
+            <p>
+              I am comparing <strong>four different ways</strong> of explaining AI decisions—from 
+              technical data tables to conversational chatbots—to see which one works best for 
+              people like you.
+            </p>
+          </div>
+        </section>
 
-        {/* What You'll Do */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">What You'll Do</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                1
+        {/* ============================================ */}
+        {/* 3. HOW IT WORKS - The "How" */}
+        {/* ============================================ */}
+        <section className="mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+            Your Role in the Experiment
+          </h2>
+          
+          <div className="space-y-8">
+            {/* Step 1 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  1
+                </div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Learn About the System</h3>
-                <p className="text-gray-600">
-                  Understand the dataset and AI model used for credit decisions.
+                <h3 className="font-bold text-xl text-gray-900 mb-2">The Setup</h3>
+                <p className="text-gray-600 text-lg">
+                  You will step into the shoes of a <strong>Credit Analyst</strong>. You will review 
+                  3 loan applications with different risk profiles.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                2
+            {/* Step 2 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  2
+                </div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Test the System</h3>
-                <p className="text-gray-600">
-                  Process credit applications for three different personas.
+                <h3 className="font-bold text-xl text-gray-900 mb-2">The Explanations</h3>
+                <p className="text-gray-600 text-lg">
+                  For each applicant, our AI will make a recommendation. You will see <strong>4 different 
+                  explanation styles</strong> showing why the AI made that choice.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                3
+            {/* Step 3 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  3
+                </div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Explore Explanations</h3>
-                <p className="text-gray-600">
-                  See four different explanation styles for each decision.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                4
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Share Your Insights</h3>
-                <p className="text-gray-600">
-                  Reflect on what helped you understand and trust the AI.
+                <h3 className="font-bold text-xl text-gray-900 mb-2">Your Feedback</h3>
+                <p className="text-gray-600 text-lg">
+                  After viewing each style, you will briefly rate it based on <strong>Understanding</strong>, 
+                  <strong> Fairness</strong>, and <strong>Usefulness</strong>.
                 </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Ethics & Consent */}
-        <div className="bg-blue-50 rounded-xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Ethics & Consent</h2>
-          <ul className="space-y-2 text-gray-700">
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">✓</span>
-              <span>Your responses are completely anonymous</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">✓</span>
-              <span>Participation is voluntary and you can stop at any time</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">✓</span>
-              <span>Data is used solely for academic research purposes</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-2">✓</span>
-              <span>All data handling complies with GDPR principles</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link 
-            href="/dataset"
-            className="bg-gray-600 text-white px-8 py-4 rounded-lg hover:bg-gray-700 transition font-semibold text-lg"
-          >
-            Learn About the Data
-          </Link>
-          <Link 
-            href="/model"
-            className="bg-gray-600 text-white px-8 py-4 rounded-lg hover:bg-gray-700 transition font-semibold text-lg"
-          >
-            Understand the Model
-          </Link>
+        {/* CTA Button - Middle */}
+        <div className="text-center mb-12">
           <Link 
             href="/experiment/start"
-            className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg shadow-lg"
+            className="inline-block bg-blue-600 text-white px-10 py-4 rounded-xl hover:bg-blue-700 transition font-bold text-xl shadow-lg"
           >
             Start Experiment →
           </Link>
         </div>
 
-        {/* Footer Links */}
-        <div className="text-center mt-12 text-gray-600">
-          <Link href="/about" className="hover:text-blue-600 transition">
-            About This Research
-          </Link>
-          <span className="mx-4">•</span>
-          <Link href="/results" className="hover:text-blue-600 transition">
-            View Results (Researcher)
-          </Link>
+        {/* ============================================ */}
+        {/* 4. FOR THE CURIOUS - Optional Context */}
+        {/* ============================================ */}
+        <section className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            Curious about the tech? <span className="text-gray-500 font-normal">(Optional)</span>
+          </h2>
+          <p className="text-gray-600 mb-4">
+            If you are interested in how this platform was built, you are welcome to explore 
+            the <Link href="/process" className="text-blue-600 hover:underline font-medium">Process</Link>, 
+            <Link href="/dataset" className="text-blue-600 hover:underline font-medium"> Dataset</Link>, and 
+            <Link href="/model" className="text-blue-600 hover:underline font-medium"> Model</Link> pages.
+          </p>
+          <p className="text-gray-500 text-sm italic">
+            Note: This is completely optional. You do not need to review these technical details 
+            to participate in the experiment.
+          </p>
+        </section>
+
+        {/* Footer */}
+        <div className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+          <p>
+            Questions? Contact the researcher at{' '}
+            <a href="mailto:jakob.lindner@novasbe.pt" className="text-blue-600 hover:underline">
+              jakob.lindner@novasbe.pt
+            </a>
+          </p>
         </div>
       </div>
     </main>

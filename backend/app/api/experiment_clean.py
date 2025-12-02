@@ -101,12 +101,13 @@ class PredictionResponse(BaseModel):
 
 
 class SessionCreate(BaseModel):
-    """Create new experiment session"""
-    participant_name: str
-    participant_age: int
-    participant_profession: str
-    finance_experience: str
-    ai_familiarity: str
+    """Create new experiment session with consent and baseline questions"""
+    consent_given: bool
+    participant_background: str  # banking, data_analytics, student, other
+    credit_experience: str  # none, some, regular, expert
+    ai_familiarity: int  # Likert 1-5
+    preferred_explanation_style: str  # technical, visual, narrative, action_oriented
+    background_notes: Optional[str] = ''
 
 
 class SessionResponse(BaseModel):
@@ -129,11 +130,12 @@ class LayerRating(BaseModel):
 class PostQuestionnaire(BaseModel):
     """Post-experiment questionnaire"""
     session_id: str
-    overall_experience: int = Field(..., ge=1, le=7)
-    explanation_helpfulness: int = Field(..., ge=1, le=7)
-    would_trust_ai: int = Field(..., ge=1, le=7)
-    preferred_layer: str
-    comments: Optional[str] = None
+    most_helpful_layer: str  # layer_1, layer_2, layer_3, layer_4
+    most_trusted_layer: str  # layer_1, layer_2, layer_3, layer_4
+    best_for_customer: str  # layer_1, layer_2, layer_3, layer_4
+    overall_intuitiveness: int = Field(..., ge=1, le=5)
+    ai_usefulness: int = Field(..., ge=1, le=5)
+    improvement_suggestions: Optional[str] = ''
 
 
 class PreExperimentResponse(BaseModel):
@@ -164,11 +166,12 @@ async def create_session(session_data: SessionCreate):
         
         session_record = {
             'session_id': session_id,
-            'participant_name': session_data.participant_name,
-            'participant_age': session_data.participant_age,
-            'participant_profession': session_data.participant_profession,
-            'finance_experience': session_data.finance_experience,
+            'consent_given': session_data.consent_given,
+            'participant_background': session_data.participant_background,
+            'credit_experience': session_data.credit_experience,
             'ai_familiarity': session_data.ai_familiarity,
+            'preferred_explanation_style': session_data.preferred_explanation_style,
+            'background_notes': session_data.background_notes or '',
             'created_at': datetime.utcnow().isoformat(),
             'completed': False
         }
@@ -361,10 +364,11 @@ async def rate_explanation_layer(request: dict):
             'persona_id': request.get('persona_id'),
             'layer_number': request.get('layer_number'),
             'layer_name': request.get('layer_name'),
-            'trust_rating': int(request.get('trust_rating', 0)),
             'understanding_rating': int(request.get('understanding_rating', 0)),
-            'usefulness_rating': int(request.get('usefulness_rating', 0)),
-            'mental_effort_rating': int(request.get('mental_effort_rating', 0)),
+            'communicability_rating': int(request.get('communicability_rating', 0)),
+            'perceived_fairness_rating': int(request.get('perceived_fairness_rating', 0)),
+            'cognitive_load_rating': int(request.get('cognitive_load_rating', 0)),
+            'reliance_intention_rating': int(request.get('reliance_intention_rating', 0)),
             'comment': request.get('comment', ''),
             'time_spent_seconds': int(request.get('time_spent_seconds', 0))
         }
@@ -399,12 +403,12 @@ async def submit_post_questionnaire(questionnaire: PostQuestionnaire):
         
         questionnaire_record = {
             'session_id': questionnaire.session_id,
-            'overall_experience': questionnaire.overall_experience,
-            'explanation_helpfulness': questionnaire.explanation_helpfulness,
-            'would_trust_ai': questionnaire.would_trust_ai,
-            'preferred_layer': questionnaire.preferred_layer,
-            'comments': questionnaire.comments,
-            'submitted_at': datetime.utcnow().isoformat()
+            'most_helpful_layer': questionnaire.most_helpful_layer,
+            'most_trusted_layer': questionnaire.most_trusted_layer,
+            'best_for_customer': questionnaire.best_for_customer,
+            'overall_intuitiveness': questionnaire.overall_intuitiveness,
+            'ai_usefulness': questionnaire.ai_usefulness,
+            'improvement_suggestions': questionnaire.improvement_suggestions or ''
         }
         
         result = db.store_post_questionnaire(questionnaire_record)

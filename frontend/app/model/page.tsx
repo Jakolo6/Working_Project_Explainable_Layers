@@ -358,18 +358,26 @@ export default function ModelPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">XGBoost Model</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <MetricCard label="Accuracy" value={metrics.xgboost.accuracy} />
-              <MetricCard label="ROC-AUC Score" value={metrics.xgboost.auc_roc} />
-              <MetricCard label="Precision" value={metrics.xgboost.precision} />
-              <MetricCard label="Recall" value={metrics.xgboost.recall} />
-              <MetricCard label="F1 Score" value={metrics.xgboost.f1_score} />
-              <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
-              <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
-              <MetricCard label="Features" value={metrics.features.total_features} format="number" />
+              <MetricCard label="Accuracy" value={metrics.xgboost.accuracy || 0} />
+              <MetricCard label="ROC-AUC Score" value={metrics.xgboost.auc_roc || 0} />
+              <MetricCard label="Precision" value={metrics.xgboost.precision || 0} />
+              <MetricCard label="Recall" value={metrics.xgboost.recall || 0} />
+              <MetricCard label="F1 Score" value={metrics.xgboost.f1_score || 0} />
+              {metrics.training_info?.train_samples && (
+                <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
+              )}
+              {metrics.training_info?.test_samples && (
+                <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
+              )}
+              {metrics.features?.total_features && (
+                <MetricCard label="Features" value={metrics.features.total_features} format="number" />
+              )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <ConfusionMatrix matrix={metrics.xgboost.confusion_matrix} />
+              {metrics.xgboost.confusion_matrix && (
+                <ConfusionMatrix matrix={metrics.xgboost.confusion_matrix} />
+              )}
               <CostAnalysis metrics={metrics.xgboost} />
             </div>
 
@@ -391,18 +399,26 @@ export default function ModelPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Logistic Regression Model</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <MetricCard label="Accuracy" value={metrics.logistic_regression.accuracy} />
-              <MetricCard label="ROC-AUC Score" value={metrics.logistic_regression.auc_roc} />
-              <MetricCard label="Precision" value={metrics.logistic_regression.precision} />
-              <MetricCard label="Recall" value={metrics.logistic_regression.recall} />
-              <MetricCard label="F1 Score" value={metrics.logistic_regression.f1_score} />
-              <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
-              <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
-              <MetricCard label="Features" value={metrics.features.total_features} format="number" />
+              <MetricCard label="Accuracy" value={metrics.logistic_regression.accuracy || 0} />
+              <MetricCard label="ROC-AUC Score" value={metrics.logistic_regression.auc_roc || 0} />
+              <MetricCard label="Precision" value={metrics.logistic_regression.precision || 0} />
+              <MetricCard label="Recall" value={metrics.logistic_regression.recall || 0} />
+              <MetricCard label="F1 Score" value={metrics.logistic_regression.f1_score || 0} />
+              {metrics.training_info?.train_samples && (
+                <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
+              )}
+              {metrics.training_info?.test_samples && (
+                <MetricCard label="Test Size" value={metrics.training_info.test_samples} format="number" />
+              )}
+              {metrics.features?.total_features && (
+                <MetricCard label="Features" value={metrics.features.total_features} format="number" />
+              )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <ConfusionMatrix matrix={metrics.logistic_regression.confusion_matrix} />
+              {metrics.logistic_regression.confusion_matrix && (
+                <ConfusionMatrix matrix={metrics.logistic_regression.confusion_matrix} />
+              )}
               <CostAnalysis metrics={metrics.logistic_regression} />
             </div>
 

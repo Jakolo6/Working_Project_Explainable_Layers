@@ -10,26 +10,38 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================================
--- 1. SESSIONS TABLE (Parent table - stores participant info)
+-- 1. SESSIONS TABLE (Parent table - stores participant info + baseline questions)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS sessions (
     session_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    participant_name TEXT NOT NULL,
-    participant_age INTEGER CHECK (participant_age >= 18 AND participant_age <= 100),
-    participant_profession TEXT,
-    finance_experience TEXT CHECK (finance_experience IN ('none', 'basic', 'intermediate', 'advanced')),
-    ai_familiarity TEXT CHECK (ai_familiarity IN ('none', 'basic', 'intermediate', 'advanced')),
+    -- Consent
+    consent_given BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Baseline Questions (Q1-Q5)
+    participant_background TEXT CHECK (participant_background IN ('banking', 'data_analytics', 'student', 'other')),
+    credit_experience TEXT CHECK (credit_experience IN ('none', 'some', 'regular', 'expert')),
+    ai_familiarity INTEGER CHECK (ai_familiarity >= 1 AND ai_familiarity <= 5),
+    preferred_explanation_style TEXT CHECK (preferred_explanation_style IN ('technical', 'visual', 'narrative', 'action_oriented')),
+    background_notes TEXT DEFAULT '',
+    -- Session status
     completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMP WITH TIME ZONE,
     metadata JSONB
 );
 
-COMMENT ON TABLE sessions IS 'Stores participant information and session metadata';
+COMMENT ON TABLE sessions IS 'Stores consent, baseline questionnaire, and session metadata';
+COMMENT ON COLUMN sessions.consent_given IS 'Required consent for research participation';
+COMMENT ON COLUMN sessions.participant_background IS 'Q1: banking, data_analytics, student, other';
+COMMENT ON COLUMN sessions.credit_experience IS 'Q2: none, some, regular, expert';
+COMMENT ON COLUMN sessions.ai_familiarity IS 'Q3: Likert 1-5';
+COMMENT ON COLUMN sessions.preferred_explanation_style IS 'Q4: technical, visual, narrative, action_oriented';
+COMMENT ON COLUMN sessions.background_notes IS 'Q5: Optional free text';
 
 -- ============================================================================
--- 2. PRE-EXPERIMENT QUESTIONNAIRE
+-- 2. PRE-EXPERIMENT QUESTIONNAIRE (DEPRECATED - merged into sessions table)
 -- ============================================================================
+-- Note: Baseline questions are now stored directly in the sessions table.
+-- This table is kept for backward compatibility but should not be used for new data.
 CREATE TABLE IF NOT EXISTS pre_experiment_responses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
@@ -39,7 +51,7 @@ CREATE TABLE IF NOT EXISTS pre_experiment_responses (
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-COMMENT ON TABLE pre_experiment_responses IS 'Captures participant expectations before AI exposure';
+COMMENT ON TABLE pre_experiment_responses IS 'DEPRECATED: Baseline questions now in sessions table';
 
 -- ============================================================================
 -- 3. PREDICTIONS TABLE (Stores AI decisions for each persona)
@@ -73,10 +85,12 @@ CREATE TABLE IF NOT EXISTS layer_ratings (
     persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
     layer_number INTEGER NOT NULL CHECK (layer_number >= 1 AND layer_number <= 4),
     layer_name TEXT NOT NULL,
-    trust_rating INTEGER NOT NULL CHECK (trust_rating >= 1 AND trust_rating <= 5),
+    -- New rating dimensions (all Likert 1-5)
     understanding_rating INTEGER NOT NULL CHECK (understanding_rating >= 1 AND understanding_rating <= 5),
-    usefulness_rating INTEGER NOT NULL CHECK (usefulness_rating >= 1 AND usefulness_rating <= 5),
-    mental_effort_rating INTEGER NOT NULL CHECK (mental_effort_rating >= 1 AND mental_effort_rating <= 5),
+    communicability_rating INTEGER NOT NULL CHECK (communicability_rating >= 1 AND communicability_rating <= 5),
+    perceived_fairness_rating INTEGER NOT NULL CHECK (perceived_fairness_rating >= 1 AND perceived_fairness_rating <= 5),
+    cognitive_load_rating INTEGER NOT NULL CHECK (cognitive_load_rating >= 1 AND cognitive_load_rating <= 5),
+    reliance_intention_rating INTEGER NOT NULL CHECK (reliance_intention_rating >= 1 AND reliance_intention_rating <= 5),
     comment TEXT DEFAULT '',
     time_spent_seconds INTEGER NOT NULL CHECK (time_spent_seconds >= 0),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -84,10 +98,11 @@ CREATE TABLE IF NOT EXISTS layer_ratings (
 
 COMMENT ON TABLE layer_ratings IS 'Stores participant ratings for each explanation layer (4 layers × 3 personas = 12 ratings per participant)';
 COMMENT ON COLUMN layer_ratings.layer_name IS 'Layer names: Baseline SHAP Explanation, Interactive Dashboard, Narrative Explanation, Counterfactual Analysis';
-COMMENT ON COLUMN layer_ratings.trust_rating IS '1=Not at all, 5=Completely';
-COMMENT ON COLUMN layer_ratings.understanding_rating IS '1=Not at all, 5=Completely';
-COMMENT ON COLUMN layer_ratings.usefulness_rating IS '1=Not useful, 5=Very useful';
-COMMENT ON COLUMN layer_ratings.mental_effort_rating IS '1=Very easy, 5=Very difficult';
+COMMENT ON COLUMN layer_ratings.understanding_rating IS 'This explanation helped me understand why the decision was made (1-5)';
+COMMENT ON COLUMN layer_ratings.communicability_rating IS 'I could use this explanation to communicate the decision (1-5)';
+COMMENT ON COLUMN layer_ratings.perceived_fairness_rating IS 'This explanation feels fair and appropriate (1-5)';
+COMMENT ON COLUMN layer_ratings.cognitive_load_rating IS 'I found this explanation mentally demanding (1-5)';
+COMMENT ON COLUMN layer_ratings.reliance_intention_rating IS 'I would rely on this explanation in a real scenario (1-5)';
 
 -- ============================================================================
 -- 5. POST-EXPERIMENT QUESTIONNAIRE
@@ -95,15 +110,25 @@ COMMENT ON COLUMN layer_ratings.mental_effort_rating IS '1=Very easy, 5=Very dif
 CREATE TABLE IF NOT EXISTS post_questionnaires (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    overall_experience INTEGER NOT NULL CHECK (overall_experience >= 1 AND overall_experience <= 5),
-    explanation_helpfulness INTEGER NOT NULL CHECK (explanation_helpfulness >= 1 AND explanation_helpfulness <= 5),
-    preferred_layer TEXT NOT NULL,
-    would_trust_ai INTEGER NOT NULL CHECK (would_trust_ai >= 1 AND would_trust_ai <= 5),
-    comments TEXT DEFAULT '',
+    -- Q1-Q3: Layer preference questions
+    most_helpful_layer TEXT NOT NULL CHECK (most_helpful_layer IN ('layer_1', 'layer_2', 'layer_3', 'layer_4')),
+    most_trusted_layer TEXT NOT NULL CHECK (most_trusted_layer IN ('layer_1', 'layer_2', 'layer_3', 'layer_4')),
+    best_for_customer TEXT NOT NULL CHECK (best_for_customer IN ('layer_1', 'layer_2', 'layer_3', 'layer_4')),
+    -- Q4-Q5: Likert ratings
+    overall_intuitiveness INTEGER NOT NULL CHECK (overall_intuitiveness >= 1 AND overall_intuitiveness <= 5),
+    ai_usefulness INTEGER NOT NULL CHECK (ai_usefulness >= 1 AND ai_usefulness <= 5),
+    -- Q6: Optional text
+    improvement_suggestions TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE post_questionnaires IS 'Stores post-experiment questionnaire responses (1 per participant)';
+COMMENT ON COLUMN post_questionnaires.most_helpful_layer IS 'Q1: Which layer was most helpful';
+COMMENT ON COLUMN post_questionnaires.most_trusted_layer IS 'Q2: Which layer was most trusted';
+COMMENT ON COLUMN post_questionnaires.best_for_customer IS 'Q3: Which layer best for customer communication';
+COMMENT ON COLUMN post_questionnaires.overall_intuitiveness IS 'Q4: How intuitive were explanations overall (1-5)';
+COMMENT ON COLUMN post_questionnaires.ai_usefulness IS 'Q5: How useful would AI assistant be (1-5)';
+COMMENT ON COLUMN post_questionnaires.improvement_suggestions IS 'Q6: Optional improvement suggestions';
 
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
@@ -159,19 +184,17 @@ CREATE POLICY "Allow all operations on post_questionnaires" ON post_questionnair
 -- ============================================================================
 -- DATA FLOW SUMMARY
 -- ============================================================================
--- 1. Participant starts → INSERT into sessions
--- 2. Pre-questionnaire → INSERT into pre_experiment_responses
--- 3. For each persona (3 total):
+-- 1. Consent + Baseline questionnaire → INSERT into sessions (consent_given, Q1-Q5)
+-- 2. For each persona (3 total):
 --    a. Generate prediction → INSERT into predictions
 --    b. For each layer (4 total):
 --       - Show explanation layer
---       - Collect ratings → INSERT into layer_ratings
--- 4. Post-questionnaire → INSERT into post_questionnaires
--- 5. Mark session complete → UPDATE sessions SET completed = TRUE
+--       - Collect ratings → INSERT into layer_ratings (5 Likert items + optional comment)
+-- 3. Post-questionnaire → INSERT into post_questionnaires (Q1-Q6)
+-- 4. Mark session complete → UPDATE sessions SET completed = TRUE
 --
 -- Total records per participant:
--- - 1 session
--- - 1 pre_experiment_response
+-- - 1 session (with consent + baseline)
 -- - 3 predictions (one per persona)
 -- - 12 layer_ratings (4 layers × 3 personas)
 -- - 1 post_questionnaire
