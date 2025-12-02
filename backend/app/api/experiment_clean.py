@@ -118,8 +118,9 @@ class SessionResponse(BaseModel):
 
 
 class PostQuestionnaire(BaseModel):
-    """Post-experiment questionnaire - submitted after all personas completed"""
+    """Post-experiment questionnaire - submitted after EACH persona"""
     session_id: str
+    persona_id: str  # elderly-woman, young-entrepreneur, middle-aged-employee
     most_helpful_layer: str  # layer_1, layer_2, layer_3, layer_4
     most_trusted_layer: str  # layer_1, layer_2, layer_3, layer_4
     best_for_customer: str  # layer_1, layer_2, layer_3, layer_4
@@ -383,6 +384,7 @@ async def submit_post_questionnaire(questionnaire: PostQuestionnaire):
         
         questionnaire_record = {
             'session_id': questionnaire.session_id,
+            'persona_id': questionnaire.persona_id,
             'most_helpful_layer': questionnaire.most_helpful_layer,
             'most_trusted_layer': questionnaire.most_trusted_layer,
             'best_for_customer': questionnaire.best_for_customer,

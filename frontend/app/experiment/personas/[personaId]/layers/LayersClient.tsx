@@ -156,21 +156,8 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         })
       } else {
         // All layers completed for this persona
-        // Mark persona as completed
-        const completedKey = `completed_${personaId}`
-        localStorage.setItem(completedKey, 'true')
-        
-        // Check if all personas are completed
-        const allCompleted = ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']
-          .every(id => localStorage.getItem(`completed_${id}`) === 'true')
-        
-        if (allCompleted) {
-          // All personas done - go to post-experiment questionnaire
-          router.push('/experiment/complete')
-        } else {
-          // More personas to do - return to hub
-          router.push('/experiment/personas')
-        }
+        // Navigate to per-persona questionnaire (which will mark as completed after submission)
+        router.push(`/experiment/personas/${personaId}/questionnaire`)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit rating')

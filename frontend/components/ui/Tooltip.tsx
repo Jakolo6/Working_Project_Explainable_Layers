@@ -25,9 +25,11 @@ export default function Tooltip({ content, children, className = '' }: TooltipPr
   const updatePosition = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
+      // Use viewport-relative coordinates (getBoundingClientRect already gives these)
+      // No need to add scrollY/scrollX since we're using position: fixed
       setPosition({
-        top: rect.top + window.scrollY - 8,
-        left: rect.left + rect.width / 2 + window.scrollX
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2
       })
     }
   }

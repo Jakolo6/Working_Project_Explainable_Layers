@@ -7,7 +7,9 @@
 -- - 3 Personas: elderly-woman, young-entrepreneur, middle-aged-employee
 -- - 4 Layers per persona: Layer 1-4 (Baseline SHAP, Dashboard, Narrative, Counterfactual)
 -- - 5 Rating dimensions per layer (Likert 1-5)
+-- - Post-questionnaire after EACH persona (not just at the end)
 -- - Total: 3 personas × 4 layers = 12 layer ratings per participant
+-- - Total: 3 post-questionnaires per participant (one per persona)
 -- ============================================================================
 
 -- First, drop all existing tables and views
@@ -113,11 +115,12 @@ CREATE TABLE layer_ratings (
 
 -- ============================================================================
 -- 4. POST_QUESTIONNAIRES TABLE
--- Stores: final questionnaire after completing all personas
+-- Stores: questionnaire after completing each persona (one per session × persona)
 -- ============================================================================
 CREATE TABLE post_questionnaires (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
     
     -- Layer preference questions (layer_1 to layer_4)
     most_helpful_layer TEXT NOT NULL CHECK (most_helpful_layer IN ('layer_1', 'layer_2', 'layer_3', 'layer_4')),
@@ -134,8 +137,8 @@ CREATE TABLE post_questionnaires (
     -- Timestamp
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    -- One questionnaire per session
-    UNIQUE(session_id)
+    -- One questionnaire per session × persona
+    UNIQUE(session_id, persona_id)
 );
 
 -- ============================================================================
