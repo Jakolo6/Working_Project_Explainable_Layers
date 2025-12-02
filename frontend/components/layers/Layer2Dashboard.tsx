@@ -266,8 +266,22 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
             <ul className="space-y-1">
               <li><strong className="text-green-600">Green/Negative SHAP</strong> = Factor supports approval (reduces default risk)</li>
               <li><strong className="text-red-600">Red/Positive SHAP</strong> = Factor raises concerns (increases default risk)</li>
-              <li><strong>Click any factor</strong> to see detailed information</li>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive hint - prominent callout */}
+      <div className="bg-blue-100 border-2 border-blue-300 rounded-xl p-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-500 text-white rounded-full p-2">
+            <Zap size={20} />
+          </div>
+          <div>
+            <p className="font-semibold text-blue-900">Interactive Dashboard</p>
+            <p className="text-sm text-blue-800">
+              <strong>Click on any factor card below</strong> to see detailed explanations and understand how it affects the decision.
+            </p>
           </div>
         </div>
       </div>

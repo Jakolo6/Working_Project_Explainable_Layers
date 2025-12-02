@@ -80,8 +80,8 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
 
   return (
     <div className="space-y-6">
-      {/* Global Model Explanation - How the AI works in general */}
-      <GlobalModelExplanation defaultExpanded={true} showVisualizations={false} />
+      {/* Global Model Explanation - How the AI works in general (collapsed by default) */}
+      <GlobalModelExplanation defaultExpanded={false} showVisualizations={false} />
 
       {/* Simple SHAP Explanation */}
       <SHAPExplanation />

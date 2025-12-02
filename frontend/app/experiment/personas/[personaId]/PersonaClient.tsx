@@ -257,9 +257,9 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Application Review</h2>
               <p className="text-gray-700">
-                This form is pre-filled with <strong>{persona.name}'s</strong> current financial data. 
-                As the Credit Analyst, please review the details below. You may adjust the values if needed, 
-                or submit them as-is to see the AI's assessment.
+                This form is pre-filled with <strong>{persona.name}'s</strong> financial data. 
+                <strong className="text-blue-700"> You can scroll down and click "Get AI Assessment" directly</strong> — 
+                no adjustments needed. Feel free to review the details, but submitting as-is is perfectly fine.
               </p>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.duration_months}
-              onChange={(e) => handleFieldChange('duration_months', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('duration_months', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -296,7 +296,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.credit_amount}
-              onChange={(e) => handleFieldChange('credit_amount', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('credit_amount', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -310,7 +310,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.installment_rate}
-              onChange={(e) => handleFieldChange('installment_rate', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('installment_rate', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -324,7 +324,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.present_residence_since}
-              onChange={(e) => handleFieldChange('present_residence_since', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('present_residence_since', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -338,7 +338,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.age}
-              onChange={(e) => handleFieldChange('age', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('age', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -352,7 +352,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.existing_credits}
-              onChange={(e) => handleFieldChange('existing_credits', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('existing_credits', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -366,7 +366,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <input
               type="number"
               value={application.num_dependents}
-              onChange={(e) => handleFieldChange('num_dependents', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleFieldChange('num_dependents', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
