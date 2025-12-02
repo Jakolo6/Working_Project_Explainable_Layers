@@ -36,6 +36,15 @@ export default function Tooltip({ content, children, className = '' }: TooltipPr
     updatePosition()
     setIsVisible(true)
   }
+  
+  // Update position on scroll when visible
+  useEffect(() => {
+    if (!isVisible) return
+    
+    const handleScroll = () => updatePosition()
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isVisible])
 
   const tooltipContent = (
     <div 

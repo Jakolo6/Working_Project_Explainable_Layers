@@ -82,6 +82,21 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
       {/* Global Model Explanation - How the AI works in general */}
       <GlobalModelExplanation defaultExpanded={true} showVisualizations={false} />
 
+      {/* Credit History Note - moved above table */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-amber-600 text-lg">⚠️</span>
+          <div>
+            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
+            <p className="text-sm text-amber-800">
+              This model uses patterns from 1994 German banking data. Some factors, 
+              especially credit history categories, may behave differently than modern expectations.
+              Features marked with ⚠ should be interpreted with caution.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Decision Summary */}
       <div className={`p-5 rounded-lg border-2 ${
         isApproved 
@@ -143,15 +158,15 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
         </div>
       </div>
 
-      {/* Complete SHAP Values Table */}
+      {/* Complete SHAP Values Table - with fixed height and scroll */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+        <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 sticky top-0 z-10">
           <h3 className="font-semibold text-gray-900">
             All Feature Contributions (sorted by impact magnitude)
           </h3>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" style={{ maxHeight: '400px', overflowY: 'auto' }}>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -210,20 +225,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
         </div>
       </div>
 
-      {/* Credit History Note */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-amber-600 text-lg">⚠️</span>
-          <div>
-            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
-            <p className="text-sm text-amber-800">
-              This model uses patterns from 1994 German banking data. Some factors, 
-              especially credit history categories, may behave differently than modern expectations.
-              Features marked with ⚠ should be interpreted with caution.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Technical Note */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
