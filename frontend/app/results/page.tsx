@@ -10,14 +10,19 @@ interface DashboardStats {
   total_sessions: number
   completed_sessions: number
   total_ratings: number
-  avg_trust: number
+  // Layer rating averages (5 dimensions)
   avg_understanding: number
-  avg_usefulness: number
-  avg_mental_effort: number
+  avg_communicability: number
+  avg_fairness: number
+  avg_cognitive_load: number
+  avg_reliance: number
+  // Layer preferences from post-questionnaire
   layer_preferences: Record<string, number>
-  avg_overall_experience: number
-  avg_explanation_helpfulness: number
-  avg_would_trust_ai: number
+  // Post-questionnaire averages
+  avg_intuitiveness: number
+  avg_usefulness: number
+  // Error field (optional)
+  error?: string
 }
 
 function ResultsContent() {
@@ -123,68 +128,82 @@ function ResultsContent() {
           <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
             <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Total Ratings</p>
             <p className="text-3xl font-bold text-gray-900">{stats.total_ratings}</p>
+            <p className="text-xs text-gray-500 mt-1">12 per participant (3×4)</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Avg Trust</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.avg_trust.toFixed(2)}</p>
+            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Avg Understanding</p>
+            <p className="text-3xl font-bold text-gray-900">{(stats.avg_understanding || 0).toFixed(2)}</p>
             <p className="text-xs text-gray-500 mt-1">out of 5.0</p>
           </div>
         </div>
 
-        {/* Layer Ratings */}
+        {/* Layer Ratings - 5 Dimensions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Average Layer Ratings</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Average Layer Ratings (5 Dimensions)</h2>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Trust</span>
-                  <span className="text-sm font-bold text-gray-900">{stats.avg_trust.toFixed(2)} / 5.0</span>
+                  <span className="text-sm font-medium text-gray-700">Understanding</span>
+                  <span className="text-sm font-bold text-gray-900">{(stats.avg_understanding || 0).toFixed(2)} / 5.0</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
                     className="bg-blue-500 h-3 rounded-full transition-all"
-                    style={{ width: `${(stats.avg_trust / 5) * 100}%` }}
+                    style={{ width: `${((stats.avg_understanding || 0) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Understanding</span>
-                  <span className="text-sm font-bold text-gray-900">{stats.avg_understanding.toFixed(2)} / 5.0</span>
+                  <span className="text-sm font-medium text-gray-700">Communicability</span>
+                  <span className="text-sm font-bold text-gray-900">{(stats.avg_communicability || 0).toFixed(2)} / 5.0</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
                     className="bg-green-500 h-3 rounded-full transition-all"
-                    style={{ width: `${(stats.avg_understanding / 5) * 100}%` }}
+                    style={{ width: `${((stats.avg_communicability || 0) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Usefulness</span>
-                  <span className="text-sm font-bold text-gray-900">{stats.avg_usefulness.toFixed(2)} / 5.0</span>
+                  <span className="text-sm font-medium text-gray-700">Perceived Fairness</span>
+                  <span className="text-sm font-bold text-gray-900">{(stats.avg_fairness || 0).toFixed(2)} / 5.0</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
                     className="bg-purple-500 h-3 rounded-full transition-all"
-                    style={{ width: `${(stats.avg_usefulness / 5) * 100}%` }}
+                    style={{ width: `${((stats.avg_fairness || 0) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Mental Effort</span>
-                  <span className="text-sm font-bold text-gray-900">{stats.avg_mental_effort.toFixed(2)} / 5.0</span>
+                  <span className="text-sm font-medium text-gray-700">Cognitive Load</span>
+                  <span className="text-sm font-bold text-gray-900">{(stats.avg_cognitive_load || 0).toFixed(2)} / 5.0</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
                     className="bg-orange-500 h-3 rounded-full transition-all"
-                    style={{ width: `${(stats.avg_mental_effort / 5) * 100}%` }}
+                    style={{ width: `${((stats.avg_cognitive_load || 0) / 5) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">Reliance Intention</span>
+                  <span className="text-sm font-bold text-gray-900">{(stats.avg_reliance || 0).toFixed(2)} / 5.0</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-indigo-500 h-3 rounded-full transition-all"
+                    style={{ width: `${((stats.avg_reliance || 0) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -229,22 +248,16 @@ function ResultsContent() {
         {/* Post-Questionnaire Results */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Post-Experiment Questionnaire</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">Overall Experience</p>
-              <p className="text-4xl font-bold text-blue-600">{stats.avg_overall_experience.toFixed(2)}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">Overall Intuitiveness</p>
+              <p className="text-4xl font-bold text-blue-600">{(stats.avg_intuitiveness || 0).toFixed(2)}</p>
               <p className="text-sm text-gray-500">out of 5.0</p>
             </div>
             
-            <div className="text-center">
-              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">Explanation Helpfulness</p>
-              <p className="text-4xl font-bold text-green-600">{stats.avg_explanation_helpfulness.toFixed(2)}</p>
-              <p className="text-sm text-gray-500">out of 5.0</p>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">Would Trust AI</p>
-              <p className="text-4xl font-bold text-purple-600">{stats.avg_would_trust_ai.toFixed(2)}</p>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">AI Usefulness</p>
+              <p className="text-4xl font-bold text-green-600">{(stats.avg_usefulness || 0).toFixed(2)}</p>
               <p className="text-sm text-gray-500">out of 5.0</p>
             </div>
           </div>
