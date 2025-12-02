@@ -284,7 +284,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.duration_months}
               onChange={(e) => handleFieldChange('duration_months', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -298,7 +298,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.credit_amount}
               onChange={(e) => handleFieldChange('credit_amount', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -312,7 +312,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.installment_rate}
               onChange={(e) => handleFieldChange('installment_rate', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -326,7 +326,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.present_residence_since}
               onChange={(e) => handleFieldChange('present_residence_since', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -340,7 +340,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.age}
               onChange={(e) => handleFieldChange('age', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -354,7 +354,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.existing_credits}
               onChange={(e) => handleFieldChange('existing_credits', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -368,7 +368,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.num_dependents}
               onChange={(e) => handleFieldChange('num_dependents', e.target.value === '' ? '' : parseInt(e.target.value))}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -381,7 +381,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.checking_account_status}
               onChange={(e) => handleFieldChange('checking_account_status', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="less than 0 DM">Less than 0 DM (overdrawn)</option>
               <option value="0 to 200 DM">0 to 200 DM</option>
@@ -399,7 +399,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.savings_account}
               onChange={(e) => handleFieldChange('savings_account', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="less than 100 DM">Less than 100 DM</option>
               <option value="100 to 500 DM">100 to 500 DM</option>
@@ -418,7 +418,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.employment_status}
               onChange={(e) => handleFieldChange('employment_status', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="unemployed">Unemployed</option>
               <option value="less than 1 year">Less than 1 year</option>
@@ -437,7 +437,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.property}
               onChange={(e) => handleFieldChange('property', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="real estate">Real estate</option>
               <option value="building society savings/life insurance">Building society savings/Life insurance</option>
@@ -455,7 +455,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.housing}
               onChange={(e) => handleFieldChange('housing', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="rent">Rent</option>
               <option value="own">Own</option>
@@ -472,7 +472,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.credit_history}
               onChange={(e) => handleFieldChange('credit_history', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="no credits taken/all paid back">No credits taken/All paid back</option>
               <option value="all credits paid back duly">All credits paid back duly</option>
@@ -491,7 +491,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.purpose}
               onChange={(e) => handleFieldChange('purpose', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="car (new)">Car (new)</option>
               <option value="car (used)">Car (used)</option>
@@ -515,7 +515,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.other_debtors}
               onChange={(e) => handleFieldChange('other_debtors', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="none">None</option>
               <option value="co-applicant">Co-applicant</option>
@@ -532,7 +532,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.other_installment_plans}
               onChange={(e) => handleFieldChange('other_installment_plans', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="none">None</option>
               <option value="bank">Bank</option>
@@ -549,7 +549,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.job}
               onChange={(e) => handleFieldChange('job', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="unemployed/unskilled - non-resident">Unemployed/Unskilled - Non-resident</option>
               <option value="unskilled - resident">Unskilled - Resident</option>
@@ -567,7 +567,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               value={application.telephone}
               onChange={(e) => handleFieldChange('telephone', e.target.value)}
               disabled={isLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
             >
               <option value="no">No</option>
               <option value="yes">Yes (registered under customer's name)</option>
