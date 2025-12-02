@@ -1,34 +1,116 @@
 // Results dashboard - Researcher view for aggregated experiment data
-// Protected by password
+// Protected by password - Advanced statistics for quantitative analysis
 
 'use client'
 
 import { useState, useEffect } from 'react'
 import PasswordProtection from '@/components/PasswordProtection'
 
+interface LayerStat {
+  count: number
+  understanding: number
+  communicability: number
+  fairness: number
+  cognitive_load: number
+  reliance: number
+  avg_time_seconds: number
+}
+
+interface PersonaStat {
+  count: number
+  understanding: number
+  communicability: number
+  fairness: number
+  cognitive_load: number
+  reliance: number
+}
+
 interface DashboardStats {
+  // Basic counts
   total_sessions: number
   completed_sessions: number
   total_ratings: number
-  // Layer rating averages (5 dimensions)
+  total_questionnaires: number
+  total_predictions: number
+  
+  // Participant demographics
+  participant_backgrounds: Record<string, number>
+  credit_experiences: Record<string, number>
+  avg_ai_familiarity: number
+  preferred_explanation_styles: Record<string, number>
+  
+  // Layer rating averages (5 dimensions) with standard deviations
   avg_understanding: number
   avg_communicability: number
   avg_fairness: number
   avg_cognitive_load: number
   avg_reliance: number
-  // Layer preferences from post-questionnaire
+  std_understanding: number
+  std_communicability: number
+  std_fairness: number
+  std_cognitive_load: number
+  std_reliance: number
+  
+  // Per-layer breakdown
+  layer_stats: Record<string, LayerStat>
+  
+  // Per-persona breakdown
+  persona_stats: Record<string, PersonaStat>
+  
+  // Layer preferences (all 3 questions)
   layer_preferences: Record<string, number>
+  most_helpful_layer: Record<string, number>
+  most_trusted_layer: Record<string, number>
+  best_for_customer: Record<string, number>
+  
   // Post-questionnaire averages
   avg_intuitiveness: number
   avg_usefulness: number
+  improvement_suggestions: string[]
+  
   // Error field (optional)
   error?: string
+}
+
+const LAYER_NAMES: Record<string, string> = {
+  'layer_1': 'Layer 1: Baseline SHAP',
+  'layer_2': 'Layer 2: Dashboard',
+  'layer_3': 'Layer 3: Narrative',
+  'layer_4': 'Layer 4: Counterfactual'
+}
+
+const PERSONA_NAMES: Record<string, string> = {
+  'elderly-woman': 'Maria (Elderly Woman)',
+  'young-entrepreneur': 'Jonas (Young Entrepreneur)',
+  'middle-aged-employee': 'Sofia (Middle-aged Employee)'
+}
+
+const BACKGROUND_LABELS: Record<string, string> = {
+  'banking': 'Banking/Credit/Risk',
+  'data_analytics': 'Data/Analytics/ML',
+  'student': 'Student',
+  'other': 'Other'
+}
+
+const EXPERIENCE_LABELS: Record<string, string> = {
+  'none': 'None',
+  'some': 'Some',
+  'regular': 'Regular',
+  'expert': 'Expert'
+}
+
+const STYLE_LABELS: Record<string, string> = {
+  'technical': 'Technical',
+  'visual': 'Visual',
+  'narrative': 'Narrative',
+  'action_oriented': 'Action-oriented'
 }
 
 function ResultsContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState<'overview' | 'layers' | 'personas' | 'demographics' | 'feedback'>('overview')
 
   useEffect(() => {
     fetchDashboardStats()
@@ -71,9 +153,6 @@ function ResultsContent() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
             <h2 className="text-2xl font-bold text-red-900 mb-2">Error Loading Dashboard</h2>
             <p className="text-red-700 mb-4">{error}</p>
-            <p className="text-sm text-red-600">
-              Make sure the backend API endpoint <code className="bg-red-100 px-2 py-1 rounded">/api/v1/admin/dashboard-stats</code> is implemented.
-            </p>
           </div>
         </div>
       </main>
@@ -97,178 +176,359 @@ function ResultsContent() {
     ? ((stats.completed_sessions / stats.total_sessions) * 100).toFixed(1)
     : '0.0'
 
-  const topLayer = Object.entries(stats.layer_preferences).sort((a, b) => b[1] - a[1])[0]
+  // Helper to render a stat with mean ± std
+  const renderStatWithStd = (label: string, mean: number, std: number, color: string) => (
+    <div>
+      <div className="flex justify-between mb-1">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm font-bold text-gray-900">
+          {(mean || 0).toFixed(2)} <span className="text-gray-500 font-normal">± {(std || 0).toFixed(2)}</span>
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className={`${color} h-3 rounded-full transition-all`} style={{ width: `${((mean || 0) / 5) * 100}%` }}></div>
+      </div>
+    </div>
+  )
+
+  // Helper to render preference bars
+  const renderPreferenceBars = (prefs: Record<string, number>, total: number, title: string) => (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <h3 className="font-semibold text-gray-800 mb-3">{title}</h3>
+      <div className="space-y-2">
+        {['layer_1', 'layer_2', 'layer_3', 'layer_4'].map(layer => {
+          const count = prefs?.[layer] || 0
+          const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0'
+          return (
+            <div key={layer}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-gray-600">{LAYER_NAMES[layer]}</span>
+                <span className="font-semibold">{count} ({pct}%)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${pct}%` }}></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+    <main className="min-h-screen bg-gradient-to-b from-gray-100 to-white py-8">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            📊 Results Dashboard
-          </h1>
-          <p className="text-lg text-gray-600">
-            Aggregated data from all experiment sessions
-          </p>
-        </div>
-
-        {/* Overview Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Total Sessions</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.total_sessions}</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
-            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Completed</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.completed_sessions}</p>
-            <p className="text-xs text-gray-500 mt-1">{completionRate}% completion rate</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
-            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Total Ratings</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.total_ratings}</p>
-            <p className="text-xs text-gray-500 mt-1">12 per participant (3×4)</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-            <p className="text-sm font-semibold text-gray-600 uppercase mb-1">Avg Understanding</p>
-            <p className="text-3xl font-bold text-gray-900">{(stats.avg_understanding || 0).toFixed(2)}</p>
-            <p className="text-xs text-gray-500 mt-1">out of 5.0</p>
+        {/* Header with participant count always visible */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">📊 Research Results Dashboard</h1>
+              <p className="text-gray-600">Quantitative analysis of XAI explanation layers experiment</p>
+            </div>
+            <div className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg">
+              <p className="text-sm font-medium opacity-90">Total Participants</p>
+              <p className="text-3xl font-bold">{stats.total_sessions}</p>
+              <p className="text-xs opacity-75">{stats.completed_sessions} completed ({completionRate}%)</p>
+            </div>
           </div>
         </div>
 
-        {/* Layer Ratings - 5 Dimensions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Average Layer Ratings (5 Dimensions)</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Understanding</span>
-                  <span className="text-sm font-bold text-gray-900">{(stats.avg_understanding || 0).toFixed(2)} / 5.0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-blue-500 h-3 rounded-full transition-all"
-                    style={{ width: `${((stats.avg_understanding || 0) / 5) * 100}%` }}
-                  ></div>
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {[
+            { id: 'overview', label: '📈 Overview' },
+            { id: 'layers', label: '📊 Layer Analysis' },
+            { id: 'personas', label: '👥 Persona Analysis' },
+            { id: 'demographics', label: '🎯 Demographics' },
+            { id: 'feedback', label: '💬 Feedback' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* OVERVIEW TAB */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Sessions</p>
+                <p className="text-2xl font-bold">{stats.total_sessions}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Completed</p>
+                <p className="text-2xl font-bold">{stats.completed_sessions}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Ratings</p>
+                <p className="text-2xl font-bold">{stats.total_ratings}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Questionnaires</p>
+                <p className="text-2xl font-bold">{stats.total_questionnaires || 0}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-teal-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Predictions</p>
+                <p className="text-2xl font-bold">{stats.total_predictions || 0}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Completion</p>
+                <p className="text-2xl font-bold">{completionRate}%</p>
+              </div>
+            </div>
+
+            {/* Overall Ratings with Standard Deviations */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Overall Ratings (Mean ± SD)</h2>
+                <p className="text-xs text-gray-500 mb-4">n = {stats.total_ratings} ratings</p>
+                <div className="space-y-4">
+                  {renderStatWithStd('Understanding', stats.avg_understanding, stats.std_understanding, 'bg-blue-500')}
+                  {renderStatWithStd('Communicability', stats.avg_communicability, stats.std_communicability, 'bg-green-500')}
+                  {renderStatWithStd('Perceived Fairness', stats.avg_fairness, stats.std_fairness, 'bg-purple-500')}
+                  {renderStatWithStd('Cognitive Load', stats.avg_cognitive_load, stats.std_cognitive_load, 'bg-orange-500')}
+                  {renderStatWithStd('Reliance Intention', stats.avg_reliance, stats.std_reliance, 'bg-indigo-500')}
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Communicability</span>
-                  <span className="text-sm font-bold text-gray-900">{(stats.avg_communicability || 0).toFixed(2)} / 5.0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-green-500 h-3 rounded-full transition-all"
-                    style={{ width: `${((stats.avg_communicability || 0) / 5) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Perceived Fairness</span>
-                  <span className="text-sm font-bold text-gray-900">{(stats.avg_fairness || 0).toFixed(2)} / 5.0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-purple-500 h-3 rounded-full transition-all"
-                    style={{ width: `${((stats.avg_fairness || 0) / 5) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Cognitive Load</span>
-                  <span className="text-sm font-bold text-gray-900">{(stats.avg_cognitive_load || 0).toFixed(2)} / 5.0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-orange-500 h-3 rounded-full transition-all"
-                    style={{ width: `${((stats.avg_cognitive_load || 0) / 5) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Reliance Intention</span>
-                  <span className="text-sm font-bold text-gray-900">{(stats.avg_reliance || 0).toFixed(2)} / 5.0</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-indigo-500 h-3 rounded-full transition-all"
-                    style={{ width: `${((stats.avg_reliance || 0) / 5) * 100}%` }}
-                  ></div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Post-Questionnaire Results</h2>
+                <p className="text-xs text-gray-500 mb-4">n = {stats.total_questionnaires || 0} questionnaires</p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Intuitiveness</p>
+                    <p className="text-3xl font-bold text-blue-600">{(stats.avg_intuitiveness || 0).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">/ 5.0</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1">AI Usefulness</p>
+                    <p className="text-3xl font-bold text-green-600">{(stats.avg_usefulness || 0).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">/ 5.0</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Layer Preferences</h2>
-            <div className="space-y-3">
-              {Object.entries(stats.layer_preferences)
-                .sort((a, b) => b[1] - a[1])
-                .map(([layer, count]) => {
-                  const percentage = stats.completed_sessions > 0 
-                    ? ((count / stats.completed_sessions) * 100).toFixed(1)
-                    : '0.0'
-                  return (
-                    <div key={layer}>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-700">{layer}</span>
-                        <span className="text-sm font-bold text-gray-900">{count} ({percentage}%)</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-indigo-500 h-2 rounded-full transition-all"
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
+            {/* Layer Preferences - All 3 Questions */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {renderPreferenceBars(stats.most_helpful_layer || {}, stats.total_questionnaires || 0, '🏆 Most Helpful Layer')}
+              {renderPreferenceBars(stats.most_trusted_layer || {}, stats.total_questionnaires || 0, '🤝 Most Trusted Layer')}
+              {renderPreferenceBars(stats.best_for_customer || {}, stats.total_questionnaires || 0, '💬 Best for Customer')}
+            </div>
+          </div>
+        )}
+
+        {/* LAYER ANALYSIS TAB */}
+        {activeTab === 'layers' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Per-Layer Rating Comparison</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="text-left py-3 px-2 font-semibold">Layer</th>
+                      <th className="text-center py-3 px-2 font-semibold">n</th>
+                      <th className="text-center py-3 px-2 font-semibold">Understanding</th>
+                      <th className="text-center py-3 px-2 font-semibold">Communicability</th>
+                      <th className="text-center py-3 px-2 font-semibold">Fairness</th>
+                      <th className="text-center py-3 px-2 font-semibold">Cognitive Load</th>
+                      <th className="text-center py-3 px-2 font-semibold">Reliance</th>
+                      <th className="text-center py-3 px-2 font-semibold">Avg Time (s)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {['layer_1', 'layer_2', 'layer_3', 'layer_4'].map((layerKey, idx) => {
+                      const layer = stats.layer_stats?.[layerKey]
+                      if (!layer || layer.count === 0) return null
+                      return (
+                        <tr key={layerKey} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                          <td className="py-3 px-2 font-medium">{LAYER_NAMES[layerKey]}</td>
+                          <td className="text-center py-3 px-2">{layer.count}</td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded ${layer.understanding >= 4 ? 'bg-green-100 text-green-800' : layer.understanding >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {layer.understanding?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded ${layer.communicability >= 4 ? 'bg-green-100 text-green-800' : layer.communicability >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {layer.communicability?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded ${layer.fairness >= 4 ? 'bg-green-100 text-green-800' : layer.fairness >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {layer.fairness?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded ${layer.cognitive_load <= 2 ? 'bg-green-100 text-green-800' : layer.cognitive_load <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {layer.cognitive_load?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded ${layer.reliance >= 4 ? 'bg-green-100 text-green-800' : layer.reliance >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {layer.reliance?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-2 text-gray-600">{layer.avg_time_seconds?.toFixed(0)}s</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-500 mt-4">
+                Color coding: <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">≥4.0 (Good)</span>{' '}
+                <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">3.0-3.9 (Moderate)</span>{' '}
+                <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded">&lt;3.0 (Low)</span>
+                {' '}| Cognitive Load: lower is better
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* PERSONA ANALYSIS TAB */}
+        {activeTab === 'personas' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Per-Persona Rating Comparison</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="text-left py-3 px-2 font-semibold">Persona</th>
+                      <th className="text-center py-3 px-2 font-semibold">n</th>
+                      <th className="text-center py-3 px-2 font-semibold">Understanding</th>
+                      <th className="text-center py-3 px-2 font-semibold">Communicability</th>
+                      <th className="text-center py-3 px-2 font-semibold">Fairness</th>
+                      <th className="text-center py-3 px-2 font-semibold">Cognitive Load</th>
+                      <th className="text-center py-3 px-2 font-semibold">Reliance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {['elderly-woman', 'young-entrepreneur', 'middle-aged-employee'].map((personaKey, idx) => {
+                      const persona = stats.persona_stats?.[personaKey]
+                      if (!persona || persona.count === 0) return null
+                      return (
+                        <tr key={personaKey} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                          <td className="py-3 px-2 font-medium">{PERSONA_NAMES[personaKey]}</td>
+                          <td className="text-center py-3 px-2">{persona.count}</td>
+                          <td className="text-center py-3 px-2">{persona.understanding?.toFixed(2)}</td>
+                          <td className="text-center py-3 px-2">{persona.communicability?.toFixed(2)}</td>
+                          <td className="text-center py-3 px-2">{persona.fairness?.toFixed(2)}</td>
+                          <td className="text-center py-3 px-2">{persona.cognitive_load?.toFixed(2)}</td>
+                          <td className="text-center py-3 px-2">{persona.reliance?.toFixed(2)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DEMOGRAPHICS TAB */}
+        {activeTab === 'demographics' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Background */}
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Professional Background</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.participant_backgrounds || {}).map(([key, count]) => (
+                    <div key={key} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{BACKGROUND_LABELS[key] || key}</span>
+                      <span className="font-semibold">{count}</span>
                     </div>
-                  )
-                })}
-            </div>
-            {topLayer && (
-              <div className="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <p className="text-sm text-indigo-900">
-                  <strong>Most Preferred:</strong> {topLayer[0]} ({topLayer[1]} votes)
-                </p>
+                  ))}
+                  {Object.keys(stats.participant_backgrounds || {}).length === 0 && (
+                    <p className="text-gray-400 text-sm">No data yet</p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Post-Questionnaire Results */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Post-Experiment Questionnaire</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">Overall Intuitiveness</p>
-              <p className="text-4xl font-bold text-blue-600">{(stats.avg_intuitiveness || 0).toFixed(2)}</p>
-              <p className="text-sm text-gray-500">out of 5.0</p>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-sm font-semibold text-gray-600 uppercase mb-2">AI Usefulness</p>
-              <p className="text-4xl font-bold text-green-600">{(stats.avg_usefulness || 0).toFixed(2)}</p>
-              <p className="text-sm text-gray-500">out of 5.0</p>
+              {/* Credit Experience */}
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Credit Experience</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.credit_experiences || {}).map(([key, count]) => (
+                    <div key={key} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{EXPERIENCE_LABELS[key] || key}</span>
+                      <span className="font-semibold">{count}</span>
+                    </div>
+                  ))}
+                  {Object.keys(stats.credit_experiences || {}).length === 0 && (
+                    <p className="text-gray-400 text-sm">No data yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* AI Familiarity */}
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">AI Familiarity</h3>
+                <div className="text-center py-4">
+                  <p className="text-4xl font-bold text-blue-600">{(stats.avg_ai_familiarity || 0).toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">Average (1-5 scale)</p>
+                </div>
+              </div>
+
+              {/* Preferred Style */}
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Preferred Explanation Style</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.preferred_explanation_styles || {}).map(([key, count]) => (
+                    <div key={key} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{STYLE_LABELS[key] || key}</span>
+                      <span className="font-semibold">{count}</span>
+                    </div>
+                  ))}
+                  {Object.keys(stats.preferred_explanation_styles || {}).length === 0 && (
+                    <p className="text-gray-400 text-sm">No data yet</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Info Box */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+        {/* FEEDBACK TAB */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Improvement Suggestions ({stats.improvement_suggestions?.length || 0})
+              </h2>
+              {stats.improvement_suggestions && stats.improvement_suggestions.length > 0 ? (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {stats.improvement_suggestions.map((suggestion, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400">
+                      <p className="text-sm text-gray-700">"{suggestion}"</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No improvement suggestions collected yet.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Footer Note */}
+        <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
           <p className="text-sm text-blue-900">
-            <strong>📌 Note:</strong> All data is aggregated from completed experiment sessions. 
-            Ratings are averaged across all participants and all explanation layers. 
-            This dashboard updates in real-time as new data is collected.
+            <strong>📌 Note:</strong> Data updates in real-time. n = {stats.total_sessions} participants, 
+            {stats.total_ratings} layer ratings, {stats.total_questionnaires || 0} post-questionnaires.
           </p>
         </div>
       </div>

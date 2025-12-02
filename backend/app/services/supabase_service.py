@@ -225,44 +225,134 @@ class SupabaseService:
     
     def get_dashboard_stats(self) -> Dict:
         """
-        Get aggregated experiment statistics for analysis.
+        Get comprehensive experiment statistics for analysis.
+        Includes per-layer, per-persona breakdowns and advanced metrics.
         """
+        import statistics
+        
         try:
-            # Session counts
-            sessions_response = self.client.table('sessions').select('session_id, completed, consent_given').execute()
+            # Session counts with participant background data
+            sessions_response = self.client.table('sessions').select('*').execute()
             sessions = sessions_response.data or []
-            total_sessions = len([s for s in sessions if s.get('consent_given')])
-            completed_sessions = len([s for s in sessions if s.get('completed')])
+            consented_sessions = [s for s in sessions if s.get('consent_given')]
+            completed_sessions_list = [s for s in sessions if s.get('completed')]
+            total_sessions = len(consented_sessions)
+            completed_sessions = len(completed_sessions_list)
             
-            # Layer ratings
+            # Participant demographics
+            backgrounds = {}
+            credit_experiences = {}
+            ai_familiarity_scores = []
+            explanation_styles = {}
+            
+            for s in consented_sessions:
+                bg = s.get('participant_background')
+                if bg:
+                    backgrounds[bg] = backgrounds.get(bg, 0) + 1
+                
+                exp = s.get('credit_experience')
+                if exp:
+                    credit_experiences[exp] = credit_experiences.get(exp, 0) + 1
+                
+                ai_fam = s.get('ai_familiarity')
+                if ai_fam:
+                    ai_familiarity_scores.append(ai_fam)
+                
+                style = s.get('preferred_explanation_style')
+                if style:
+                    explanation_styles[style] = explanation_styles.get(style, 0) + 1
+            
+            # Layer ratings with full breakdown
             ratings_response = self.client.table('layer_ratings').select('*').execute()
             ratings = ratings_response.data or []
             total_ratings = len(ratings)
             
-            # Calculate averages for the 5 dimensions
+            # Per-layer statistics
+            layer_stats = {}
+            for layer_num in [1, 2, 3, 4]:
+                layer_ratings = [r for r in ratings if r.get('layer_number') == layer_num]
+                if layer_ratings:
+                    layer_stats[f'layer_{layer_num}'] = {
+                        'count': len(layer_ratings),
+                        'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        'avg_time_seconds': round(sum(r.get('time_spent_seconds', 0) or 0 for r in layer_ratings) / len(layer_ratings), 1),
+                    }
+                else:
+                    layer_stats[f'layer_{layer_num}'] = {'count': 0}
+            
+            # Per-persona statistics
+            persona_stats = {}
+            for persona in ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']:
+                persona_ratings = [r for r in ratings if r.get('persona_id') == persona]
+                if persona_ratings:
+                    persona_stats[persona] = {
+                        'count': len(persona_ratings),
+                        'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
+                        'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
+                        'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
+                        'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
+                        'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
+                    }
+                else:
+                    persona_stats[persona] = {'count': 0}
+            
+            # Calculate overall averages and standard deviations
             avg_understanding = 0.0
             avg_communicability = 0.0
             avg_fairness = 0.0
             avg_cognitive_load = 0.0
             avg_reliance = 0.0
+            std_understanding = 0.0
+            std_communicability = 0.0
+            std_fairness = 0.0
+            std_cognitive_load = 0.0
+            std_reliance = 0.0
             
             if total_ratings > 0:
-                avg_understanding = sum(r.get('understanding_rating', 0) or 0 for r in ratings) / total_ratings
-                avg_communicability = sum(r.get('communicability_rating', 0) or 0 for r in ratings) / total_ratings
-                avg_fairness = sum(r.get('perceived_fairness_rating', 0) or 0 for r in ratings) / total_ratings
-                avg_cognitive_load = sum(r.get('cognitive_load_rating', 0) or 0 for r in ratings) / total_ratings
-                avg_reliance = sum(r.get('reliance_intention_rating', 0) or 0 for r in ratings) / total_ratings
+                understanding_vals = [r.get('understanding_rating', 0) or 0 for r in ratings]
+                communicability_vals = [r.get('communicability_rating', 0) or 0 for r in ratings]
+                fairness_vals = [r.get('perceived_fairness_rating', 0) or 0 for r in ratings]
+                cognitive_vals = [r.get('cognitive_load_rating', 0) or 0 for r in ratings]
+                reliance_vals = [r.get('reliance_intention_rating', 0) or 0 for r in ratings]
+                
+                avg_understanding = sum(understanding_vals) / total_ratings
+                avg_communicability = sum(communicability_vals) / total_ratings
+                avg_fairness = sum(fairness_vals) / total_ratings
+                avg_cognitive_load = sum(cognitive_vals) / total_ratings
+                avg_reliance = sum(reliance_vals) / total_ratings
+                
+                if total_ratings > 1:
+                    std_understanding = statistics.stdev(understanding_vals)
+                    std_communicability = statistics.stdev(communicability_vals)
+                    std_fairness = statistics.stdev(fairness_vals)
+                    std_cognitive_load = statistics.stdev(cognitive_vals)
+                    std_reliance = statistics.stdev(reliance_vals)
             
-            # Post-questionnaire data
+            # Post-questionnaire data with full breakdown
             post_response = self.client.table('post_questionnaires').select('*').execute()
             post_data = post_response.data or []
             
-            # Count layer preferences
-            layer_preferences = {}
+            # Count all layer preferences (most_helpful, most_trusted, best_for_customer)
+            most_helpful_prefs = {}
+            most_trusted_prefs = {}
+            best_for_customer_prefs = {}
+            
             for post in post_data:
-                preferred = post.get('most_helpful_layer')
-                if preferred:
-                    layer_preferences[preferred] = layer_preferences.get(preferred, 0) + 1
+                helpful = post.get('most_helpful_layer')
+                if helpful:
+                    most_helpful_prefs[helpful] = most_helpful_prefs.get(helpful, 0) + 1
+                
+                trusted = post.get('most_trusted_layer')
+                if trusted:
+                    most_trusted_prefs[trusted] = most_trusted_prefs.get(trusted, 0) + 1
+                
+                customer = post.get('best_for_customer')
+                if customer:
+                    best_for_customer_prefs[customer] = best_for_customer_prefs.get(customer, 0) + 1
             
             # Post-questionnaire averages
             avg_intuitiveness = 0.0
@@ -272,22 +362,61 @@ class SupabaseService:
                 avg_intuitiveness = sum(p.get('overall_intuitiveness', 0) or 0 for p in post_data) / len(post_data)
                 avg_usefulness = sum(p.get('ai_usefulness', 0) or 0 for p in post_data) / len(post_data)
             
+            # Collect improvement suggestions
+            suggestions = [p.get('improvement_suggestions', '') for p in post_data if p.get('improvement_suggestions')]
+            
+            # Predictions data
+            predictions_response = self.client.table('predictions').select('*').execute()
+            predictions = predictions_response.data or []
+            
             return {
+                # Basic counts
                 "total_sessions": total_sessions,
                 "completed_sessions": completed_sessions,
                 "total_ratings": total_ratings,
+                "total_questionnaires": len(post_data),
+                "total_predictions": len(predictions),
+                
+                # Participant demographics
+                "participant_backgrounds": backgrounds,
+                "credit_experiences": credit_experiences,
+                "avg_ai_familiarity": round(sum(ai_familiarity_scores) / len(ai_familiarity_scores), 2) if ai_familiarity_scores else 0,
+                "preferred_explanation_styles": explanation_styles,
+                
+                # Overall averages with standard deviations
                 "avg_understanding": round(avg_understanding, 2),
                 "avg_communicability": round(avg_communicability, 2),
                 "avg_fairness": round(avg_fairness, 2),
                 "avg_cognitive_load": round(avg_cognitive_load, 2),
                 "avg_reliance": round(avg_reliance, 2),
-                "layer_preferences": layer_preferences,
+                "std_understanding": round(std_understanding, 2),
+                "std_communicability": round(std_communicability, 2),
+                "std_fairness": round(std_fairness, 2),
+                "std_cognitive_load": round(std_cognitive_load, 2),
+                "std_reliance": round(std_reliance, 2),
+                
+                # Per-layer breakdown
+                "layer_stats": layer_stats,
+                
+                # Per-persona breakdown
+                "persona_stats": persona_stats,
+                
+                # Layer preferences (all 3 questions)
+                "layer_preferences": most_helpful_prefs,  # backward compatibility
+                "most_helpful_layer": most_helpful_prefs,
+                "most_trusted_layer": most_trusted_prefs,
+                "best_for_customer": best_for_customer_prefs,
+                
+                # Post-questionnaire
                 "avg_intuitiveness": round(avg_intuitiveness, 2),
-                "avg_usefulness": round(avg_usefulness, 2)
+                "avg_usefulness": round(avg_usefulness, 2),
+                "improvement_suggestions": suggestions,
             }
             
         except Exception as e:
             print(f"[ERROR] Error getting dashboard stats: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "total_sessions": 0,
                 "completed_sessions": 0,
