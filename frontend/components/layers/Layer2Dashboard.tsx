@@ -7,10 +7,10 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { CheckCircle2, XCircle, TrendingUp, TrendingDown, BarChart3, PieChart, Activity, ChevronDown, ChevronUp, AlertTriangle, Info, Zap, Sparkles, Wallet, Clock, Home, CreditCard, Filter } from 'lucide-react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
+import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
-import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 
 interface SHAPFeature {
   feature: string
@@ -238,6 +238,39 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     <div className="space-y-6">
       {/* Global Model Explanation */}
       <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
+
+      {/* Simple SHAP Explanation */}
+      <SHAPExplanation />
+
+      {/* Credit History Disclaimer - moved above dashboard */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-amber-600 text-lg">⚠️</span>
+          <div>
+            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
+            <p className="text-sm text-amber-800">
+              This model uses patterns from 1994 German banking data. Some factors, 
+              especially credit history categories, may behave differently than modern expectations.
+              Features marked with ⚠ should be interpreted with caution.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Understanding the Dashboard - moved above dashboard */}
+      <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+        <div className="flex items-start gap-3">
+          <Info className="text-slate-500 flex-shrink-0 mt-0.5" size={18} />
+          <div className="text-sm text-slate-600">
+            <p className="font-medium text-slate-700 mb-1">Understanding This Dashboard</p>
+            <ul className="space-y-1">
+              <li><strong className="text-green-600">Green/Negative SHAP</strong> = Factor supports approval (reduces default risk)</li>
+              <li><strong className="text-red-600">Red/Positive SHAP</strong> = Factor raises concerns (increases default risk)</li>
+              <li><strong>Click any factor</strong> to see detailed information</li>
+            </ul>
+          </div>
+        </div>
+      </div>
       
       {/* ═══════════════════════════════════════════════════════════════════════
           DASHBOARD HEADER - Decision Summary with AI Summary
@@ -661,23 +694,6 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
         )
       })}
 
-      {/* Credit History Disclaimer */}
-      <CreditHistoryDisclaimer />
-
-      {/* Legend */}
-      <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
-        <div className="flex items-start gap-3">
-          <Info className="text-slate-500 flex-shrink-0 mt-0.5" size={18} />
-          <div className="text-sm text-slate-600">
-            <p className="font-medium text-slate-700 mb-1">Understanding This Dashboard</p>
-            <ul className="space-y-1">
-              <li><strong className="text-green-600">Green/Negative SHAP</strong> = Factor supports approval (reduces default risk)</li>
-              <li><strong className="text-red-600">Red/Positive SHAP</strong> = Factor raises concerns (increases default risk)</li>
-              <li><strong>Click any factor</strong> to see detailed information</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

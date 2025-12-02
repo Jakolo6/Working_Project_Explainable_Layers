@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
 import GlobalModelExplanation from './GlobalModelExplanation'
+import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 
 interface SHAPFeature {
@@ -404,6 +405,24 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
     <div className="space-y-6">
       {/* Global Model Explanation - How the tool works in general */}
       <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
+
+      {/* Simple SHAP Explanation */}
+      <SHAPExplanation compact={true} />
+
+      {/* Credit History Disclaimer - above content */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-amber-600 text-lg">⚠️</span>
+          <div>
+            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
+            <p className="text-sm text-amber-800">
+              This model uses patterns from 1994 German banking data. Some factors, 
+              especially credit history categories, may behave differently than modern expectations.
+              Features marked with ⚠ should be interpreted with caution.
+            </p>
+          </div>
+        </div>
+      </div>
       
       {/* Model Certainty Explanation */}
       <ModelCertaintyExplanation probability={probability} decision={decision} />

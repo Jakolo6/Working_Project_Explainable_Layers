@@ -6,6 +6,7 @@
 import React from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
+import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 
@@ -82,6 +83,9 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
       {/* Global Model Explanation - How the AI works in general */}
       <GlobalModelExplanation defaultExpanded={true} showVisualizations={false} />
 
+      {/* Simple SHAP Explanation */}
+      <SHAPExplanation />
+
       {/* Credit History Note - moved above table */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
@@ -121,26 +125,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
         </div>
       </div>
 
-      {/* SHAP Value Legend */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">📊 How to Read SHAP Values</h3>
-        <div className="grid md:grid-cols-2 gap-3 text-sm">
-          <div className="flex items-start gap-2">
-            <span className="w-3 h-3 mt-1 rounded bg-red-500 flex-shrink-0"></span>
-            <div>
-              <span className="font-medium text-red-700">Positive SHAP (+)</span>
-              <p className="text-gray-600 text-xs">Increases default risk → pushes toward rejection</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="w-3 h-3 mt-1 rounded bg-green-500 flex-shrink-0"></span>
-            <div>
-              <span className="font-medium text-green-700">Negative SHAP (−)</span>
-              <p className="text-gray-600 text-xs">Decreases default risk → supports approval</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4">

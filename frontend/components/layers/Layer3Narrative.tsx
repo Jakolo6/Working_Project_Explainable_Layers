@@ -5,9 +5,9 @@
 import React, { useState, useEffect } from 'react'
 import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
+import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
-import CreditHistoryDisclaimer from '@/components/CreditHistoryDisclaimer'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
 
 // Interface for SHAP feature data
@@ -110,6 +110,24 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
     <div className="space-y-6">
       {/* Global Model Explanation - How the tool works in general */}
       <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
+
+      {/* Simple SHAP Explanation */}
+      <SHAPExplanation compact={true} />
+
+      {/* Credit History Disclaimer - above content */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-amber-600 text-lg">⚠️</span>
+          <div>
+            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
+            <p className="text-sm text-amber-800">
+              This model uses patterns from 1994 German banking data. Some factors, 
+              especially credit history categories, may behave differently than modern expectations.
+              Features marked with ⚠ should be interpreted with caution.
+            </p>
+          </div>
+        </div>
+      </div>
       
       {/* Local Decision Summary - This specific applicant */}
       <div className="border-t-4 border-indigo-200 pt-4">
@@ -170,9 +188,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
             </div>
           </div>
         </div>
-
-        {/* Credit History Disclaimer */}
-        <CreditHistoryDisclaimer />
 
         {/* Top 5 Features Table */}
         <div className="bg-slate-50 rounded-lg p-4 mb-6">
