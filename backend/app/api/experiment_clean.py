@@ -117,18 +117,8 @@ class SessionResponse(BaseModel):
     message: str
 
 
-class LayerRating(BaseModel):
-    """Rating for explanation layer"""
-    session_id: str
-    layer_type: str
-    trust: int = Field(..., ge=1, le=7)
-    understanding: int = Field(..., ge=1, le=7)
-    usefulness: int = Field(..., ge=1, le=7)
-    mental_effort: int = Field(..., ge=1, le=7)
-
-
 class PostQuestionnaire(BaseModel):
-    """Post-experiment questionnaire"""
+    """Post-experiment questionnaire - submitted after all personas completed"""
     session_id: str
     most_helpful_layer: str  # layer_1, layer_2, layer_3, layer_4
     most_trusted_layer: str  # layer_1, layer_2, layer_3, layer_4
@@ -136,14 +126,6 @@ class PostQuestionnaire(BaseModel):
     overall_intuitiveness: int = Field(..., ge=1, le=5)
     ai_usefulness: int = Field(..., ge=1, le=5)
     improvement_suggestions: Optional[str] = ''
-
-
-class PreExperimentResponse(BaseModel):
-    """Pre-experiment questionnaire"""
-    session_id: str
-    expectation_ai_decision: int = Field(..., ge=1, le=5)
-    expectation_fair_explanation: int = Field(..., ge=1, le=5)
-    expectation_role_explanations: str
 
 
 # ============================================================================
@@ -171,9 +153,7 @@ async def create_session(session_data: SessionCreate):
             'credit_experience': session_data.credit_experience,
             'ai_familiarity': session_data.ai_familiarity,
             'preferred_explanation_style': session_data.preferred_explanation_style,
-            'background_notes': session_data.background_notes or '',
-            'created_at': datetime.utcnow().isoformat(),
-            'completed': False
+            'background_notes': session_data.background_notes or ''
         }
         
         result = db.create_session(session_record)
@@ -419,27 +399,6 @@ async def submit_post_questionnaire(questionnaire: PostQuestionnaire):
         raise HTTPException(status_code=500, detail=f"Questionnaire submission failed: {e}")
 
 
-@router.post("/pre_response")
-async def submit_pre_experiment_response(response: PreExperimentResponse):
-    """Submit pre-experiment questionnaire"""
-    try:
-        _, _, db = get_services()
-        
-        response_data = {
-            'id': str(uuid.uuid4()),
-            'session_id': response.session_id,
-            'expectation_ai_decision': response.expectation_ai_decision,
-            'expectation_fair_explanation': response.expectation_fair_explanation,
-            'expectation_role_explanations': response.expectation_role_explanations,
-            'submitted_at': datetime.utcnow().isoformat()
-        }
-        
-        result = db.store_pre_experiment_response(response_data)
-        
-        return {"success": True, "message": "Pre-experiment response stored successfully"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pre-experiment submission failed: {str(e)}")
 
 
 @router.get("/session/{session_id}")
