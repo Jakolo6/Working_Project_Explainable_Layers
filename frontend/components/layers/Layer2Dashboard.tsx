@@ -554,32 +554,62 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
         </motion.div>
       )}
 
-      {/* Senior Analyst Note - AI Summary */}
+      {/* AI-Generated Analyst Summary */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-slate-50 border border-slate-200 rounded-xl p-5"
+        className="relative overflow-hidden rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"
       >
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
-            <FileText className="text-slate-600" size={20} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-slate-800">Analyst Summary</h3>
-              {isLoadingSummary && (
-                <Sparkles size={16} className="text-slate-400 animate-pulse" />
+        {/* Decorative corner accent */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-bl-full" />
+        
+        <div className="relative p-5">
+          <div className="flex items-start gap-3">
+            {/* AI Icon */}
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
+              <Sparkles className="text-white" size={18} />
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-2.5">
+                <h3 className="text-sm font-bold text-indigo-900">AI Analyst Summary</h3>
+                {isLoadingSummary && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                )}
+              </div>
+              
+              {/* Content */}
+              {isLoadingSummary ? (
+                <div className="space-y-2">
+                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-full" />
+                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-11/12" />
+                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-4/5" />
+                </div>
+              ) : (
+                <div className="text-sm text-gray-700 leading-relaxed space-y-2">
+                  {aiSummary?.split('\n').map((paragraph, idx) => {
+                    // Convert **bold** markdown to HTML
+                    const formattedText = paragraph.replace(
+                      /\*\*(.+?)\*\*/g,
+                      '<strong class="font-semibold text-gray-900">$1</strong>'
+                    )
+                    return (
+                      <p
+                        key={idx}
+                        className="text-sm"
+                        dangerouslySetInnerHTML={{ __html: formattedText }}
+                      />
+                    )
+                  })}
+                </div>
               )}
             </div>
-            {isLoadingSummary ? (
-              <div className="space-y-2">
-                <div className="h-4 bg-slate-200 rounded animate-pulse w-full" />
-                <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4" />
-              </div>
-            ) : (
-              <p className="text-slate-700 leading-relaxed">{aiSummary}</p>
-            )}
           </div>
         </div>
       </motion.div>
