@@ -385,13 +385,19 @@ async def get_global_explanation_image(filename: str):
 @router.post("/retrain-model")
 async def retrain_model():
     """
-    Retrain XGBoost and Logistic models with risk-ordered categorical encoding.
+    Retrain XGBoost and Logistic models with ALL ML FIXES applied.
     
-    This ensures SHAP values are semantically meaningful:
-    - Higher ordinal value = higher risk = positive SHAP
-    - Lower ordinal value = lower risk = negative SHAP
+    CRITICAL FIXES INCLUDED:
+    - ✅ No double class imbalance handling (uses scale_pos_weight only)
+    - ✅ OneHotEncoder for XGBoost (matches production SHAP expectations)
+    - ✅ Shared feature engineering (consistent across all services)
+    - ✅ Categorical installment_commitment handling
+    - ✅ Proper validation and error handling
     
+    This ensures SHAP values are semantically meaningful and predictions are accurate.
     After training, models are automatically uploaded to R2.
+    
+    ⚠️ REQUIRED after ML fixes to prevent prediction errors!
     """
     try:
         from app.services.model_training_service import ModelTrainingService

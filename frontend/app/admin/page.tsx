@@ -250,23 +250,29 @@ function AdminContent() {
           
           <div className="space-y-4">
             {/* Retrain Model Button */}
-            <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-              <div>
-                <h3 className="font-semibold text-indigo-900">Retrain Model</h3>
-                <p className="text-sm text-indigo-700">
-                  Retrain XGBoost model with risk-ordered encoding and upload to R2
+            <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border-2 border-indigo-300">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-indigo-900">Retrain Model with ML Fixes</h3>
+                  <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded">REQUIRED</span>
+                </div>
+                <p className="text-sm text-indigo-700 mt-1">
+                  ⚠️ Apply critical ML fixes: no double imbalance, OneHot encoding, shared engineering
+                </p>
+                <p className="text-xs text-indigo-600 mt-1">
+                  Fixes overfitting, SHAP errors, and ensures categorical installment_rate works correctly
                 </p>
               </div>
               <button
                 onClick={handleRetrainModel}
                 disabled={isTraining || isGenerating}
-                className={`px-6 py-3 rounded-lg font-semibold text-white transition ${
+                className={`px-6 py-3 rounded-lg font-semibold text-white transition whitespace-nowrap ${
                   isTraining || isGenerating
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-indigo-600 hover:bg-indigo-700'
+                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-lg'
                 }`}
               >
-                {isTraining ? '🔄 Training...' : '🤖 Retrain Model'}
+                {isTraining ? '🔄 Training...' : '🤖 Retrain Now'}
               </button>
             </div>
 
