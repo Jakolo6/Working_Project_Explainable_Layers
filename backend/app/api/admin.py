@@ -649,9 +649,145 @@ async def get_global_analysis():
 # =============================================================================
 
 from pydantic import BaseModel
+from typing import Optional
 
 class DeleteConfirmRequest(BaseModel):
     confirm: str
+
+class DeleteSessionRequest(BaseModel):
+    session_id: str
+
+
+# =============================================================================
+# SESSION MANAGEMENT ENDPOINTS
+# =============================================================================
+
+@router.get("/sessions")
+async def list_all_sessions():
+    """
+    List all experiment sessions with their details.
+    Used for data management in the admin panel.
+    """
+    try:
+        config = get_settings()
+        from supabase import create_client
+        
+        supabase = create_client(config.supabase_url, config.supabase_key)
+        
+        # Get all sessions with their data
+        sessions_result = supabase.table('sessions').select('*').order('created_at', desc=True).execute()
+        sessions = sessions_result.data or []
+        
+        # Get counts for each session
+        enriched_sessions = []
+        for session in sessions:
+            session_id = session.get('session_id')
+            
+            # Count ratings for this session
+            ratings_result = supabase.table('layer_ratings').select('id', count='exact').eq('session_id', session_id).execute()
+            ratings_count = ratings_result.count if ratings_result.count else 0
+            
+            # Count predictions for this session
+            predictions_result = supabase.table('predictions').select('id', count='exact').eq('session_id', session_id).execute()
+            predictions_count = predictions_result.count if predictions_result.count else 0
+            
+            # Count questionnaires for this session
+            questionnaires_result = supabase.table('post_questionnaires').select('id', count='exact').eq('session_id', session_id).execute()
+            questionnaires_count = questionnaires_result.count if questionnaires_result.count else 0
+            
+            enriched_sessions.append({
+                **session,
+                'ratings_count': ratings_count,
+                'predictions_count': predictions_count,
+                'questionnaires_count': questionnaires_count
+            })
+        
+        return {
+            'success': True,
+            'sessions': enriched_sessions,
+            'total_count': len(enriched_sessions)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to list sessions: {str(e)}"
+        )
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(session_id: str):
+    """
+    Delete a specific session and all its related data.
+    This will delete:
+    - The session record
+    - All layer_ratings for this session
+    - All predictions for this session
+    - All post_questionnaires for this session
+    """
+    try:
+        config = get_settings()
+        from supabase import create_client
+        
+        supabase = create_client(config.supabase_url, config.supabase_key)
+        
+        deleted_counts = {
+            'ratings': 0,
+            'predictions': 0,
+            'questionnaires': 0,
+            'session': 0
+        }
+        
+        # Delete in order to respect foreign key constraints
+        # 1. Delete layer_ratings first
+        try:
+            result = supabase.table('layer_ratings').delete().eq('session_id', session_id).execute()
+            deleted_counts['ratings'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting layer_ratings for {session_id}: {e}")
+        
+        # 2. Delete predictions
+        try:
+            result = supabase.table('predictions').delete().eq('session_id', session_id).execute()
+            deleted_counts['predictions'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting predictions for {session_id}: {e}")
+        
+        # 3. Delete post_questionnaires
+        try:
+            result = supabase.table('post_questionnaires').delete().eq('session_id', session_id).execute()
+            deleted_counts['questionnaires'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting post_questionnaires for {session_id}: {e}")
+        
+        # 4. Delete session last
+        try:
+            result = supabase.table('sessions').delete().eq('session_id', session_id).execute()
+            deleted_counts['session'] = len(result.data) if result.data else 0
+        except Exception as e:
+            print(f"Error deleting session {session_id}: {e}")
+        
+        if deleted_counts['session'] == 0:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Session {session_id} not found"
+            )
+        
+        return {
+            'success': True,
+            'message': f'Session {session_id} and all related data deleted',
+            'deleted': deleted_counts,
+            'deleted_at': datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete session: {str(e)}"
+        )
+
 
 @router.delete("/delete-all-data")
 async def delete_all_experiment_data(request: DeleteConfirmRequest):

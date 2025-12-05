@@ -106,15 +106,38 @@ const STYLE_LABELS: Record<string, string> = {
   'action_oriented': 'Action-oriented'
 }
 
+interface SessionData {
+  session_id: string
+  created_at: string
+  completed: boolean
+  consent_given: boolean
+  participant_background: string
+  credit_experience: string
+  ai_familiarity: number
+  ratings_count: number
+  predictions_count: number
+  questionnaires_count: number
+}
+
 function ResultsContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [sessions, setSessions] = useState<SessionData[]>([])
   const [loading, setLoading] = useState(true)
+  const [sessionsLoading, setSessionsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'overview' | 'layers' | 'personas' | 'demographics' | 'feedback'>('overview')
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'layers' | 'personas' | 'demographics' | 'feedback' | 'manage'>('overview')
 
   useEffect(() => {
     fetchDashboardStats()
   }, [])
+
+  useEffect(() => {
+    if (activeTab === 'manage') {
+      fetchSessions()
+    }
+  }, [activeTab])
 
   const fetchDashboardStats = async () => {
     try {
@@ -131,6 +154,48 @@ function ResultsContent() {
       setError(err instanceof Error ? err.message : 'Failed to load data')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSessions = async () => {
+    setSessionsLoading(true)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/v1/admin/sessions`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch sessions')
+      }
+      
+      const data = await response.json()
+      setSessions(data.sessions || [])
+    } catch (err) {
+      console.error('Failed to fetch sessions:', err)
+    } finally {
+      setSessionsLoading(false)
+    }
+  }
+
+  const deleteSession = async (sessionId: string) => {
+    setDeleting(sessionId)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/v1/admin/sessions/${sessionId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete session')
+      }
+      
+      // Refresh both sessions and stats
+      await Promise.all([fetchSessions(), fetchDashboardStats()])
+      setDeleteConfirm(null)
+    } catch (err) {
+      console.error('Failed to delete session:', err)
+      alert('Failed to delete session. Please try again.')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -241,6 +306,7 @@ function ResultsContent() {
             { id: 'personas', label: '👥 Persona Analysis' },
             { id: 'demographics', label: '🎯 Demographics' },
             { id: 'feedback', label: '💬 Feedback' },
+            { id: 'manage', label: '🗑️ Manage Data' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -519,6 +585,122 @@ function ResultsContent() {
                 </div>
               ) : (
                 <p className="text-gray-500">No improvement suggestions collected yet.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* MANAGE DATA TAB */}
+        {activeTab === 'manage' && (
+          <div className="space-y-6">
+            {/* Warning Banner */}
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">⚠️</span>
+                <div>
+                  <h3 className="font-bold text-red-900">Danger Zone</h3>
+                  <p className="text-sm text-red-800">
+                    Deleting sessions is permanent and cannot be undone. Use this to remove test data before your actual study.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sessions List */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900">
+                  All Sessions ({sessions.length})
+                </h2>
+                <button
+                  onClick={fetchSessions}
+                  disabled={sessionsLoading}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                >
+                  {sessionsLoading ? 'Loading...' : '🔄 Refresh'}
+                </button>
+              </div>
+
+              {sessionsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+              ) : sessions.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No sessions found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200">
+                        <th className="text-left py-3 px-2 font-semibold">Session ID</th>
+                        <th className="text-left py-3 px-2 font-semibold">Created</th>
+                        <th className="text-center py-3 px-2 font-semibold">Status</th>
+                        <th className="text-center py-3 px-2 font-semibold">Background</th>
+                        <th className="text-center py-3 px-2 font-semibold">Ratings</th>
+                        <th className="text-center py-3 px-2 font-semibold">Predictions</th>
+                        <th className="text-center py-3 px-2 font-semibold">Questionnaires</th>
+                        <th className="text-right py-3 px-2 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sessions.map((session, idx) => (
+                        <tr key={session.session_id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                          <td className="py-3 px-2 font-mono text-xs">
+                            {session.session_id.substring(0, 8)}...
+                          </td>
+                          <td className="py-3 px-2 text-gray-600">
+                            {new Date(session.created_at).toLocaleDateString('de-DE', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            {session.completed ? (
+                              <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Completed</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">In Progress</span>
+                            )}
+                          </td>
+                          <td className="text-center py-3 px-2 text-gray-600">
+                            {BACKGROUND_LABELS[session.participant_background] || session.participant_background || '-'}
+                          </td>
+                          <td className="text-center py-3 px-2">{session.ratings_count}</td>
+                          <td className="text-center py-3 px-2">{session.predictions_count}</td>
+                          <td className="text-center py-3 px-2">{session.questionnaires_count}</td>
+                          <td className="text-right py-3 px-2">
+                            {deleteConfirm === session.session_id ? (
+                              <div className="flex gap-2 justify-end">
+                                <button
+                                  onClick={() => deleteSession(session.session_id)}
+                                  disabled={deleting === session.session_id}
+                                  className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50"
+                                >
+                                  {deleting === session.session_id ? 'Deleting...' : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirm(null)}
+                                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteConfirm(session.session_id)}
+                                className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                              >
+                                🗑️ Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
