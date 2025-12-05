@@ -716,11 +716,12 @@ async def list_all_sessions():
                     'layers_rated': persona_rating_count,
                     'questionnaire_done': persona_quest_done,
                     'prediction_done': persona_pred_done,
+                    'layers_complete': persona_rating_count >= 4,  # All 4 layers rated
                     'fully_completed': persona_rating_count >= 4 and persona_quest_done
                 }
             
-            # Count fully completed personas
-            personas_completed = sum(1 for p in persona_details.values() if p['fully_completed'])
+            # Count personas with all layers completed (regardless of questionnaire)
+            personas_completed = sum(1 for p in persona_details.values() if p['layers_complete'])
             
             enriched_sessions.append({
                 **session,

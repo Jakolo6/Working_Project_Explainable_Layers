@@ -110,6 +110,7 @@ interface PersonaDetail {
   layers_rated: number
   questionnaire_done: boolean
   prediction_done: boolean
+  layers_complete: boolean
   fully_completed: boolean
 }
 
@@ -700,15 +701,15 @@ function ResultsContent() {
                                 <div 
                                   key={personaId}
                                   className={`px-1.5 py-0.5 rounded text-xs ${
-                                    detail.fully_completed ? 'bg-green-100 text-green-800' :
+                                    detail.layers_complete ? 'bg-green-100 text-green-800' :
                                     detail.layers_rated > 0 ? 'bg-yellow-100 text-yellow-800' :
                                     'bg-gray-100 text-gray-400'
                                   }`}
-                                  title={`${PERSONA_SHORT_NAMES[personaId]}: ${detail.layers_rated}/4 layers${detail.questionnaire_done ? ' + questionnaire' : ''}`}
+                                  title={`${PERSONA_SHORT_NAMES[personaId]}: ${detail.layers_rated}/4 layers${detail.layers_complete ? ' ✓' : ''}`}
                                 >
                                   {personaId === 'elderly-woman' ? '👵' : personaId === 'young-entrepreneur' ? '👨‍💼' : '👨‍💻'}
                                   {detail.layers_rated}/4
-                                  {detail.questionnaire_done && '✓'}
+                                  {detail.layers_complete && '✓'}
                                 </div>
                               ))}
                             </div>
