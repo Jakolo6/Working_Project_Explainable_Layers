@@ -58,40 +58,40 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
   // Map frontend values to exact backend expected values
   const VALUE_MAPPING: Record<string, string> = {
-    // Checking account status (personas use € symbols)
-    'less than €0': 'lt_0_dm',
-    '€0 to €200': '0_to_200_dm',
-    '€200 or more': 'ge_200_dm',
+    // Checking account status - match form dropdown values exactly
+    'less than 0 dm': 'lt_0_dm',
+    '0 to 200 dm': '0_to_200_dm',
+    '200 dm or more': 'ge_200_dm',
     'no checking account': 'no_checking',
     
-    // Savings account (personas use € symbols)
-    'less than €100': 'lt_100_dm',
-    '€100 to €500': '100_to_500_dm',
-    '€500 to €1000': '500_to_1000_dm',
-    '€1000 or more': 'ge_1000_dm',
-    'unknown / no savings': 'unknown',
+    // Savings account - match form dropdown values exactly
+    'less than 100 dm': 'lt_100_dm',
+    '100 to 500 dm': '100_to_500_dm',
+    '500 to 1000 dm': '500_to_1000_dm',
+    '1000 dm or more': 'ge_1000_dm',
+    'unknown/no savings': 'unknown',
     
-    // Credit history
-    'no credits taken / all credits paid back duly': 'no_credits',
-    'all credits at this bank paid back duly': 'all_paid',
-    'existing credits paid back duly till now': 'existing_paid',
+    // Credit history - match form dropdown values exactly
+    'no credits taken/all paid back': 'no_credits',
+    'all credits paid back duly': 'all_paid',
+    'existing credits paid back duly': 'existing_paid',
     'delay in paying off in the past': 'delayed_past',
-    'critical account / other credits existing (not at this bank)': 'critical',
+    'critical account': 'critical',
     
-    // Employment
+    // Employment - match form dropdown values exactly
     'unemployed': 'unemployed',
     'less than 1 year': 'lt_1_year',
     '1 to 4 years': '1_to_4_years',
     '4 to 7 years': '4_to_7_years',
     '7 years or more': 'ge_7_years',
     
-    // Job
-    'unemployed / unskilled - non-resident': 'unemployed_unskilled',
+    // Job - match form dropdown values exactly
+    'unemployed/unskilled - non-resident': 'unemployed_unskilled',
     'unskilled - resident': 'unskilled_resident',
-    'skilled employee / official': 'skilled',
-    'management / self-employed / highly qualified employee / officer': 'management',
+    'skilled employee': 'skilled',
+    'management/self-employed': 'management',
     
-    // Purpose
+    // Purpose - match form dropdown values exactly
     'car (new)': 'car_new',
     'car (used)': 'car_used',
     'furniture/equipment': 'furniture',
@@ -103,28 +103,29 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     'business': 'business',
     'others': 'others',
     
-    // Property
+    // Property - match form dropdown values exactly
     'real estate': 'real_estate',
-    'building society savings agreement / life insurance': 'savings_agreement',
+    'building society savings/life insurance': 'savings_agreement',
     'car or other': 'car_or_other',
-    'unknown / no property': 'unknown_no_property',
+    'unknown/no property': 'unknown_no_property',
     
-    // Housing
+    // Housing - match form dropdown values exactly
     'rent': 'rent',
     'own': 'own',
     'for free': 'for_free',
     
-    // Other debtors / guarantors
+    // Other debtors/guarantors - match form dropdown values exactly
     'none': 'none',
     'co-applicant': 'co_applicant',
     'guarantor': 'guarantor',
     
-    // Other payment plans
+    // Other payment plans - match form dropdown values exactly
     'bank': 'bank',
     'stores': 'stores',
     
-    // Telephone
-    'yes (registered under the customer\'s name)': 'yes',
+    // Telephone - match form dropdown values exactly
+    'no': 'none',
+    'yes': 'yes',
   }
   
   const mapValue = (value: string): string => {
