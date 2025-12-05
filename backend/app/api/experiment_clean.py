@@ -422,6 +422,25 @@ async def get_session(session_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to retrieve session: {str(e)}")
 
 
+@router.post("/session/{session_id}/complete")
+async def mark_session_complete(session_id: str):
+    """Mark a session as complete (called when participant finishes or exits early)"""
+    try:
+        _, _, db = get_services()
+        
+        # Mark session as completed
+        db.complete_session(session_id)
+        
+        return {
+            "success": True,
+            "message": f"Session {session_id} marked as complete",
+            "completed_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to mark session complete: {str(e)}")
+
+
 @router.post("/generate_explanation")
 async def generate_natural_language_explanation(request: dict):
     """Generate natural language explanation (template-based, no GPT)"""

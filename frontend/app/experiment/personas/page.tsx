@@ -166,17 +166,6 @@ export default function PersonaSelectionPage() {
               style={{ width: `${(completedCount / PERSONAS.length) * 100}%` }}
             />
           </div>
-          {allCompleted && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 font-medium mb-3">🎉 All personas completed! You can now finish the experiment.</p>
-              <Link
-                href="/experiment/complete"
-                className="inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white hover:bg-green-700 transition"
-              >
-                Continue to Final Questionnaire →
-              </Link>
-            </div>
-          )}
         </div>
 
         <section className="rounded-xl bg-blue-50 border border-blue-200 p-8 shadow-lg">
@@ -245,18 +234,39 @@ export default function PersonaSelectionPage() {
           })}
         </div>
 
-        {/* Option to end early */}
-        {completedCount > 0 && !allCompleted && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
-            <p className="text-amber-800 text-sm mb-3">
-              <strong>Want to finish early?</strong> You can complete the final questionnaire now, but we encourage you to try all three personas for a complete experience.
-            </p>
-            <Link
-              href="/experiment/complete"
-              className="inline-flex items-center text-amber-700 hover:text-amber-900 text-sm font-medium"
-            >
-              Skip to Final Questionnaire →
-            </Link>
+        {/* Option to finish and exit */}
+        {completedCount > 0 && (
+          <div className={`rounded-xl p-6 ${allCompleted ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+            <div className="flex items-start gap-4">
+              <div className="text-3xl">{allCompleted ? '🎉' : '⏰'}</div>
+              <div className="flex-1">
+                <h3 className={`font-semibold mb-2 ${allCompleted ? 'text-green-800' : 'text-amber-800'}`}>
+                  {allCompleted 
+                    ? 'Congratulations! You completed all personas!' 
+                    : 'Short on time?'}
+                </h3>
+                <p className={`text-sm mb-4 ${allCompleted ? 'text-green-700' : 'text-amber-700'}`}>
+                  {allCompleted 
+                    ? `Thank you for completing all ${PERSONAS.length} personas. Your contribution is invaluable to our research!`
+                    : `You've completed ${completedCount} of ${PERSONAS.length} personas. If you don't have time to continue, you can finish now. Every completed persona helps our research!`}
+                </p>
+                <Link
+                  href="/experiment/complete"
+                  className={`inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition ${
+                    allCompleted 
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-amber-600 text-white hover:bg-amber-700'
+                  }`}
+                >
+                  {allCompleted ? 'Complete Study & Exit →' : 'Finish Now & Exit →'}
+                </Link>
+                {!allCompleted && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    We encourage completing all personas if possible, but partial data is still valuable.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
