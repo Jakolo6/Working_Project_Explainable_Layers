@@ -120,7 +120,6 @@ export default function ExperimentStartPage() {
         // Clear any previous persona completion flags for fresh start
         window.localStorage.removeItem('completed_elderly-woman')
         window.localStorage.removeItem('completed_young-entrepreneur')
-        window.localStorage.removeItem('completed_middle-aged-employee')
       }
     } catch (error) {
       console.error('Registration failed:', error)

@@ -18,7 +18,6 @@ export default function CompletePage() {
       let count = 0
       if (localStorage.getItem('completed_elderly-woman') === 'true') count++
       if (localStorage.getItem('completed_young-entrepreneur') === 'true') count++
-      if (localStorage.getItem('completed_middle-aged-employee') === 'true') count++
       setCompletedCount(count)
 
       // Mark session as complete in backend
@@ -39,7 +38,6 @@ export default function CompletePage() {
       localStorage.removeItem(SESSION_STORAGE_KEY)
       localStorage.removeItem('completed_elderly-woman')
       localStorage.removeItem('completed_young-entrepreneur')
-      localStorage.removeItem('completed_middle-aged-employee')
       
       setIsMarking(false)
     }

@@ -80,9 +80,8 @@ const LAYER_NAMES: Record<string, string> = {
 }
 
 const PERSONA_NAMES: Record<string, string> = {
-  'elderly-woman': 'Maria (Elderly Woman)',
-  'young-entrepreneur': 'Jonas (Young Entrepreneur)',
-  'middle-aged-employee': 'Sofia (Middle-aged Employee)'
+  'elderly-woman': 'Maria (Low Risk)',
+  'young-entrepreneur': 'Jonas (High Risk)'
 }
 
 const BACKGROUND_LABELS: Record<string, string> = {
@@ -129,14 +128,12 @@ interface SessionData {
   persona_details: {
     'elderly-woman': PersonaDetail
     'young-entrepreneur': PersonaDetail
-    'middle-aged-employee': PersonaDetail
   }
 }
 
 const PERSONA_SHORT_NAMES: Record<string, string> = {
-  'elderly-woman': '👵 Elderly',
-  'young-entrepreneur': '👨‍💼 Entrepreneur', 
-  'middle-aged-employee': '👨‍💻 Employee'
+  'elderly-woman': '✅ Low Risk',
+  'young-entrepreneur': '⚠️ High Risk'
 }
 
 function ResultsContent() {
@@ -502,7 +499,7 @@ function ResultsContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {['elderly-woman', 'young-entrepreneur', 'middle-aged-employee'].map((personaKey, idx) => {
+                    {['elderly-woman', 'young-entrepreneur'].map((personaKey, idx) => {
                       const persona = stats.persona_stats?.[personaKey]
                       if (!persona || persona.count === 0) return null
                       return (

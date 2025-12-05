@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import ModelOverviewCard from '@/components/ModelOverviewCard'
 
-type PersonaId = 'elderly-woman' | 'young-entrepreneur' | 'middle-aged-employee'
+type PersonaId = 'elderly-woman' | 'young-entrepreneur'
 
 interface PersonaCard {
   id: PersonaId
@@ -27,41 +27,31 @@ const SESSION_STORAGE_KEY = 'experiment_session_id'
 const PERSONAS: PersonaCard[] = [
   {
     id: 'elderly-woman',
-    title: 'Persona 1: Maria (67) – Retired',
-    subtitle: '€4,000 for home renovation',
+    title: 'Persona 1: Maria (35) – Skilled Employee',
+    subtitle: '€2,500 for used car purchase',
     context:
-      'Maria is a 67-year-old retiree who wants to borrow €4,000 to renovate her bathroom for better accessibility. She has a modest pension and some savings, but is concerned about taking on debt at her age.',
+      'Maria is a 35-year-old skilled employee who wants to borrow €2,500 for a reliable used car. She has stable employment, good savings, and an excellent payment history. This represents a LOW RISK profile.',
     keyFactors: [
-      'Fixed retirement income from pension',
-      'Owns her home with no mortgage',
-      'Limited existing credits, good payment history',
+      'Stable employment (7+ years)',
+      'Excellent savings and checking account',
+      'Perfect credit history with guarantor',
     ],
   },
   {
     id: 'young-entrepreneur',
-    title: 'Persona 2: Jonas (27) – Employee',
-    subtitle: '€12,000 for business start-up',
+    title: 'Persona 2: Jonas (23) – Recently Employed',
+    subtitle: '€15,000 for business start-up',
     context:
-      'Jonas is a 27-year-old employee who wants to borrow €12,000 to start a small online business alongside his current job. He has been employed for 3 years and has a stable income.',
+      'Jonas is a 23-year-old who wants to borrow €15,000 to start a business. He has limited employment history, minimal savings, and an overdrawn checking account. This represents a HIGH RISK profile.',
     keyFactors: [
-      'Steady employment income',
-      'Young with limited credit history',
-      'Ambitious but higher risk due to business venture',
-    ],
-  },
-  {
-    id: 'middle-aged-employee',
-    title: 'Persona 3: Sofia (44) – Single Parent',
-    subtitle: '€20,000 to consolidate debt',
-    context:
-      'Sofia is a 44-year-old single parent who wants to borrow €20,000 to consolidate multiple smaller debts into one manageable payment. She works full-time and supports two children.',
-    keyFactors: [
-      'Stable employment but supporting family alone',
-      'Multiple existing credits to consolidate',
-      'Seeking better financial management through consolidation',
+      'Limited employment history (< 1 year)',
+      'Overdrawn checking account',
+      'High loan amount for risky business venture',
     ],
   },
 ]
+
+// Note: Reduced to 2 personas for clearer low-risk vs high-risk comparison
 
 export default function PersonaSelectionPage() {
   const [sessionState, setSessionState] = useState<SessionState>({

@@ -6,8 +6,7 @@ import LayersClient from './LayersClient'
 export function generateStaticParams() {
   return [
     { personaId: 'elderly-woman' },
-    { personaId: 'young-entrepreneur' },
-    { personaId: 'middle-aged-employee' }
+    { personaId: 'young-entrepreneur' }
   ]
 }
 

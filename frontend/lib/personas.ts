@@ -1,6 +1,6 @@
 // Persona definitions and prefilled application data for the experiment
 
-export type PersonaId = 'elderly-woman' | 'young-entrepreneur' | 'middle-aged-employee'
+export type PersonaId = 'elderly-woman' | 'young-entrepreneur'
 
 export interface PersonaInfo {
   id: PersonaId
@@ -48,100 +48,80 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
   'elderly-woman': {
     id: 'elderly-woman',
     name: 'Maria',
-    age: 67,
-    occupation: 'Retired',
-    loanAmount: 4000,
-    loanPurpose: 'Home renovation (bathroom accessibility)',
-    description: 'Maria is a 67-year-old retiree who wants to borrow €4,000 to renovate her bathroom for better accessibility. She has a modest pension and some savings, but is concerned about taking on debt at her age.',
+    age: 35,
+    occupation: 'Skilled Employee',
+    loanAmount: 2500,
+    loanPurpose: 'Used car purchase',
+    description: 'Maria is a 35-year-old skilled employee who wants to borrow €2,500 for a reliable used car. She has stable employment, good savings, and an excellent payment history. This represents a LOW RISK profile.',
   },
   'young-entrepreneur': {
     id: 'young-entrepreneur',
     name: 'Jonas',
-    age: 27,
-    occupation: 'Employee',
-    loanAmount: 12000,
-    loanPurpose: 'Business start-up (online business)',
-    description: 'Jonas is a 27-year-old employee who wants to borrow €12,000 to start a small online business alongside his current job. He has been employed for 3 years and has a stable income.',
-  },
-  'middle-aged-employee': {
-    id: 'middle-aged-employee',
-    name: 'Sofia',
-    age: 44,
-    occupation: 'Single Parent / Full-time Employee',
-    loanAmount: 20000,
-    loanPurpose: 'Debt consolidation',
-    description: 'Sofia is a 44-year-old single parent who wants to borrow €20,000 to consolidate multiple smaller debts into one manageable payment. She works full-time and supports two children.',
+    age: 23,
+    occupation: 'Recently Employed',
+    loanAmount: 15000,
+    loanPurpose: 'Business start-up',
+    description: 'Jonas is a 23-year-old who wants to borrow €15,000 to start a business. He has limited employment history, minimal savings, and an overdrawn checking account. This represents a HIGH RISK profile.',
   },
 }
 
 // Prefilled application data for each persona
 // Based on German Credit Dataset attributes
 export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
+  // LOW RISK PROFILE - Maria
+  // Designed to get APPROVED with high confidence
   'elderly-woman': {
-    age: 67,
-    sex: 'female',
-    checking_account_status: '0 to 200 DM',
-    savings_account: '100 to 500 DM',
-    credit_amount: 4000,
-    duration_months: 24,
-    employment_status: 'unemployed', // retired
-    present_residence_since: 4,
-    property: 'real estate',
-    housing: 'own',
-    credit_history: 'delay in paying off in the past',
-    purpose: 'repairs',
-    installment_rate: 2,
-    existing_credits: 1,
-    other_debtors: 'none',
-    other_installment_plans: 'none',
-    job: 'skilled employee',
-    num_dependents: 1,
-    telephone: 'yes',
-    foreign_worker: 'no',
+    // SHAP Features (shown to user) - All favorable
+    age: 35,                                    // Stable age
+    checking_account_status: '200 DM or more', // Excellent cash flow
+    savings_account: '1000 DM or more',        // Strong safety net
+    credit_amount: 2500,                        // Modest, manageable amount
+    duration_months: 12,                        // Short duration (low risk)
+    employment_status: '7 years or more',       // Very stable employment
+    present_residence_since: 4,                 // Established residence
+    property: 'real estate',                    // Owns property (collateral)
+    housing: 'own',                             // Homeowner (stability)
+    credit_history: 'all credits paid back duly', // Perfect payment history
+    purpose: 'car (used)',                      // Practical, low-risk purpose
+    installment_rate: 1,                        // Low burden (< 20%)
+    existing_credits: 1,                        // Minimal existing debt
+    other_debtors: 'guarantor',                 // Has guarantor (security)
+    other_installment_plans: 'none',            // No other obligations
+    job: 'management/self-employed',            // High earning capacity
+    
+    // Excluded Features (not in SHAP) - Set to neutral
+    sex: 'female',                              // Excluded for fairness
+    num_dependents: 1,                          // Neutral (average)
+    telephone: 'yes',                           // Neutral
+    foreign_worker: 'no',                       // Excluded for fairness
   },
+  
+  // HIGH RISK PROFILE - Jonas
+  // Designed to get REJECTED or low confidence approval
   'young-entrepreneur': {
-    age: 27,
-    sex: 'male',
-    checking_account_status: '0 to 200 DM',
-    savings_account: 'less than 100 DM',
-    credit_amount: 12000,
-    duration_months: 36,
-    employment_status: '1 to 4 years',
-    present_residence_since: 2,
-    property: 'car or other',
-    housing: 'rent',
-    credit_history: 'delay in paying off in the past',
-    purpose: 'business',
-    installment_rate: 3,
-    existing_credits: 2,
-    other_debtors: 'none',
-    other_installment_plans: 'none',
-    job: 'skilled employee',
-    num_dependents: 1,
-    telephone: 'yes',
-    foreign_worker: 'no',
-  },
-  'middle-aged-employee': {
-    age: 44,
-    sex: 'female',
-    checking_account_status: 'less than 0 DM',
-    savings_account: '100 to 500 DM',
-    credit_amount: 20000,
-    duration_months: 48,
-    employment_status: '4 to 7 years',
-    present_residence_since: 3,
-    property: 'real estate',
-    housing: 'own',
-    credit_history: 'delay in paying off in the past',
-    purpose: 'retraining', // closest to debt consolidation
-    installment_rate: 4,
-    existing_credits: 3,
-    other_debtors: 'none',
-    other_installment_plans: 'bank',
-    job: 'skilled employee',
-    num_dependents: 2,
-    telephone: 'yes',
-    foreign_worker: 'no',
+    // SHAP Features (shown to user) - All unfavorable
+    age: 23,                                    // Young (less stability)
+    checking_account_status: 'less than 0 DM', // Overdrawn (financial stress)
+    savings_account: 'less than 100 DM',       // Minimal safety net
+    credit_amount: 15000,                       // Large amount
+    duration_months: 48,                        // Long duration (high risk)
+    employment_status: 'less than 1 year',      // Unstable employment
+    present_residence_since: 1,                 // Recently moved
+    property: 'unknown/no property',            // No collateral
+    housing: 'rent',                            // No homeownership
+    credit_history: 'delay in paying off in the past', // Payment issues
+    purpose: 'business',                        // High-risk purpose
+    installment_rate: 4,                        // High burden (≥ 35%)
+    existing_credits: 3,                        // Multiple existing debts
+    other_debtors: 'none',                      // No guarantor
+    other_installment_plans: 'bank',            // Other payment obligations
+    job: 'unskilled - resident',                // Lower earning potential
+    
+    // Excluded Features (not in SHAP) - Set to neutral
+    sex: 'male',                                // Excluded for fairness
+    num_dependents: 1,                          // Neutral (average)
+    telephone: 'yes',                           // Neutral
+    foreign_worker: 'no',                       // Excluded for fairness
   },
 }
 
