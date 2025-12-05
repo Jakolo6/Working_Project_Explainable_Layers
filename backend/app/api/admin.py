@@ -680,6 +680,8 @@ async def list_all_sessions():
         
         # Get counts for each session
         enriched_sessions = []
+        personas = ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']
+        
         for session in sessions:
             session_id = session.get('session_id')
             
@@ -695,11 +697,38 @@ async def list_all_sessions():
             questionnaires_result = supabase.table('post_questionnaires').select('id', count='exact').eq('session_id', session_id).execute()
             questionnaires_count = questionnaires_result.count if questionnaires_result.count else 0
             
+            # Get per-persona breakdown
+            persona_details = {}
+            for persona in personas:
+                # Count ratings per persona (should be 4 if all layers completed)
+                persona_ratings = supabase.table('layer_ratings').select('layer_number', count='exact').eq('session_id', session_id).eq('persona_id', persona).execute()
+                persona_rating_count = persona_ratings.count if persona_ratings.count else 0
+                
+                # Check if questionnaire submitted for this persona
+                persona_quest = supabase.table('post_questionnaires').select('id', count='exact').eq('session_id', session_id).eq('persona_id', persona).execute()
+                persona_quest_done = (persona_quest.count or 0) > 0
+                
+                # Check if prediction exists for this persona
+                persona_pred = supabase.table('predictions').select('id', count='exact').eq('session_id', session_id).eq('persona_id', persona).execute()
+                persona_pred_done = (persona_pred.count or 0) > 0
+                
+                persona_details[persona] = {
+                    'layers_rated': persona_rating_count,
+                    'questionnaire_done': persona_quest_done,
+                    'prediction_done': persona_pred_done,
+                    'fully_completed': persona_rating_count >= 4 and persona_quest_done
+                }
+            
+            # Count fully completed personas
+            personas_completed = sum(1 for p in persona_details.values() if p['fully_completed'])
+            
             enriched_sessions.append({
                 **session,
                 'ratings_count': ratings_count,
                 'predictions_count': predictions_count,
-                'questionnaires_count': questionnaires_count
+                'questionnaires_count': questionnaires_count,
+                'persona_details': persona_details,
+                'personas_completed': personas_completed
             })
         
         return {

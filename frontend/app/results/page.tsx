@@ -106,6 +106,13 @@ const STYLE_LABELS: Record<string, string> = {
   'action_oriented': 'Action-oriented'
 }
 
+interface PersonaDetail {
+  layers_rated: number
+  questionnaire_done: boolean
+  prediction_done: boolean
+  fully_completed: boolean
+}
+
 interface SessionData {
   session_id: string
   created_at: string
@@ -117,6 +124,18 @@ interface SessionData {
   ratings_count: number
   predictions_count: number
   questionnaires_count: number
+  personas_completed: number
+  persona_details: {
+    'elderly-woman': PersonaDetail
+    'young-entrepreneur': PersonaDetail
+    'middle-aged-employee': PersonaDetail
+  }
+}
+
+const PERSONA_SHORT_NAMES: Record<string, string> = {
+  'elderly-woman': '👵 Elderly',
+  'young-entrepreneur': '👨‍💼 Entrepreneur', 
+  'middle-aged-employee': '👨‍💻 Employee'
 }
 
 function ResultsContent() {
@@ -636,9 +655,8 @@ function ResultsContent() {
                         <th className="text-left py-3 px-2 font-semibold">Created</th>
                         <th className="text-center py-3 px-2 font-semibold">Status</th>
                         <th className="text-center py-3 px-2 font-semibold">Background</th>
-                        <th className="text-center py-3 px-2 font-semibold">Ratings</th>
-                        <th className="text-center py-3 px-2 font-semibold">Predictions</th>
-                        <th className="text-center py-3 px-2 font-semibold">Questionnaires</th>
+                        <th className="text-center py-3 px-2 font-semibold">Personas Done</th>
+                        <th className="text-center py-3 px-2 font-semibold">Persona Progress</th>
                         <th className="text-right py-3 px-2 font-semibold">Actions</th>
                       </tr>
                     </thead>
@@ -648,7 +666,7 @@ function ResultsContent() {
                           <td className="py-3 px-2 font-mono text-xs">
                             {session.session_id.substring(0, 8)}...
                           </td>
-                          <td className="py-3 px-2 text-gray-600">
+                          <td className="py-3 px-2 text-gray-600 text-xs">
                             {new Date(session.created_at).toLocaleDateString('de-DE', {
                               day: '2-digit',
                               month: '2-digit',
@@ -664,12 +682,37 @@ function ResultsContent() {
                               <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">In Progress</span>
                             )}
                           </td>
-                          <td className="text-center py-3 px-2 text-gray-600">
+                          <td className="text-center py-3 px-2 text-gray-600 text-xs">
                             {BACKGROUND_LABELS[session.participant_background] || session.participant_background || '-'}
                           </td>
-                          <td className="text-center py-3 px-2">{session.ratings_count}</td>
-                          <td className="text-center py-3 px-2">{session.predictions_count}</td>
-                          <td className="text-center py-3 px-2">{session.questionnaires_count}</td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              session.personas_completed === 3 ? 'bg-green-100 text-green-800' :
+                              session.personas_completed > 0 ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {session.personas_completed}/3
+                            </span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex gap-1 justify-center flex-wrap">
+                              {session.persona_details && Object.entries(session.persona_details).map(([personaId, detail]) => (
+                                <div 
+                                  key={personaId}
+                                  className={`px-1.5 py-0.5 rounded text-xs ${
+                                    detail.fully_completed ? 'bg-green-100 text-green-800' :
+                                    detail.layers_rated > 0 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-400'
+                                  }`}
+                                  title={`${PERSONA_SHORT_NAMES[personaId]}: ${detail.layers_rated}/4 layers${detail.questionnaire_done ? ' + questionnaire' : ''}`}
+                                >
+                                  {personaId === 'elderly-woman' ? '👵' : personaId === 'young-entrepreneur' ? '👨‍💼' : '👨‍💻'}
+                                  {detail.layers_rated}/4
+                                  {detail.questionnaire_done && '✓'}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
                           <td className="text-right py-3 px-2">
                             {deleteConfirm === session.session_id ? (
                               <div className="flex gap-2 justify-end">
@@ -706,13 +749,10 @@ function ResultsContent() {
                           Totals ({sessions.length} sessions):
                         </td>
                         <td className="text-center py-3 px-2 font-bold">
-                          {sessions.reduce((sum, s) => sum + s.ratings_count, 0)}
+                          {sessions.reduce((sum, s) => sum + (s.personas_completed || 0), 0)} personas
                         </td>
-                        <td className="text-center py-3 px-2 font-bold">
-                          {sessions.reduce((sum, s) => sum + s.predictions_count, 0)}
-                        </td>
-                        <td className="text-center py-3 px-2 font-bold">
-                          {sessions.reduce((sum, s) => sum + s.questionnaires_count, 0)}
+                        <td className="text-center py-3 px-2 font-bold text-xs">
+                          {sessions.reduce((sum, s) => sum + s.ratings_count, 0)} ratings / {sessions.reduce((sum, s) => sum + s.questionnaires_count, 0)} quest.
                         </td>
                         <td></td>
                       </tr>
