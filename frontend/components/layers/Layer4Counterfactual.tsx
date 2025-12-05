@@ -612,10 +612,15 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
         {showSandbox && (
           <div className="p-6 border-t border-gray-100">
             {/* Instruction */}
-            <p className="text-sm text-gray-600 mb-4 flex items-center gap-2">
-              <Info size={16} className="text-indigo-500" />
-              Change any value below — the estimated decision updates automatically.
-            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-800 flex items-start gap-2">
+                <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <span>
+                  <strong>Note:</strong> These are <strong>estimated</strong> outcomes based on feature importance patterns, 
+                  not live predictions from the XGBoost model. Change values below to see approximate effects.
+                </span>
+              </p>
+            </div>
             
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               {Object.entries(FEATURE_OPTIONS).map(([featureName, config]) => {
