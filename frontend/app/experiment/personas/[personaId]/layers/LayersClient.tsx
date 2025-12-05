@@ -100,6 +100,9 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    // Scroll to top when component loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     // Load persona
     const personaData = getPersona(personaId)
     if (!personaData) {
@@ -183,6 +186,8 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           comment: '',
           time_spent_seconds: 0
         })
+        // Scroll to top of page when moving to next layer
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         // All layers completed for this persona
         // Navigate to per-persona questionnaire (which will mark as completed after submission)

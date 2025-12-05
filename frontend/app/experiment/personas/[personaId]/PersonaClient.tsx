@@ -657,20 +657,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             </div>
           )}
 
-          {!decision && (
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting || isLocked}
-                className="w-full rounded-lg bg-blue-600 px-4 py-4 text-white font-bold text-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Generating...' : 'Generate AI Decision & Explanations'}
-              </button>
-              <p className="text-center text-sm text-gray-600 mt-3">
-                ⚠️ Note: Proceeding will lock these values and generate the prediction. You cannot return to this step.
-              </p>
-            </div>
-          )}
+          {/* Duplicate button removed - user can use the button at the top of the page */}
         </form>
       </div>
     </main>
