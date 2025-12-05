@@ -479,7 +479,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
               <p className="text-sm text-gray-600 mb-1">Estimated Risk Level</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-red-700">
-                  {Math.round((1 - probability) * 100)}%
+                  {Math.round(probability * 100)}%
                 </span>
                 <span className="text-gray-500 text-lg">Default Risk</span>
               </div>
@@ -491,7 +491,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
             <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${(1 - probability) * 100}%` }}
+                animate={{ width: `${probability * 100}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
               />
