@@ -255,21 +255,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           </div>
         </div>
 
-        {/* Decision Recap (Collapsed) */}
-        <div className={`mb-8 p-4 rounded-lg border-2 ${
-          prediction.decision === 'approved' 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <p className="text-sm text-gray-700">
-            <strong>AI Decision:</strong>{' '}
-            <span className={prediction.decision === 'approved' ? 'text-green-700' : 'text-red-700'}>
-              {prediction.decision.toUpperCase()}
-            </span>{' '}
-            (Model certainty: {(prediction.probability * 100).toFixed(0)}%)
-          </p>
-        </div>
-
         {/* Current Layer Display */}
         <div className="mb-8">
           {currentLayerIndex === 0 && (
