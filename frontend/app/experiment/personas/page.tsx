@@ -162,6 +162,29 @@ export default function PersonaSelectionPage() {
           </div>
         </div>
 
+        {/* Completion message - show at TOP when ALL personas are done */}
+        {allCompleted && (
+          <div className="rounded-xl p-6 bg-green-50 border-2 border-green-300 shadow-lg max-w-5xl mx-auto">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">🎉</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-2 text-green-800">
+                  Congratulations! You completed all personas!
+                </h3>
+                <p className="text-sm mb-4 text-green-700">
+                  Thank you for completing all {PERSONAS.length} personas. Your contribution is invaluable to our research!
+                </p>
+                <Link
+                  href="/experiment/complete"
+                  className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition bg-green-600 text-white hover:bg-green-700 shadow-md"
+                >
+                  Complete Study & Exit →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Model Overview - Scannable "How the AI Works" card */}
         <ModelOverviewCard />
 
@@ -230,29 +253,6 @@ export default function PersonaSelectionPage() {
             )
           })}
         </div>
-
-        {/* Completion message - only show when ALL personas are done */}
-        {allCompleted && (
-          <div className="rounded-xl p-6 bg-green-50 border border-green-200 max-w-5xl mx-auto">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🎉</div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-2 text-green-800">
-                  Congratulations! You completed all personas!
-                </h3>
-                <p className="text-sm mb-4 text-green-700">
-                  Thank you for completing all {PERSONAS.length} personas. Your contribution is invaluable to our research!
-                </p>
-                <Link
-                  href="/experiment/complete"
-                  className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold transition bg-green-600 text-white hover:bg-green-700"
-                >
-                  Complete Study & Exit →
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     )
   }
