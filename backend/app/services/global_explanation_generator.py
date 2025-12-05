@@ -11,14 +11,14 @@ import seaborn as sns
 import shap
 import joblib
 import boto3
+from botocore.config import Config
 from io import BytesIO
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime
+from pathlib import Path
 
 # Import shared feature engineering
 from .feature_engineering import engineer_features
-from typing import Dict, Any, List, Optional
-from pathlib import Path
 
 from app.config import get_settings
 
