@@ -30,10 +30,10 @@ const CREDIT_EXPERIENCE_OPTIONS = [
 ]
 
 const EXPLANATION_STYLE_OPTIONS = [
-  { value: 'technical', label: 'Technical' },
-  { value: 'visual', label: 'Visual' },
-  { value: 'narrative', label: 'Narrative' },
-  { value: 'action_oriented', label: 'Action-oriented ("what needs to change?")' }
+  { value: 'technical', label: 'Technical (SHAP values, feature importance)' },
+  { value: 'visual', label: 'Visual (charts, graphs, distributions)' },
+  { value: 'narrative', label: 'Narrative (natural language, storytelling)' },
+  { value: 'action_oriented', label: 'Action-oriented (what needs to change?)' }
 ]
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
