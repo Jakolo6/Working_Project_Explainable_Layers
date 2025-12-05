@@ -41,7 +41,7 @@ MUTABLE_FEATURES = [
     'credit_amount', 
     'savings_status',
     'checking_status',
-    'installment_rate',
+    'installment_commitment',
     'other_installment_plans',
 ]
 
@@ -69,7 +69,6 @@ NUMERICAL_FEATURES = [
     'duration',
     'credit_amount',
     'age',
-    'installment_rate',
     'present_residence_since',
     'existing_credits',
     'num_dependents',
@@ -80,7 +79,7 @@ FEATURE_DISPLAY_NAMES = {
     'duration': 'Loan Duration',
     'credit_amount': 'Credit Amount',
     'age': 'Age',
-    'installment_rate': 'Installment Rate',
+    'installment_commitment': 'Installment Rate',
     'present_residence_since': 'Years at Residence',
     'existing_credits': 'Existing Credits',
     'num_dependents': 'Number of Dependents',
@@ -104,7 +103,7 @@ FEATURE_UNITS = {
     'duration': 'months',
     'credit_amount': '€',
     'age': 'years',
-    'installment_rate': '% of income',
+    'installment_commitment': 'category',
     'present_residence_since': 'years',
     'existing_credits': 'credits',
     'num_dependents': 'dependents',
@@ -240,7 +239,7 @@ class DatasetStatistics:
             'duration': ['duration', 'Duration', 'duration_months', 'Attribute2'],
             'credit_amount': ['credit_amount', 'Credit amount', 'amount', 'Attribute5'],
             'age': ['age', 'Age', 'age_years', 'Attribute13'],
-            'installment_rate': ['installment_rate', 'Installment rate', 'Attribute8'],
+            'installment_commitment': ['installment_commitment', 'installment_rate', 'Installment rate', 'Attribute8'],
             'present_residence_since': ['present_residence_since', 'Present residence since', 'Attribute11'],
             'existing_credits': ['existing_credits', 'Number of existing credits', 'Attribute16'],
             'num_dependents': ['num_dependents', 'Number of dependents', 'Attribute18'],
@@ -306,11 +305,6 @@ class DatasetStatistics:
                 median=33.0, mean=35.5, p25=27.0, p75=42.0, p10=23.0, p90=52.0,
                 min_val=19.0, max_val=75.0,
                 approved_median=35.0, approved_p25=28.0, approved_p75=44.0
-            ),
-            'installment_rate': FeatureBenchmark(
-                median=3.0, mean=2.97, p25=2.0, p75=4.0, p10=1.0, p90=4.0,
-                min_val=1.0, max_val=4.0,
-                approved_median=2.5, approved_p25=2.0, approved_p75=3.0
             ),
             'present_residence_since': FeatureBenchmark(
                 median=3.0, mean=2.85, p25=2.0, p75=4.0, p10=1.0, p90=4.0,
@@ -406,7 +400,7 @@ class ContextBuilder:
         unit = FEATURE_UNITS.get(feature, '')
         
         # Determine if higher is better or worse for this feature
-        higher_is_worse = feature in ['duration', 'credit_amount', 'installment_rate', 'existing_credits']
+        higher_is_worse = feature in ['duration', 'credit_amount', 'existing_credits']
         
         if percentile >= 90:
             if higher_is_worse:
@@ -459,8 +453,9 @@ class ContextBuilder:
             'credit amount': 'credit_amount',
             'credit_amount': 'credit_amount',
             'age': 'age',
-            'installment rate': 'installment_rate',
-            'installment_rate': 'installment_rate',
+            'installment rate': 'installment_commitment',
+            'installment_rate': 'installment_commitment',
+            'installment_commitment': 'installment_commitment',
             'years at residence': 'present_residence_since',
             'present_residence_since': 'present_residence_since',
             'existing credits': 'existing_credits',

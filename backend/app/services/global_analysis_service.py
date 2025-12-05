@@ -50,7 +50,7 @@ class GlobalAnalysisService:
     CATEGORICAL_FEATURES = [
         'checking_status', 'credit_history', 'purpose', 'savings_status',
         'employment', 'other_debtors', 'property_magnitude', 'other_payment_plans',
-        'housing', 'job', 'own_telephone'
+        'housing', 'job', 'own_telephone', 'installment_commitment'
     ]
     
     def __init__(self):

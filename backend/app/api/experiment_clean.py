@@ -62,7 +62,7 @@ class CreditApplication(BaseModel):
     credit_amount: float = Field(..., ge=250, le=20000, description="Credit amount in DM")
     savings_status: str = Field(..., description="Savings account status")
     employment: str = Field(..., description="Employment duration")
-    installment_commitment: int = Field(..., ge=1, le=4, description="Installment rate % of income")
+    installment_commitment: str = Field(..., description="Installment rate category (ge_35_percent, 25_to_35_percent, 20_to_25_percent, lt_20_percent)")
     other_debtors: str = Field(..., description="Other debtors/guarantors")
     residence_since: int = Field(..., ge=1, le=4, description="Years at current residence")
     property_magnitude: str = Field(..., description="Property type")

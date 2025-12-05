@@ -119,7 +119,7 @@ class PersonaApplicationData(BaseModel):
     housing: str
     credit_history: str
     purpose: str
-    installment_rate: int
+    installment_rate: str
     existing_credits: int
     other_debtors: str
     other_installment_plans: str

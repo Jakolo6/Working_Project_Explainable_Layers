@@ -74,7 +74,7 @@ class GlobalExplanationGenerator:
         'age': 'The applicant\'s age. Middle-aged applicants (30-55) typically have the most stable profiles.',
         'housing': 'Whether the applicant owns, rents, or lives for free. Home ownership indicates stability.',
         'purpose': 'What the loan will be used for. Some purposes (like car purchases) are considered lower risk.',
-        'installment_commitment': 'What percentage of income goes to loan payments. Lower percentages are safer.',
+        'installment_commitment': 'Percentage of disposable income dedicated to loan payments. Categories range from <20% (low burden) to ≥35% (high burden). Lower burdens indicate more comfortable repayment capacity.',
         'property_magnitude': 'What property or assets the applicant owns. Real estate ownership is favorable.',
         'existing_credits': 'How many other loans the applicant has. Fewer existing obligations are better.',
         'other_debtors': 'Whether there are guarantors or co-applicants. Having a guarantor reduces risk.',
@@ -155,7 +155,7 @@ from historical biases rather than causal relationships.
         df = self._engineer_features(df)
         
         # Get feature columns
-        num_features = ['duration', 'credit_amount', 'installment_commitment', 
+        num_features = ['duration', 'credit_amount', 
                        'residence_since', 'age', 'existing_credits', 'num_dependents',
                        'monthly_burden', 'stability_score', 'risk_ratio',
                        'credit_to_income_proxy', 'duration_risk']
@@ -439,7 +439,7 @@ from historical biases rather than causal relationships.
         self.log("Generating feature distribution histograms...")
         
         # Select top numerical features
-        num_features = ['credit_amount', 'duration', 'age', 'installment_commitment',
+        num_features = ['credit_amount', 'duration', 'age',
                        'monthly_burden', 'stability_score', 'existing_credits', 'residence_since'][:top_n]
         
         fig, axes = plt.subplots(2, 4, figsize=(16, 8))
