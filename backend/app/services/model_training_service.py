@@ -158,29 +158,6 @@ class ModelTrainingService:
         self.log(f" Prepared {len(num_features)} numerical + {len(CAT_FEATURES)} categorical features")
         return X, y, num_features, CAT_FEATURES
     
-    def upsample_minority(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
-        """Upsample minority class for balanced training."""
-        self.log("Upsampling minority class...")
-        
-        df_train = pd.concat([X, y], axis=1)
-        df_majority = df_train[df_train['target'] == 0]
-        df_minority = df_train[df_train['target'] == 1]
-        
-        df_minority_upsampled = resample(
-            df_minority,
-            replace=True,
-            n_samples=len(df_majority),
-            random_state=42
-        )
-        
-        df_balanced = pd.concat([df_majority, df_minority_upsampled])
-        
-        X_bal = df_balanced.drop('target', axis=1)
-        y_bal = df_balanced['target']
-        
-        self.log(f" Balanced: {len(df_majority)} majority + {len(df_minority_upsampled)} minority")
-        return X_bal, y_bal
-    
     def train_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series, 
                       X_test: pd.DataFrame, y_test: pd.Series,
                       num_features: List[str]) -> Tuple[Pipeline, Dict[str, float]]:
