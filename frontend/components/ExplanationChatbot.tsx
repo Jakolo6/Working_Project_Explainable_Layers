@@ -59,13 +59,19 @@ export default function ExplanationChatbot({ decision, probability, shapFeatures
 
   // Build context for the AI
   const buildSystemContext = () => {
-    const topFeatures = shapFeatures.slice(0, 10)
-    const riskIncreasing = shapFeatures.filter(f => f.impact === 'positive')
-    const riskDecreasing = shapFeatures.filter(f => f.impact === 'negative')
+    // Filter out Credit History features (counterintuitive due to dataset bias)
+    const filteredFeatures = shapFeatures.filter(f => 
+      !f.feature.toLowerCase().includes('credit history') &&
+      !f.feature.toLowerCase().includes('credit_history')
+    )
+    
+    const topFeatures = filteredFeatures.slice(0, 10)
+    const riskIncreasing = filteredFeatures.filter(f => f.impact === 'positive')
+    const riskDecreasing = filteredFeatures.filter(f => f.impact === 'negative')
 
     return `You are a helpful AI assistant for bank clerks reviewing credit decisions. You explain AI-based credit risk assessments in clear, professional language.
 
-IMPORTANT DISCLAIMER: The "Credit History" feature in this model shows COUNTERINTUITIVE patterns due to historical selection bias in the 1994 German Credit dataset. "Critical" credit history correlates with LOWER default rates (17%) while "all_paid" shows HIGHER rates (57%). Always mention this caveat when discussing Credit History.
+NOTE: Credit History features have been excluded from this analysis due to counterintuitive patterns in the historical dataset. Focus on other reliable factors.
 
 === GLOBAL MODEL INFORMATION ===
 ${globalContext || 'Global model analysis not available. The model uses XGBoost with SHAP values for explainability.'}
@@ -85,7 +91,7 @@ Summary:
 1. Answer questions clearly and concisely
 2. Reference specific SHAP values when relevant
 3. Explain what each factor means in plain language
-4. Always caveat Credit History as counterintuitive
+4. Do NOT discuss Credit History - it has been excluded from the analysis
 5. Be helpful but remind the clerk this is AI assistance, not a final decision
 6. If asked about something not in the data, say so honestly`
   }
