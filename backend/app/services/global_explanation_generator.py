@@ -5,16 +5,18 @@
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend for server
+matplotlib.use('Agg')  # Use non-GUI backend
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
 import joblib
-import json
 import boto3
-from botocore.config import Config
 from io import BytesIO
+from typing import Dict, Any, List
 from datetime import datetime
+
+# Import shared feature engineering
+from .feature_engineering import engineer_features
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
@@ -161,7 +163,8 @@ from historical biases rather than causal relationships.
                        'credit_to_income_proxy', 'duration_risk']
         cat_features = ['checking_status', 'credit_history', 'purpose', 'savings_status', 
                        'employment', 'housing', 'job', 'other_debtors', 
-                       'property_magnitude', 'other_payment_plans', 'own_telephone']
+                       'property_magnitude', 'other_payment_plans', 'own_telephone', 
+                       'installment_commitment']
         
         self.X_sample = df[num_features + cat_features]
         self.feature_names = num_features + cat_features
@@ -169,19 +172,8 @@ from historical biases rather than causal relationships.
         self.log(f"✓ Prepared {len(self.feature_names)} features")
         
     def _engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply same feature engineering as training."""
-        df = df.copy()
-        employment_map = {
-            'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
-            '4_to_7_years': 5.5, 'ge_7_years': 10
-        }
-        df['employment_years'] = df['employment'].map(employment_map)
-        df['monthly_burden'] = df['credit_amount'] / df['duration']
-        df['stability_score'] = df['age'] * df['employment_years']
-        df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
-        df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
-        df['duration_risk'] = df['duration'] * df['credit_amount']
-        return df
+        """Apply same feature engineering as training using shared module."""
+        return engineer_features(df)
     
     def compute_shap_values(self, sample_size: int = 200):
         """Compute SHAP values for a sample of the data."""

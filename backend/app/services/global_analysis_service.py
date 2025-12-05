@@ -3,14 +3,17 @@
 
 import pandas as pd
 import numpy as np
-import joblib
 import shap
+import joblib
 import boto3
 from io import BytesIO
+from typing import Dict, Any, List
 from datetime import datetime
-from typing import Dict, Any, List, Tuple
 
 from app.config import get_settings
+
+# Import shared feature engineering
+from .feature_engineering import engineer_features
 
 
 class GlobalAnalysisService:
@@ -100,17 +103,8 @@ class GlobalAnalysisService:
         # Prepare features (exclude target)
         X = self.dataset.drop(columns=['credit_risk'], errors='ignore')
         
-        # Add engineered features
-        employment_years_map = {
-            'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
-            '4_to_7_years': 5.5, 'ge_7_years': 10
-        }
-        X['employment_years'] = X['employment'].map(employment_years_map)
-        X['monthly_burden'] = X['credit_amount'] / X['duration']
-        X['stability_score'] = X['age'] * X['employment_years']
-        X['risk_ratio'] = X['credit_amount'] / (X['age'] * 100)
-        X['credit_to_income_proxy'] = X['credit_amount'] / X['age']
-        X['duration_risk'] = X['duration'] * X['credit_amount']
+        # Add engineered features using shared module
+        X = engineer_features(X)
         
         # Transform using model's preprocessor
         self.X_transformed = self.model.named_steps['preprocess'].transform(X)
