@@ -102,6 +102,57 @@ export const CATEGORICAL_STATS: Record<string, Record<string, CategoryStats>> = 
     'bank': { successRate: 65, frequency: 19 },             // Other bank loans
     'stores': { successRate: 60, frequency: 5 },            // Store credit
   },
+
+  // Personal Status & Sex
+  'personal_status': {
+    'male_divorced': { successRate: 68, frequency: 5 },     // Male divorced/separated
+    'female_divorced': { successRate: 70, frequency: 3 },   // Female divorced/separated
+    'male_single': { successRate: 69, frequency: 55 },      // Male single
+    'male_married': { successRate: 74, frequency: 9 },      // Male married/widowed
+    'female_single': { successRate: 71, frequency: 28 },    // Female single
+  },
+
+  // Telephone Registration
+  'telephone': {
+    'none': { successRate: 68, frequency: 60 },             // No telephone
+    'yes': { successRate: 73, frequency: 40 },              // Has telephone
+  },
+
+  // Foreign Worker (excluded but included for completeness)
+  'foreign_worker': {
+    'yes': { successRate: 70, frequency: 4 },               // Foreign worker
+    'no': { successRate: 70, frequency: 96 },               // Not foreign worker
+  },
+
+  // Installment Rate (as % of disposable income)
+  'installment_rate': {
+    '1': { successRate: 78, frequency: 14 },                // < 20% (low burden)
+    '2': { successRate: 72, frequency: 33 },                // 20-25%
+    '3': { successRate: 68, frequency: 33 },                // 25-35%
+    '4': { successRate: 62, frequency: 20 },                // >= 35% (high burden)
+  },
+
+  // Number of Existing Credits
+  'existing_credits': {
+    '1': { successRate: 72, frequency: 63 },                // 1 credit
+    '2': { successRate: 68, frequency: 33 },                // 2 credits
+    '3': { successRate: 65, frequency: 3 },                 // 3 credits
+    '4': { successRate: 60, frequency: 1 },                 // 4+ credits
+  },
+
+  // Number of Dependents
+  'num_dependents': {
+    '1': { successRate: 71, frequency: 84 },                // 1 person
+    '2': { successRate: 69, frequency: 16 },                // 2+ people
+  },
+
+  // Years at Current Residence
+  'present_residence_since': {
+    '1': { successRate: 66, frequency: 13 },                // < 1 year
+    '2': { successRate: 69, frequency: 27 },                // 1-2 years
+    '3': { successRate: 72, frequency: 28 },                // 2-3 years
+    '4': { successRate: 75, frequency: 32 },                // 4+ years
+  },
 }
 
 // Risk Ladder definitions for ordered categorical features
@@ -146,6 +197,37 @@ export const RISK_LADDERS: Record<string, LadderStep[]> = {
     { label: 'Car or Other', value: 'car_or_other', successRate: 68, isUserStep: false },
     { label: 'Life Insurance/Savings', value: 'savings_agreement', successRate: 72, isUserStep: false },
     { label: 'Real Estate', value: 'real_estate', successRate: 78, isUserStep: false },
+  ],
+
+  // Installment Rate - ordered by burden
+  'installment_rate': [
+    { label: 'High Burden (≥35%)', value: '4', successRate: 62, isUserStep: false },
+    { label: 'Moderate-High (25-35%)', value: '3', successRate: 68, isUserStep: false },
+    { label: 'Moderate (20-25%)', value: '2', successRate: 72, isUserStep: false },
+    { label: 'Low Burden (<20%)', value: '1', successRate: 78, isUserStep: false },
+  ],
+
+  // Existing Credits - ordered by number
+  'existing_credits': [
+    { label: '1 Credit', value: '1', successRate: 72, isUserStep: false },
+    { label: '2 Credits', value: '2', successRate: 68, isUserStep: false },
+    { label: '3 Credits', value: '3', successRate: 65, isUserStep: false },
+    { label: '4+ Credits', value: '4', successRate: 60, isUserStep: false },
+  ],
+
+  // Years at Residence - ordered by duration
+  'present_residence_since': [
+    { label: 'Less than 1 year', value: '1', successRate: 66, isUserStep: false },
+    { label: '1-2 years', value: '2', successRate: 69, isUserStep: false },
+    { label: '2-3 years', value: '3', successRate: 72, isUserStep: false },
+    { label: '4+ years', value: '4', successRate: 75, isUserStep: false },
+  ],
+
+  // Other Debtors - ordered by security
+  'other_debtors': [
+    { label: 'None', value: 'none', successRate: 69, isUserStep: false },
+    { label: 'Co-Applicant', value: 'co_applicant', successRate: 75, isUserStep: false },
+    { label: 'Guarantor', value: 'guarantor', successRate: 82, isUserStep: false },
   ],
 }
 
