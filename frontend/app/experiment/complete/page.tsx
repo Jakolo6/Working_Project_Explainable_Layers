@@ -76,9 +76,9 @@ export default function CompletePage() {
           
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-800">
-              <strong>Study Complete!</strong> You completed {completedCount} of 3 personas.
-              {completedCount === 3 
-                ? ' Amazing work completing all personas!' 
+              <strong>Study Complete!</strong> You completed {completedCount} of 2 personas.
+              {completedCount === 2 
+                ? ' Amazing work completing both personas!' 
                 : ' Every completed persona helps our research.'}
             </p>
           </div>
