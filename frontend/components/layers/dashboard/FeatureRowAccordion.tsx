@@ -2,11 +2,11 @@
 
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, AlertTriangle } from 'lucide-react'
+import { ChevronDown, AlertTriangle, Info } from 'lucide-react'
 import GlobalDistributionLine from './GlobalDistributionLine'
 import CategoricalComparison from './CategoricalComparison'
 import RiskLadder from './RiskLadder'
-import InfoTooltip from './InfoTooltip'
+import InfoTooltip, { FEATURE_EXPLANATIONS } from './InfoTooltip'
 import { getCategoryStats, getRiskLadder, hasRiskLadder } from '@/lib/categoricalMetadata'
 
 // Feature benchmark data structure
@@ -461,6 +461,23 @@ export default function FeatureRowAccordion({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-3 border-t border-gray-100">
+              {/* Global Context - What this feature means */}
+              {FEATURE_EXPLANATIONS[displayName] && (
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3.5 mb-3">
+                  <div className="flex items-start gap-2">
+                    <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-1">
+                        What This Means
+                      </h4>
+                      <p className="text-sm text-blue-800 leading-relaxed">
+                        {FEATURE_EXPLANATIONS[displayName]}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Narrative explanation */}
               <div className={`p-3.5 rounded-lg mb-3 ${
                 isRisk ? 'bg-red-50 border border-red-100' : 'bg-green-50 border border-green-100'
