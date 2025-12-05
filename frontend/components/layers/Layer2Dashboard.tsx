@@ -57,17 +57,114 @@ function getDisplayName(rawName: string): string {
   return rawName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Enhanced categorical value display mapping
+const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> = {
+  'checking_status': {
+    'lt_0_dm': 'Less than 0 DM (overdrawn)',
+    '0_to_200_dm': '0 to 200 DM',
+    'ge_200_dm': '200 DM or more',
+    'no_checking': 'No checking account'
+  },
+  'savings_status': {
+    'lt_100_dm': 'Less than 100 DM',
+    '100_to_500_dm': '100 to 500 DM',
+    '500_to_1000_dm': '500 to 1000 DM',
+    'ge_1000_dm': '1000 DM or more',
+    'unknown': 'Unknown/No savings'
+  },
+  'credit_history': {
+    'no_credits': 'No credits taken',
+    'all_paid': 'All credits paid back',
+    'existing_paid': 'Existing credits paid',
+    'delayed_past': 'Delay in paying off',
+    'critical': 'Critical account'
+  },
+  'employment': {
+    'unemployed': 'Unemployed',
+    'lt_1_year': 'Less than 1 year',
+    '1_to_4_years': '1 to 4 years',
+    '4_to_7_years': '4 to 7 years',
+    'ge_7_years': '7 years or more'
+  },
+  'job': {
+    'unemployed_unskilled': 'Unemployed/Unskilled',
+    'unskilled_resident': 'Unskilled - Resident',
+    'skilled': 'Skilled employee',
+    'management': 'Management/Self-employed'
+  },
+  'purpose': {
+    'car_new': 'New car',
+    'car_used': 'Used car',
+    'furniture': 'Furniture/Equipment',
+    'radio_tv': 'Radio/Television',
+    'domestic_appliances': 'Domestic appliances',
+    'repairs': 'Repairs',
+    'education': 'Education',
+    'retraining': 'Retraining',
+    'business': 'Business',
+    'others': 'Other purpose'
+  },
+  'property_magnitude': {
+    'real_estate': 'Real estate',
+    'savings_agreement': 'Building society savings',
+    'car_or_other': 'Car or other',
+    'unknown_no_property': 'Unknown/No property'
+  },
+  'housing': {
+    'rent': 'Rent',
+    'own': 'Own',
+    'for_free': 'For free'
+  },
+  'other_debtors': {
+    'none': 'None',
+    'co_applicant': 'Co-applicant',
+    'guarantor': 'Guarantor'
+  },
+  'other_payment_plans': {
+    'none': 'None',
+    'bank': 'Bank',
+    'stores': 'Stores'
+  },
+  'own_telephone': {
+    'yes': 'Yes (registered)',
+    'none': 'No'
+  },
+  'installment_commitment': {
+    'lt_20_percent': 'Less than 20%',
+    '20_to_25_percent': '20-25%',
+    '25_to_35_percent': '25-35%',
+    'ge_35_percent': '35% or more'
+  }
+}
+
 function formatValue(feature: string, value: string): string {
+  // Try to parse as number first
   const num = parseFloat(value)
-  if (isNaN(num)) return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   
-  if (feature.toLowerCase().includes('duration') && feature.toLowerCase().includes('month')) return `${num} months`
-  if (feature.toLowerCase().includes('amount')) return `€${num.toLocaleString()}`
-  if (feature.toLowerCase().includes('age')) return `${num} years`
-  if (feature.toLowerCase().includes('burden')) return `€${num.toLocaleString()}/mo`
-  if (feature.toLowerCase().includes('residence')) return `${num} years`
-  if (feature.toLowerCase().includes('rate')) return `${num.toFixed(1)}%`
-  return num.toFixed(1)
+  // If it's a valid number, format it appropriately
+  if (!isNaN(num)) {
+    if (feature.toLowerCase().includes('duration') && feature.toLowerCase().includes('month')) return `${num} months`
+    if (feature.toLowerCase().includes('amount')) return `€${num.toLocaleString()}`
+    if (feature.toLowerCase().includes('age')) return `${num} years`
+    if (feature.toLowerCase().includes('burden')) return `€${num.toLocaleString()}/mo`
+    if (feature.toLowerCase().includes('residence')) return `${num} years`
+    if (feature.toLowerCase().includes('rate')) return `${num.toFixed(1)}%`
+    return num.toFixed(1)
+  }
+  
+  // For categorical values, try to find a display mapping
+  const featureKey = feature.toLowerCase().replace(/[\s()]/g, '_').replace(/_+/g, '_')
+  const valueKey = value.toLowerCase().trim()
+  
+  // Check all categorical mappings
+  for (const [catKey, catValues] of Object.entries(CATEGORICAL_VALUE_DISPLAY)) {
+    if (featureKey.includes(catKey) || catKey.includes(featureKey.split('_')[0])) {
+      if (catValues[valueKey]) return catValues[valueKey]
+    }
+  }
+  
+  // Fallback: Clean up underscores and capitalize
+  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 function extractNumericValue(value: string): number | undefined {

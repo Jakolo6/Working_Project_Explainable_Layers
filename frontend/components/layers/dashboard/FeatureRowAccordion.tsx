@@ -211,58 +211,48 @@ export default function FeatureRowAccordion({
       {/* Collapsed Row - Always visible */}
       <button
         onClick={onToggle}
-        className="w-full px-4 py-4 flex items-center gap-4 text-left"
+        className="w-full px-4 py-3.5 flex items-center gap-3 text-left"
       >
         {/* Impact indicator */}
-        <div className={`w-2 h-8 rounded-full flex-shrink-0 ${
+        <div className={`w-1.5 h-10 rounded-full flex-shrink-0 ${
           isRisk ? 'bg-red-500' : 'bg-green-500'
         }`} />
 
         {/* Feature name and value */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900 truncate">
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="font-semibold text-gray-900 text-sm truncate">
               {displayName}
             </span>
             {isCreditHistory && (
-              <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />
+              <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />
             )}
           </div>
-          <span className="text-sm text-gray-600">{value}</span>
+          <span className="text-xs text-gray-600 block truncate">{value}</span>
         </div>
 
-        {/* Contribution bar */}
-        <div className="w-32 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(contributionPercent * 2, 100)}%` }}
-                transition={{ duration: 0.5 }}
-                className={`h-full rounded-full ${
-                  isRisk ? 'bg-red-500' : 'bg-green-500'
-                }`}
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className={`text-sm font-bold w-10 text-right ${
-                isRisk ? 'text-red-600' : 'text-green-600'
-              }`}>
-                {contributionPercent.toFixed(0)}%
-              </span>
-              <InfoTooltip content="How much this factor influenced the final result, relative to all other factors." />
-            </div>
+        {/* Contribution percentage and bar */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Percentage */}
+          <span className={`text-sm font-bold min-w-[2.5rem] text-right ${
+            isRisk ? 'text-red-600' : 'text-green-600'
+          }`}>
+            {contributionPercent.toFixed(0)}%
+          </span>
+          
+          {/* Tooltip */}
+          <div className="hidden sm:block">
+            <InfoTooltip content="How much this factor influenced the final result, relative to all other factors." />
           </div>
+          
+          {/* Expand indicator */}
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown size={18} className="text-gray-400" />
+          </motion.div>
         </div>
-
-        {/* Expand indicator */}
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-shrink-0"
-        >
-          <ChevronDown size={20} className="text-gray-400" />
-        </motion.div>
       </button>
 
       {/* Expanded Content - The "Glass Box" */}
@@ -275,10 +265,10 @@ export default function FeatureRowAccordion({
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+            <div className="px-4 pb-4 pt-3 border-t border-gray-100">
               {/* Narrative explanation */}
-              <div className={`p-3 rounded-lg mb-4 ${
-                isRisk ? 'bg-red-100/50' : 'bg-green-100/50'
+              <div className={`p-3.5 rounded-lg mb-3 ${
+                isRisk ? 'bg-red-50 border border-red-100' : 'bg-green-50 border border-green-100'
               }`}>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   {narrativeText}
@@ -287,27 +277,29 @@ export default function FeatureRowAccordion({
 
               {/* Global Distribution Visual - only for numeric features with benchmarks */}
               {benchmark && numericValue !== undefined && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <div className="bg-white rounded-lg border border-gray-200 p-3.5 overflow-hidden">
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                     How You Compare
                   </h4>
-                  <GlobalDistributionLine
-                    min={benchmark.min}
-                    max={benchmark.max}
-                    value={numericValue}
-                    typicalRange={benchmark.typicalRange}
-                    unit={benchmark.unit}
-                    higherIsBetter={benchmark.higherIsBetter}
-                  />
+                  <div className="overflow-x-auto">
+                    <GlobalDistributionLine
+                      min={benchmark.min}
+                      max={benchmark.max}
+                      value={numericValue}
+                      typicalRange={benchmark.typicalRange}
+                      unit={benchmark.unit}
+                      higherIsBetter={benchmark.higherIsBetter}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Credit History Warning */}
               {isCreditHistory && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-amber-800">
+                    <AlertTriangle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-amber-800 leading-relaxed">
                       <strong>Historical Data Note:</strong> Credit history patterns in this model 
                       may appear counterintuitive due to survivorship bias in the original 1994 dataset.
                     </p>
