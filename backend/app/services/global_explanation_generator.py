@@ -311,10 +311,19 @@ from historical biases rather than causal relationships.
         
         for i, (feat, shap_vals, raw_vals) in enumerate(zip(base_features, base_shap, base_values)):
             # Normalize raw values for coloring
-            if np.std(raw_vals) > 0:
-                colors = plt.cm.coolwarm((raw_vals - raw_vals.min()) / (raw_vals.max() - raw_vals.min() + 1e-10))
-            else:
-                colors = plt.cm.coolwarm(np.ones_like(raw_vals) * 0.5)
+            # Check if values are numeric (not categorical strings)
+            try:
+                # Try to convert to float - will work for numeric, fail for categorical
+                numeric_vals = pd.to_numeric(raw_vals, errors='coerce')
+                if numeric_vals.notna().any() and np.std(numeric_vals.dropna()) > 0:
+                    # Numeric feature with variation
+                    colors = plt.cm.coolwarm((numeric_vals - numeric_vals.min()) / (numeric_vals.max() - numeric_vals.min() + 1e-10))
+                else:
+                    # Numeric but no variation, or all NaN (categorical)
+                    colors = plt.cm.coolwarm(np.ones(len(raw_vals)) * 0.5)
+            except (TypeError, ValueError):
+                # Categorical feature - use neutral color
+                colors = plt.cm.coolwarm(np.ones(len(raw_vals)) * 0.5)
             
             # Add jitter to y position
             y_jitter = np.random.normal(i, 0.15, len(shap_vals))
