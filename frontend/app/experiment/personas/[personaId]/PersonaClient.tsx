@@ -280,7 +280,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Application Review</h2>
               <p className="text-gray-700">
                 This form is pre-filled with <strong>{persona.name}'s</strong> financial data. 
-                <strong className="text-blue-700"> Click "Get AI Assessment" below to proceed</strong> — 
+                <strong className="text-blue-700"> Click "Generate AI Decision with ML Model" below to proceed</strong> — 
                 no adjustments needed. Feel free to review the form details, but submitting as-is is perfectly fine.
               </p>
             </div>
@@ -293,14 +293,14 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="font-semibold text-green-800">Ready to proceed?</h3>
-                <p className="text-sm text-green-700">The form is pre-filled. Click to generate the AI decision.</p>
+                <p className="text-sm text-green-700">The form is pre-filled. Click to run the ML model.</p>
               </div>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isLocked}
                 className="flex-shrink-0 rounded-lg bg-green-600 px-6 py-3 text-white font-bold hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Generating...' : '🚀 Get AI Assessment'}
+                {isSubmitting ? 'Running Model...' : '🚀 Generate AI Decision with ML Model'}
               </button>
             </div>
           </div>
