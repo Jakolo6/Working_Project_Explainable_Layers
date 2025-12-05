@@ -4,6 +4,7 @@
 
 import pandas as pd
 import numpy as np
+import json
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend
 import matplotlib.pyplot as plt
