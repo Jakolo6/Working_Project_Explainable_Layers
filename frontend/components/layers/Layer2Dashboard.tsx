@@ -378,54 +378,10 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
   return (
     <div className="space-y-6">
       {/* ═══════════════════════════════════════════════════════════════════════
-          EXECUTIVE BRIEFING - Top Section
+          PERSONALIZED RATE/RISK - Always at Top
           ═══════════════════════════════════════════════════════════════════════ */}
       
-      {/* Decision Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`rounded-2xl p-6 ${isApproved 
-          ? 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-200' 
-          : 'bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 border-2 border-red-200'}`}
-      >
-        <div className="flex items-center gap-4 mb-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-            isApproved ? 'bg-green-100' : 'bg-red-100'
-          }`}>
-            {isApproved 
-              ? <CheckCircle2 className="text-green-600" size={32} /> 
-              : <XCircle className="text-red-600" size={32} />
-            }
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Credit Decision: <span className={isApproved ? 'text-green-700' : 'text-red-700'}>
-                {decision.toUpperCase()}
-              </span>
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-gray-600">Model Confidence:</span>
-              <span className={`font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`}>
-                {confidencePercent}%
-              </span>
-              <InfoTooltip content={TOOLTIPS.modelConfidence} />
-            </div>
-          </div>
-        </div>
-
-        {/* Tug of War Visual */}
-        <RiskTugOfWar
-          riskPercent={riskPercent}
-          supportPercent={supportPercent}
-          probability={probability}
-          decision={decision}
-        />
-      </motion.div>
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          RISK-BASED PRICING CARD (Approved Only)
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* Interest Rate Card (Approved) - ALWAYS FIRST */}
       {interestRate && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -508,12 +464,11 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
         </motion.div>
       )}
 
-      {/* Rejection Risk Gauge (Rejected Only) */}
+      {/* Rejection Risk Gauge (Rejected Only) - ALWAYS FIRST */}
       {!isApproved && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
           className="rounded-2xl p-6 bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200"
         >
           <div className="flex items-center gap-4">
@@ -553,6 +508,53 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
           </p>
         </motion.div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          DECISION EXPLANATION - After Rate/Risk Card
+          ═══════════════════════════════════════════════════════════════════════ */}
+      
+      {/* Decision Header with Tug of War */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className={`rounded-2xl p-6 ${isApproved 
+          ? 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-200' 
+          : 'bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 border-2 border-red-200'}`}
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+            isApproved ? 'bg-green-100' : 'bg-red-100'
+          }`}>
+            {isApproved 
+              ? <CheckCircle2 className="text-green-600" size={32} /> 
+              : <XCircle className="text-red-600" size={32} />
+            }
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Credit Decision: <span className={isApproved ? 'text-green-700' : 'text-red-700'}>
+                {decision.toUpperCase()}
+              </span>
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-gray-600">Model Confidence:</span>
+              <span className={`font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`}>
+                {confidencePercent}%
+              </span>
+              <InfoTooltip content={TOOLTIPS.modelConfidence} />
+            </div>
+          </div>
+        </div>
+
+        {/* Tug of War Visual */}
+        <RiskTugOfWar
+          riskPercent={riskPercent}
+          supportPercent={supportPercent}
+          probability={probability}
+          decision={decision}
+        />
+      </motion.div>
 
       {/* AI-Generated Analyst Summary */}
       <motion.div
