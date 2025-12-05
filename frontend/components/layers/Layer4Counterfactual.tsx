@@ -1,12 +1,13 @@
-// Layer 4: Counterfactual Explanation - What-if scenarios showing how to change the decision
-// Shows what changes would flip the decision, with consistent probability calculations
+// Layer 4: Solution Finder - Real-time counterfactual analysis for bank clerks
+// Three zones: Narrative Header, Smart Simulator with live predictions, Action Plans
 
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
-import SHAPExplanation from '@/components/ui/SHAPExplanation'
-import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
+import React, { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { getPersonaApplication } from '@/lib/personas'
+import { useParams } from 'next/navigation'
 
 interface SHAPFeature {
   feature: string
@@ -15,713 +16,455 @@ interface SHAPFeature {
   impact: 'positive' | 'negative'
 }
 
-interface CounterfactualExplorerProps {
+interface SolutionFinderProps {
   decision: 'approved' | 'rejected'
-  probability: number  // This is confidence = max(P(good), P(bad))
+  probability: number
   shapFeatures: SHAPFeature[]
 }
 
-// Feature options for the sandbox - using DISPLAY VALUES from backend
-// riskLevel: positive = increases risk, negative = decreases risk
-const FEATURE_OPTIONS: Record<string, { label: string; options: { value: string; label: string; riskLevel: number }[] }> = {
-  'Checking Account Status': {
-    label: 'Checking Account',
-    options: [
-      { value: 'No Checking Account', label: 'No checking account', riskLevel: 0.15 },
-      { value: 'Negative Balance (< €0)', label: 'Negative balance (< €0)', riskLevel: 0.10 },
-      { value: '€0–200', label: 'Low balance (€0-200)', riskLevel: 0.05 },
-      { value: '≥ €200', label: 'Good balance (≥ €200)', riskLevel: -0.10 },
-    ]
-  },
-  'Savings Account Status': {
-    label: 'Savings Account',
-    options: [
-      { value: 'No Savings', label: 'No savings', riskLevel: 0.12 },
-      { value: '< €100', label: 'Less than €100', riskLevel: 0.08 },
-      { value: '€100–500', label: '€100-500', riskLevel: 0.02 },
-      { value: '€500–1000', label: '€500-1,000', riskLevel: -0.05 },
-      { value: '≥ €1000', label: '€1,000+', riskLevel: -0.12 },
-    ]
-  },
-  'Employment Duration': {
-    label: 'Employment',
-    options: [
-      { value: 'Unemployed', label: 'Unemployed', riskLevel: 0.15 },
-      { value: '< 1 Year', label: 'Less than 1 year', riskLevel: 0.08 },
-      { value: '1–4 Years', label: '1-4 years', riskLevel: 0.02 },
-      { value: '4–7 Years', label: '4-7 years', riskLevel: -0.05 },
-      { value: '≥ 7 Years', label: '7+ years', riskLevel: -0.10 },
-    ]
-  },
-  'Housing Status': {
-    label: 'Housing',
-    options: [
-      { value: 'Living for Free', label: 'Living for free', riskLevel: 0.05 },
-      { value: 'Renting', label: 'Renting', riskLevel: 0.02 },
-      { value: 'Own Property', label: 'Own property', riskLevel: -0.08 },
-    ]
-  },
+interface LivePrediction {
+  decision: 'approved' | 'rejected'
+  probability: number
+  isLoading: boolean
 }
 
-// Global behavior insights for key features
-const GLOBAL_INSIGHTS: Record<string, { trend: 'up' | 'down' | 'mixed'; insight: string }> = {
-  'Checking Account Status': {
-    trend: 'mixed',
-    insight: 'Having a checking account with a positive balance generally indicates better financial management and lowers risk.'
-  },
-  'Savings Account Status': {
-    trend: 'down',
-    insight: 'Higher savings provide a financial safety buffer. Applicants with €500+ savings show significantly lower default rates.'
-  },
-  'Employment Duration': {
-    trend: 'down',
-    insight: 'Longer employment indicates job stability. Applicants employed 4+ years have notably lower default rates.'
-  },
-  'Loan Duration (months)': {
-    trend: 'up',
-    insight: 'Shorter loan durations are generally less risky. Loans under 24 months have the lowest default rates.'
-  },
-  'Credit Amount': {
-    trend: 'up',
-    insight: 'Lower loan amounts relative to income are less risky. Very large loans increase default probability.'
-  },
-  'Age': {
-    trend: 'mixed',
-    insight: 'Middle-aged applicants (30-50) typically show the most stable repayment patterns.'
-  },
-  'Credit History': {
-    trend: 'mixed',
-    insight: '⚠️ This feature shows counterintuitive patterns in the 1994 dataset. Interpret with caution.'
-  },
-}
+// ═══════════════════════════════════════════════════════════════════════
+// FEATURE CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════
 
-// Get human-readable display value
-function getDisplayValue(feature: string, value: string): string {
-  const featureLower = feature.toLowerCase()
-  
-  // Try to match with FEATURE_OPTIONS
-  const options = FEATURE_OPTIONS[feature]?.options
-  if (options) {
-    const match = options.find(opt => 
-      value.toLowerCase().includes(opt.value.toLowerCase()) ||
-      opt.label.toLowerCase().includes(value.toLowerCase())
-    )
-    if (match) return match.label
-  }
-  
-  // Numeric formatting
-  const numVal = parseFloat(value)
-  if (!isNaN(numVal)) {
-    if (featureLower.includes('duration') || featureLower.includes('months')) {
-      return `${numVal} months`
-    }
-    if (featureLower.includes('amount') || featureLower.includes('credit')) {
-      return `€${numVal.toLocaleString()}`
-    }
-    if (featureLower.includes('age')) {
-      return `${numVal} years old`
-    }
-  }
-  
-  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-}
+// Universal Levers - Always shown
+const UNIVERSAL_LEVERS = ['Credit Amount', 'Loan Duration (months)'];
 
-// Get suggested change for a feature (for counterfactual scenarios)
-function getSuggestedChange(feature: string, currentValue: string, impact: 'positive' | 'negative'): { newValue: string; explanation: string; riskReduction: number } | null {
-  const featureLower = feature.toLowerCase()
-  
-  // Only suggest changes for risk-increasing features (positive impact = increases default risk)
-  if (impact !== 'positive') return null
-  
-  // Checking Account
-  if (featureLower.includes('checking')) {
-    if (currentValue.toLowerCase().includes('no_checking') || currentValue.toLowerCase().includes('no checking')) {
-      return {
-        newValue: 'Good balance (≥ €200)',
-        explanation: 'Having a positive checking balance shows financial stability',
-        riskReduction: 0.25
-      }
-    }
-    if (currentValue.includes('< 0') || currentValue.toLowerCase().includes('negative') || currentValue.includes('lt_0')) {
-      return {
-        newValue: 'Good balance (≥ €200)',
-        explanation: 'A positive balance indicates better cash flow management',
-        riskReduction: 0.20
-      }
-    }
-    if (currentValue.includes('0') && currentValue.includes('200')) {
-      return {
-        newValue: 'Good balance (≥ €200)',
-        explanation: 'Higher balances provide more financial cushion',
-        riskReduction: 0.15
-      }
-    }
-  }
-  
-  // Savings Account
-  if (featureLower.includes('saving')) {
-    if (currentValue.toLowerCase().includes('unknown') || currentValue.toLowerCase().includes('none') || currentValue.includes('< 100') || currentValue.includes('lt_100')) {
-      return {
-        newValue: '€500-1,000 savings',
-        explanation: 'Savings provide a safety buffer for unexpected expenses',
-        riskReduction: 0.18
-      }
-    }
-    if (currentValue.includes('100') && currentValue.includes('500')) {
-      return {
-        newValue: '€1,000+ savings',
-        explanation: 'Higher savings significantly reduce default risk',
-        riskReduction: 0.14
-      }
-    }
-  }
-  
-  // Employment
-  if (featureLower.includes('employment')) {
-    if (currentValue.toLowerCase().includes('unemployed')) {
-      return {
-        newValue: '4-7 years employment',
-        explanation: 'Stable employment ensures regular income for repayments',
-        riskReduction: 0.25
-      }
-    }
-    if (currentValue.includes('< 1') || currentValue.toLowerCase().includes('less than 1') || currentValue.includes('lt_1')) {
-      return {
-        newValue: '4-7 years employment',
-        explanation: 'Longer employment history indicates job stability',
-        riskReduction: 0.15
-      }
-    }
-  }
-  
-  // Duration (numeric) - shorter is better
-  const numVal = parseFloat(currentValue)
-  if (!isNaN(numVal)) {
-    if (featureLower.includes('duration') || featureLower.includes('months')) {
-      if (numVal > 36) {
-        return {
-          newValue: `${Math.round(numVal * 0.5)} months`,
-          explanation: 'Shorter loan terms reduce overall exposure',
-          riskReduction: 0.12
-        }
-      }
-      if (numVal > 24) {
-        return {
-          newValue: '18-24 months',
-          explanation: 'Medium-term loans balance risk and affordability',
-          riskReduction: 0.08
-        }
-      }
-    }
-    
-    // Credit Amount - lower is better
-    if (featureLower.includes('amount') || featureLower.includes('credit')) {
-      return {
-        newValue: `${Math.round(numVal * 0.6).toLocaleString()} DM`,
-        explanation: 'Lower loan amounts reduce the bank\'s exposure',
-        riskReduction: 0.10
-      }
-    }
-  }
-  
-  return null
-}
+// Mutable features that can be adjusted
+const MUTABLE_FEATURES = [
+  'Checking Account Status',
+  'Savings Account Status',
+  'Installment Rate',
+  ...UNIVERSAL_LEVERS
+];
 
-// Calculate estimated probability after changes
-// The model uses: P(bad) > 0.5 → rejected, else → approved
-// Confidence = max(P(good), P(bad))
-function calculateNewProbability(
-  originalDecision: 'approved' | 'rejected',
-  originalConfidence: number,
-  totalRiskReduction: number
-): { newConfidence: number; newDecision: 'approved' | 'rejected'; flipped: boolean } {
-  // Convert confidence back to P(bad)
-  // If approved: confidence = P(good) = 1 - P(bad), so P(bad) = 1 - confidence
-  // If rejected: confidence = P(bad)
-  let pBad = originalDecision === 'approved' 
-    ? (1 - originalConfidence) 
-    : originalConfidence
-  
-  // Apply risk reduction (negative = reduces P(bad))
-  let newPBad = Math.max(0.05, Math.min(0.95, pBad - totalRiskReduction))
-  
-  // Determine new decision
-  const newDecision = newPBad > 0.5 ? 'rejected' : 'approved'
-  
-  // Calculate new confidence
-  const newConfidence = newDecision === 'rejected' ? newPBad : (1 - newPBad)
-  
-  return {
-    newConfidence,
-    newDecision,
-    flipped: newDecision !== originalDecision
-  }
-}
+// Immutable - NEVER shown
+const IMMUTABLE_FEATURES = [
+  'Age',
+  'Credit History',
+  'Employment Duration',
+  'Foreign Worker',
+  'Sex',
+  'Personal Status'
+];
 
-export default function Layer4Counterfactual({ decision, probability, shapFeatures }: CounterfactualExplorerProps) {
-  const [sandboxValues, setSandboxValues] = useState<Record<string, string>>({})
-  const [showSandbox, setShowSandbox] = useState(false)
+// Feature name mapping (SHAP names -> display names)
+const FEATURE_NAME_MAP: Record<string, string> = {
+  'Credit Amount': 'Credit Amount',
+  'Loan Duration (months)': 'Loan Duration (months)',
+  'Checking Account Status': 'Checking Account Status',
+  'Savings Account Status': 'Savings Account Status',
+  'Installment Rate': 'Installment Rate',
+};
+
+// Backend field name mapping (for API calls)
+const BACKEND_FIELD_MAP: Record<string, string> = {
+  'Credit Amount': 'credit_amount',
+  'Loan Duration (months)': 'duration',
+  'Checking Account Status': 'checking_status',
+  'Savings Account Status': 'savings_status',
+  'Installment Rate': 'installment_commitment',
+};
+
+export default function Layer4Counterfactual({ decision, probability, shapFeatures }: SolutionFinderProps) {
+  const params = useParams()
+  const personaId = params?.personaId as string
+
+  // Get original application data
+  const originalApplication = getPersonaApplication(personaId)
   
-  const isApproved = decision === 'approved'
-  const targetOutcome = isApproved ? 'rejection' : 'approval'
-  const confidencePercent = Math.round(probability * 100)
-  
-  // Get risk-increasing features (candidates for counterfactual changes)
-  // positive impact = increases default risk = bad for applicant
-  const riskIncreasingFeatures = useMemo(() => 
-    shapFeatures
-      .filter(f => f.impact === 'positive')
-      .sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value))
-      .slice(0, 5),
-    [shapFeatures]
-  )
-  
-  // Generate counterfactual scenarios with REAL probability calculations
-  const scenarios = useMemo(() => {
-    const result: Array<{
-      changes: Array<{
-        feature: string
-        current: string
-        suggested: string
-        explanation: string
-        riskReduction: number
-      }>
-      newConfidence: number
-      newDecision: 'approved' | 'rejected'
-      flipped: boolean
-    }> = []
-    
-    const validChanges: Array<{
-      feature: string
-      current: string
-      suggested: string
-      explanation: string
-      riskReduction: number
-      shapImpact: number
-    }> = []
-    
-    // Collect all valid changes
-    for (const f of riskIncreasingFeatures) {
-      const suggestion = getSuggestedChange(f.feature, f.value, f.impact)
-      if (suggestion) {
-        validChanges.push({
-          feature: f.feature,
-          current: getDisplayValue(f.feature, f.value),
-          suggested: suggestion.newValue,
-          explanation: suggestion.explanation,
-          riskReduction: suggestion.riskReduction,
-          shapImpact: Math.abs(f.shap_value)
-        })
-      }
-    }
-    
-    // Sort by risk reduction (most impactful first)
-    validChanges.sort((a, b) => b.riskReduction - a.riskReduction)
-    
-    // Create scenarios with 1, 2, and 3 changes
-    // Each scenario shows cumulative effect
-    if (validChanges.length >= 1) {
-      const changes = validChanges.slice(0, 1)
-      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
-      const calc = calculateNewProbability(decision, probability, totalReduction)
-      result.push({
-        changes,
-        newConfidence: calc.newConfidence,
-        newDecision: calc.newDecision,
-        flipped: calc.flipped
-      })
-    }
-    if (validChanges.length >= 2) {
-      const changes = validChanges.slice(0, 2)
-      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
-      const calc = calculateNewProbability(decision, probability, totalReduction)
-      result.push({
-        changes,
-        newConfidence: calc.newConfidence,
-        newDecision: calc.newDecision,
-        flipped: calc.flipped
-      })
-    }
-    if (validChanges.length >= 3) {
-      const changes = validChanges.slice(0, 3)
-      const totalReduction = changes.reduce((sum, c) => sum + c.riskReduction, 0)
-      const calc = calculateNewProbability(decision, probability, totalReduction)
-      result.push({
-        changes,
-        newConfidence: calc.newConfidence,
-        newDecision: calc.newDecision,
-        flipped: calc.flipped
-      })
-    }
-    
-    return result
-  }, [riskIncreasingFeatures, decision, probability])
-  
-  // Initialize sandbox with current values
+  // State
+  const [modifiedData, setModifiedData] = useState<Record<string, any>>({})
+  const [livePrediction, setLivePrediction] = useState<LivePrediction>({
+    decision,
+    probability,
+    isLoading: false
+  })
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null)
+
+  // Initialize with original data
   useEffect(() => {
-    const initial: Record<string, string> = {}
-    for (const f of shapFeatures) {
-      if (FEATURE_OPTIONS[f.feature]) {
-        const options = FEATURE_OPTIONS[f.feature].options
-        // Direct match on value (backend now returns display values)
-        const match = options.find(opt => opt.value === f.value)
-        initial[f.feature] = match?.value || options[0].value
-      }
+    if (originalApplication) {
+      setModifiedData({ ...originalApplication })
     }
-    setSandboxValues(initial)
-  }, [shapFeatures])
-  
-  // Calculate sandbox result using SAME logic as scenarios
-  const sandboxResult = useMemo(() => {
-    let totalRiskDelta = 0
+  }, [originalApplication])
+
+  // Determine which features to show
+  const featuresToShow = useCallback(() => {
+    const features: string[] = [...UNIVERSAL_LEVERS];
     
-    for (const [feature, newValue] of Object.entries(sandboxValues)) {
-      const originalFeature = shapFeatures.find(f => f.feature === feature)
-      if (!originalFeature) continue
-      
-      const options = FEATURE_OPTIONS[feature]?.options || []
-      
-      // Find original option (direct match)
-      const originalOption = options.find(opt => opt.value === originalFeature.value)
-      
-      // Find new option
-      const newOption = options.find(opt => opt.value === newValue)
-      
-      if (originalOption && newOption) {
-        // Risk delta = new risk level - original risk level
-        // Negative delta = risk reduction (good)
-        totalRiskDelta += newOption.riskLevel - originalOption.riskLevel
+    // Add top 3 risk factors if they're mutable
+    const topRiskFactors = shapFeatures
+      .filter(f => f.impact === 'positive') // Risk-increasing
+      .slice(0, 3);
+    
+    for (const factor of topRiskFactors) {
+      if (MUTABLE_FEATURES.includes(factor.feature) && !features.includes(factor.feature)) {
+        features.push(factor.feature);
       }
     }
     
-    // Apply the delta (negative delta = risk reduction)
-    const calc = calculateNewProbability(decision, probability, -totalRiskDelta)
+    return features;
+  }, [shapFeatures]);
+
+  const visibleFeatures = featuresToShow();
+
+  // Call backend for real prediction
+  const fetchPrediction = useCallback(async (data: Record<string, any>) => {
+    setLivePrediction(prev => ({ ...prev, isLoading: true }));
     
-    return calc
-  }, [sandboxValues, shapFeatures, decision, probability])
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/v1/experiment/predict-counterfactual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ application_data: data })
+      });
+      
+      if (!response.ok) throw new Error('Prediction failed');
+      
+      const result = await response.json();
+      setLivePrediction({
+        decision: result.decision,
+        probability: result.probability,
+        isLoading: false
+      });
+    } catch (error) {
+      console.error('Prediction error:', error);
+      setLivePrediction(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
+  // Debounced prediction update
+  const handleFeatureChange = useCallback((feature: string, value: any) => {
+    const backendField = BACKEND_FIELD_MAP[feature] || feature;
+    const newData = { ...modifiedData, [backendField]: value };
+    setModifiedData(newData);
+    
+    // Debounce API call
+    if (debounceTimer) clearTimeout(debounceTimer);
+    const timer = setTimeout(() => {
+      fetchPrediction(newData);
+    }, 500);
+    setDebounceTimer(timer);
+  }, [modifiedData, debounceTimer, fetchPrediction]);
+
+  // Action Plans
+  const applyQuickFix = () => {
+    if (!originalApplication) return;
+    const newAmount = Math.round(originalApplication.credit_amount * 0.8);
+    handleFeatureChange('Credit Amount', newAmount);
+  };
+
+  const applySafeBet = () => {
+    if (!originalApplication) return;
+    const newDuration = Math.max(6, originalApplication.duration_months - 12);
+    handleFeatureChange('Loan Duration (months)', newDuration);
+  };
+
+  const applyCommitment = () => {
+    // Simulate moving up one savings category
+    handleFeatureChange('Savings Account Status', '500 to 1000 DM');
+  };
+
+  // Calculate gap to approval
+  const gapToApproval = decision === 'rejected' ? ((0.5 - (1 - probability)) * 100) : 0;
+  const isApproved = livePrediction.decision === 'approved';
+  const hasFlipped = livePrediction.decision !== decision;
 
   return (
     <div className="space-y-6">
-      {/* Simple SHAP Explanation */}
-      <SHAPExplanation compact={true} />
-
-      {/* Credit History Disclaimer - above content */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-amber-600 text-lg">⚠️</span>
-          <div>
-            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
-            <p className="text-sm text-amber-800">
-              This model uses patterns from 1994 German banking data. Some factors, 
-              especially credit history categories, may behave differently than modern expectations.
-              Features marked with ⚠ should be interpreted with caution.
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Model Certainty Explanation */}
-      <ModelCertaintyExplanation probability={probability} decision={decision} />
-      
-      {/* Header with clear probability explanation */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
+      {/* ═══════════════════════════════════════════════════════════════════════
+          ZONE A: NARRATIVE HEADER
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`rounded-2xl p-6 border-2 ${
+          isApproved
+            ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
+            : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
+        }`}
+      >
         <div className="flex items-start gap-4">
-          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-            isApproved ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+            isApproved ? 'bg-green-100' : 'bg-amber-100'
           }`}>
-            {isApproved ? <CheckCircle2 size={28} /> : <XCircle size={28} />}
+            {isApproved ? (
+              <CheckCircle2 className="text-green-600" size={32} />
+            ) : (
+              <Target className="text-amber-600" size={32} />
+            )}
           </div>
+          
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">
-              What Would Change the Decision?
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {isApproved ? '🎉 Approved!' : 'Solution Finder'}
             </h2>
-            <p className="text-gray-600 mb-3">
-              Current: <strong>{decision.toUpperCase()}</strong> with <strong>{confidencePercent}%</strong> confidence
-            </p>
-            <div className="bg-white/60 rounded-lg p-3 text-sm text-gray-600">
-              <div className="flex items-start gap-2">
-                <HelpCircle size={16} className="text-purple-500 mt-0.5 flex-shrink-0" />
-                <p>
-                  <strong>{confidencePercent}% confidence</strong> means the model is {confidencePercent}% sure 
-                  this applicant should be {decision}. Below we show changes that could flip this to {targetOutcome}.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Global Behavior Insights */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="text-amber-500" size={20} />
-          <h3 className="text-lg font-semibold text-gray-900">How Key Features Affect Risk</h3>
-        </div>
-        <p className="text-sm text-gray-600 mb-4">
-          General patterns the model learned from historical data:
-        </p>
-        
-        <div className="grid gap-3">
-          {riskIncreasingFeatures.slice(0, 4).map((f, idx) => {
-            const insight = GLOBAL_INSIGHTS[f.feature]
-            if (!insight) return null
             
-            return (
-              <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className={`mt-0.5 ${
-                  insight.trend === 'up' ? 'text-red-500' : 
-                  insight.trend === 'down' ? 'text-green-500' : 'text-amber-500'
-                }`}>
-                  {insight.trend === 'up' ? <TrendingUp size={18} /> : 
-                   insight.trend === 'down' ? <TrendingDown size={18} /> : 
-                   <AlertTriangle size={18} />}
-                </div>
-                <div>
-                  <span className="font-medium text-gray-800">{f.feature}:</span>
-                  <span className="text-gray-600 ml-1">{insight.insight}</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Counterfactual Scenarios */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Scenarios to Achieve {targetOutcome.charAt(0).toUpperCase() + targetOutcome.slice(1)}
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          These scenarios show what changes would be needed to flip the decision.
-        </p>
-        
-        {scenarios.length === 0 ? (
-          <div className="text-center py-8 text-gray-600">
-            <Info size={32} className="mx-auto mb-2 opacity-50" />
-            <p>No clear counterfactual scenarios could be generated for this application.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {scenarios.map((scenario, idx) => (
-              <div 
-                key={idx} 
-                className={`rounded-xl border-2 overflow-hidden ${
-                  scenario.flipped 
-                    ? 'border-green-300 bg-green-50/30' 
-                    : 'border-gray-200 bg-gray-50/30'
-                }`}
-              >
-                {/* Scenario Header */}
-                <div className={`px-5 py-3 flex items-center justify-between ${
-                  scenario.flipped ? 'bg-green-100' : 'bg-gray-100'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                      scenario.flipped ? 'bg-green-500' : 'bg-gray-400'
-                    }`}>
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <span className="font-semibold text-gray-900">
-                        {idx === 0 ? 'Single Change' : idx === 1 ? 'Two Changes' : 'Three Changes'}
-                      </span>
-                      <span className="text-gray-600 text-sm ml-2">
-                        ({scenario.changes.length} feature{scenario.changes.length !== 1 ? 's' : ''})
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      scenario.newDecision === 'approved' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      → {scenario.newDecision.toUpperCase()}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {Math.round(scenario.newConfidence * 100)}% confidence
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Status indicator */}
-                {scenario.flipped ? (
-                  <div className="px-5 py-2 bg-green-50 border-b border-green-100 text-sm text-green-700 flex items-center gap-2">
-                    <CheckCircle2 size={16} />
-                    This scenario would flip the decision to {scenario.newDecision}
-                  </div>
-                ) : (
-                  <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-600 flex items-center gap-2">
-                    <Info size={16} />
-                    Not enough to flip the decision (still {decision})
-                  </div>
-                )}
-                
-                {/* Changes */}
-                <div className="p-5 space-y-3">
-                  {scenario.changes.map((change, cIdx) => (
-                    <div key={cIdx} className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold text-gray-700">{change.feature}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="flex-1 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                          <span className="text-xs text-red-600 font-medium block mb-0.5">Current</span>
-                          <span className="text-red-800 font-medium">{change.current}</span>
-                        </div>
-                        
-                        <ArrowRight className="text-gray-600 flex-shrink-0" size={20} />
-                        
-                        <div className="flex-1 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
-                          <span className="text-xs text-green-600 font-medium block mb-0.5">Change to</span>
-                          <span className="text-green-800 font-medium">{change.suggested}</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 italic">
-                        💡 {change.explanation}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Interactive Sandbox */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <button
-          onClick={() => setShowSandbox(!showSandbox)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 transition"
-        >
-          <div className="flex items-center gap-3">
-            <Sliders className="text-indigo-600" size={22} />
-            <div className="text-left">
-              <span className="font-semibold text-gray-900 block">Try It Yourself</span>
-              <span className="text-sm text-gray-600">Adjust features and see how the decision changes</span>
-            </div>
-          </div>
-          <span className={`transform transition ${showSandbox ? 'rotate-180' : ''}`}>
-            ▼
-          </span>
-        </button>
-        
-        {showSandbox && (
-          <div className="p-6 border-t border-gray-100">
-            {/* Instruction */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-blue-800 flex items-start gap-2">
-                <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong>Note:</strong> These are <strong>estimated</strong> outcomes based on feature importance patterns, 
-                  not live predictions from the XGBoost model. Change values below to see approximate effects.
-                </span>
+            {!isApproved && (
+              <p className="text-gray-700 mb-4">
+                This application is <strong>{gapToApproval.toFixed(1)}%</strong> away from approval.
+                Reducing <strong>Loan Duration</strong> or <strong>Credit Amount</strong> is the most direct path.
               </p>
-            </div>
+            )}
             
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              {Object.entries(FEATURE_OPTIONS).map(([featureName, config]) => {
-                const currentFeature = shapFeatures.find(f => f.feature === featureName)
-                if (!currentFeature) return null
+            {isApproved && (
+              <p className="text-gray-700 mb-4">
+                {hasFlipped ? (
+                  <span className="text-green-700 font-semibold">
+                    ✓ Your adjustments flipped the decision to APPROVED!
+                  </span>
+                ) : (
+                  'Approved. Strengthening Savings would lower the interest rate.'
+                )}
+              </p>
+            )}
+            
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Current Score</span>
+                <span className="font-semibold">
+                  {(livePrediction.probability * 100).toFixed(0)}% confidence
+                </span>
+              </div>
+              <div className="h-4 bg-gray-200 rounded-full overflow-hidden relative">
+                {/* Approval threshold line */}
+                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10" />
                 
-                return (
-                  <div key={featureName} className="bg-gray-50 rounded-lg p-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {config.label}
-                    </label>
-                    <select
-                      value={sandboxValues[featureName] || ''}
-                      onChange={(e) => setSandboxValues(prev => ({
-                        ...prev,
-                        [featureName]: e.target.value
-                      }))}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                    >
-                      {config.options.map(opt => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Original: {getDisplayValue(featureName, currentFeature.value)}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
-            
-            {/* Sandbox Result */}
-            <div className={`rounded-xl p-5 ${
-              sandboxResult.newDecision === 'approved' 
-                ? 'bg-green-50 border-2 border-green-200' 
-                : 'bg-red-50 border-2 border-red-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {sandboxResult.newDecision === 'approved' ? (
-                    <CheckCircle2 className="text-green-600" size={28} />
-                  ) : (
-                    <XCircle className="text-red-600" size={28} />
-                  )}
-                  <div>
-                    <span className="text-lg font-bold block">
-                      Estimated: {sandboxResult.newDecision.toUpperCase()}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {Math.round(sandboxResult.newConfidence * 100)}% confidence in this outcome
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {sandboxResult.flipped && (
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                      Decision flipped!
-                    </span>
-                  )}
-                  <button
-                    onClick={() => {
-                      const initial: Record<string, string> = {}
-                      for (const f of shapFeatures) {
-                        if (FEATURE_OPTIONS[f.feature]) {
-                          const options = FEATURE_OPTIONS[f.feature].options
-                          const match = options.find(opt => opt.value === f.value)
-                          initial[f.feature] = match?.value || options[0].value
-                        }
-                      }
-                      setSandboxValues(initial)
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-                    title="Reset all values to the applicant's original values"
-                  >
-                    <RefreshCw size={16} />
-                    Reset to Original
-                  </button>
-                </div>
+                {/* Progress bar */}
+                <motion.div
+                  initial={{ width: `${probability * 100}%` }}
+                  animate={{ width: `${livePrediction.probability * 100}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className={`h-full ${
+                    isApproved
+                      ? 'bg-gradient-to-r from-green-400 to-green-600'
+                      : 'bg-gradient-to-r from-amber-400 to-amber-600'
+                  }`}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0%</span>
+                <span className="font-semibold">50% (Threshold)</span>
+                <span>100%</span>
               </div>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Transparency Note */}
-      <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
-        <div className="flex items-start gap-3">
-          <Info className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
-          <div>
-            <h4 className="font-semibold text-amber-900 mb-1">About These Scenarios</h4>
-            <p className="text-sm text-amber-800">
-              Counterfactuals show how the model behaves based on the 1994 German Credit Dataset. 
-              Probability estimates are approximations based on feature importance patterns.
-              Some patterns (like Credit History categories) reflect dataset-specific trends that may 
-              seem counterintuitive. These scenarios are for understanding the model, not for making 
-              real lending decisions.
-            </p>
-          </div>
         </div>
+      </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          ZONE B: SMART SIMULATOR
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className={`rounded-2xl border-2 p-6 ${
+          isApproved
+            ? 'border-green-300 bg-white'
+            : 'border-gray-200 bg-white'
+        }`}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <Sparkles className="text-indigo-600" size={20} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Interactive Simulator</h3>
+              <p className="text-sm text-gray-600">Adjust values to see real-time predictions</p>
+            </div>
+          </div>
+          
+          {livePrediction.isLoading && (
+            <div className="flex items-center gap-2 text-indigo-600">
+              <Loader2 className="animate-spin" size={16} />
+              <span className="text-sm font-medium">Calculating...</span>
+            </div>
+          )}
+        </div>
+
+        {/* Feature Sliders */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Credit Amount */}
+          {visibleFeatures.includes('Credit Amount') && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <DollarSign size={16} className="text-green-600" />
+                  Credit Amount
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                    <Zap size={12} />
+                    Quick Fix
+                  </span>
+                </label>
+                <span className="text-sm font-bold text-gray-900">
+                  €{modifiedData.credit_amount?.toLocaleString() || 0}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="20000"
+                step="100"
+                value={modifiedData.credit_amount || 0}
+                onChange={(e) => handleFeatureChange('Credit Amount', Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>€500</span>
+                <span>€20,000</span>
+              </div>
+            </div>
+          )}
+
+          {/* Loan Duration */}
+          {visibleFeatures.includes('Loan Duration (months)') && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Clock size={16} className="text-blue-600" />
+                  Loan Duration
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                    <Zap size={12} />
+                    Quick Fix
+                  </span>
+                </label>
+                <span className="text-sm font-bold text-gray-900">
+                  {modifiedData.duration || 0} months
+                </span>
+              </div>
+              <input
+                type="range"
+                min="6"
+                max="72"
+                step="6"
+                value={modifiedData.duration || 0}
+                onChange={(e) => handleFeatureChange('Loan Duration (months)', Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>6 months</span>
+                <span>72 months</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Success Animation */}
+        <AnimatePresence>
+          {isApproved && hasFlipped && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="mt-6 p-4 rounded-xl bg-green-50 border-2 border-green-300"
+            >
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="text-green-600" size={24} />
+                <div>
+                  <p className="font-semibold text-green-900">Decision Flipped to APPROVED!</p>
+                  <p className="text-sm text-green-700">
+                    Confidence: {(livePrediction.probability * 100).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          ZONE C: ACTION PLANS
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="rounded-2xl border-2 border-gray-200 bg-white p-6"
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <Target className="text-indigo-600" size={20} />
+          Recommended Solutions
+        </h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Click any option to instantly apply the changes
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Option 1: Quick Fix */}
+          <button
+            onClick={applyQuickFix}
+            className="group p-4 rounded-xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50 transition-all text-left"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 group-hover:bg-green-200 flex items-center justify-center transition-colors">
+                <DollarSign className="text-green-600" size={20} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Quick Fix</h4>
+                <p className="text-xs text-gray-600">Fastest path</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700">
+              Decrease Credit Amount by <strong>20%</strong>
+            </p>
+          </button>
+
+          {/* Option 2: Safe Bet */}
+          <button
+            onClick={applySafeBet}
+            className="group p-4 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
+                <Clock className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Safe Bet</h4>
+                <p className="text-xs text-gray-600">Lower risk</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700">
+              Decrease Duration by <strong>12 months</strong>
+            </p>
+          </button>
+
+          {/* Option 3: Commitment */}
+          <button
+            onClick={applyCommitment}
+            className="group p-4 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all text-left"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
+                <PiggyBank className="text-purple-600" size={20} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Commitment</h4>
+                <p className="text-xs text-gray-600">Build trust</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700">
+              Increase Savings to <strong>€500-1000</strong>
+            </p>
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Info Footer */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-sm text-blue-800">
+          <strong>💡 How it works:</strong> This simulator calls the real XGBoost model to generate live predictions.
+          Adjust the sliders above to explore different scenarios and find the optimal path to approval.
+        </p>
       </div>
     </div>
   )

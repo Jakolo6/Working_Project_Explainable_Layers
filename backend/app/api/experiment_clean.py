@@ -469,6 +469,36 @@ async def generate_natural_language_explanation(request: dict):
         )
 
 
+@router.post("/predict-counterfactual")
+async def predict_counterfactual(request: Dict[str, Any]):
+    """
+    Fast prediction endpoint for counterfactual "what-if" analysis.
+    Returns only decision and probability - NO SHAP calculation for speed.
+    
+    Input: { "application_data": { ... all features ... } }
+    Output: { "decision": "approved"|"rejected", "probability": 0.85 }
+    """
+    try:
+        xgb_service, _, _ = get_services()
+        
+        # Extract application data
+        application_data = request.get("application_data")
+        if not application_data:
+            raise HTTPException(status_code=400, detail="Missing application_data")
+        
+        # Make prediction (fast - no SHAP)
+        prediction_result = xgb_service.predict(application_data)
+        
+        # Return only decision and probability
+        return {
+            "decision": prediction_result["decision"],
+            "probability": prediction_result["probability"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
 @router.get("/health")
 async def health_check():
     """Check if models are loaded and ready"""
