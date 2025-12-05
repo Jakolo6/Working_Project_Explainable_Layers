@@ -58,25 +58,25 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
   // Map frontend values to exact backend expected values
   const VALUE_MAPPING: Record<string, string> = {
-    // Checking account status
-    'less than 0 dm': 'negative_balance',
-    '0 to 200 dm': '0_to_200_dm',
-    '200 dm or more': '200_or_more_dm',
-    'no checking account': 'no_checking_account',
+    // Checking account status (personas use € symbols)
+    'less than €0': 'lt_0_dm',
+    '€0 to €200': '0_to_200_dm',
+    '€200 or more': 'ge_200_dm',
+    'no checking account': 'no_checking',
     
-    // Savings account
-    'less than 100 dm': 'lt_100_dm',
-    '100 to 500 dm': '100_to_500_dm',
-    '500 to 1000 dm': '500_to_1000_dm',
-    '1000 dm or more': 'ge_1000_dm',
-    'unknown': 'unknown_no_savings',
+    // Savings account (personas use € symbols)
+    'less than €100': 'lt_100_dm',
+    '€100 to €500': '100_to_500_dm',
+    '€500 to €1000': '500_to_1000_dm',
+    '€1000 or more': 'ge_1000_dm',
+    'unknown / no savings': 'unknown',
     
     // Credit history
-    'no credits taken': 'no_credits',
-    'all credits paid back duly': 'all_paid',
-    'existing credits paid back duly': 'existing_paid',
-    'delay in paying off': 'delay',
-    'critical account': 'critical',
+    'no credits taken / all credits paid back duly': 'no_credits',
+    'all credits at this bank paid back duly': 'all_paid',
+    'existing credits paid back duly till now': 'existing_paid',
+    'delay in paying off in the past': 'delayed_past',
+    'critical account / other credits existing (not at this bank)': 'critical',
     
     // Employment
     'unemployed': 'unemployed',
@@ -86,17 +86,17 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     '7 years or more': 'ge_7_years',
     
     // Job
-    'unemployed / unskilled': 'unemployed_or_unskilled_non_resident',
-    'unskilled': 'unskilled_resident',
-    'skilled employee': 'skilled_employee_official',
-    'management': 'management_self_employed_highly_qualified_officer',
+    'unemployed / unskilled - non-resident': 'unemployed_unskilled',
+    'unskilled - resident': 'unskilled_resident',
+    'skilled employee / official': 'skilled',
+    'management / self-employed / highly qualified employee / officer': 'management',
     
     // Purpose
     'car (new)': 'car_new',
     'car (used)': 'car_used',
-    'furniture': 'furniture',
-    'radio/tv': 'radio_tv',
-    'appliances': 'appliances',
+    'furniture/equipment': 'furniture',
+    'radio/television': 'radio_tv',
+    'domestic appliances': 'appliances',
     'repairs': 'repairs',
     'education': 'education',
     'retraining': 'retraining',
@@ -105,7 +105,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     
     // Property
     'real estate': 'real_estate',
-    'savings agreement': 'savings_agreement_or_life_insurance',
+    'building society savings agreement / life insurance': 'savings_agreement',
     'car or other': 'car_or_other',
     'unknown / no property': 'unknown_no_property',
     
@@ -114,7 +114,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     'own': 'own',
     'for free': 'for_free',
     
-    // Other debtors
+    // Other debtors / guarantors
     'none': 'none',
     'co-applicant': 'co_applicant',
     'guarantor': 'guarantor',
@@ -124,8 +124,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     'stores': 'stores',
     
     // Telephone
-    'yes': 'yes_registered',
-    'no': 'none',
+    'yes (registered under the customer\'s name)': 'yes',
   }
   
   const mapValue = (value: string): string => {
