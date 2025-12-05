@@ -13,19 +13,21 @@ from typing import Dict, Any, Tuple, List
 from pathlib import Path
 
 from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
-from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+
+# Import shared feature engineering
+from .feature_engineering import engineer_features, get_feature_lists, EMPLOYMENT_YEARS_MAP, INSTALLMENT_RATE_MAP
 
 try:
     from xgboost import XGBClassifier
     HAS_XGBOOST = True
 except ImportError:
     HAS_XGBOOST = False
-    print("⚠️ XGBoost not available - install with: pip install xgboost")
+    print(" XGBoost not available - install with: pip install xgboost")
 
 from app.config import get_settings
 
@@ -109,7 +111,7 @@ class ModelTrainingService:
             Key='data/german_credit_clean.csv'
         )
         df = pd.read_csv(BytesIO(obj['Body'].read()))
-        self.log(f"✓ Loaded {len(df)} records from R2")
+        self.log(f" Loaded {len(df)} records from R2")
         return df
     
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -123,7 +125,7 @@ class ModelTrainingService:
         # Convert installment_commitment from numerical (1-4) to categorical
         if 'installment_commitment' in df.columns:
             df['installment_commitment'] = df['installment_commitment'].map(INSTALLMENT_RATE_MAP)
-            self.log("✓ Converted installment_commitment to categorical")
+            self.log(" Converted installment_commitment to categorical")
         
         # Create engineered features
         df['monthly_burden'] = df['credit_amount'] / df['duration']
@@ -132,7 +134,7 @@ class ModelTrainingService:
         df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
         df['duration_risk'] = df['duration'] * df['credit_amount']
         
-        self.log("✓ Created 5 engineered features")
+        self.log(" Created 5 engineered features")
         return df
     
     def prepare_data(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series, List[str], List[str]]:
@@ -153,7 +155,7 @@ class ModelTrainingService:
         X = df[num_features + CAT_FEATURES]
         y = df['target']
         
-        self.log(f"✓ Prepared {len(num_features)} numerical + {len(CAT_FEATURES)} categorical features")
+        self.log(f" Prepared {len(num_features)} numerical + {len(CAT_FEATURES)} categorical features")
         return X, y, num_features, CAT_FEATURES
     
     def upsample_minority(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
@@ -176,7 +178,7 @@ class ModelTrainingService:
         X_bal = df_balanced.drop('target', axis=1)
         y_bal = df_balanced['target']
         
-        self.log(f"✓ Balanced: {len(df_majority)} majority + {len(df_minority_upsampled)} minority")
+        self.log(f" Balanced: {len(df_majority)} majority + {len(df_minority_upsampled)} minority")
         return X_bal, y_bal
     
     def train_xgboost(self, X_train: pd.DataFrame, y_train: pd.Series, 
@@ -200,6 +202,11 @@ class ModelTrainingService:
             ), CAT_FEATURES)
         ])
         
+        # This is the ratio of negative to positive samples
+        ratio = float(np.sum(y_train == 0)) / np.sum(y_train == 1)
+        self.log(f"  Class imbalance ratio (neg/pos): {ratio:.2f}")
+        self.log(f"  Using scale_pos_weight={ratio:.2f} (no upsampling)")
+        
         # Optimized hyperparameters for XGBoost with OneHotEncoding
         pipeline = Pipeline([
             ('preprocess', preprocessor),
@@ -214,7 +221,7 @@ class ModelTrainingService:
                 gamma=0.1,
                 reg_alpha=0.1,
                 reg_lambda=1.0,
-                scale_pos_weight=1.5,       # Handle class imbalance
+                scale_pos_weight=ratio,  # Use calculated ratio, NOT manual 1.5
                 random_state=42,
                 use_label_encoder=False,
                 eval_metric='auc'
@@ -500,17 +507,17 @@ class ModelTrainingService:
             )
             self.log(f"Split: {len(X_train)} train, {len(X_test)} test")
             
-            # Upsample
-            X_train_bal, y_train_bal = self.upsample_minority(X_train, y_train)
+            # NO UPSAMPLING - Using scale_pos_weight in XGBoost instead
+            # This prevents double handling of class imbalance
             
-            # Train XGBoost
+            # Train XGBoost (uses scale_pos_weight for imbalance)
             xgb_pipeline, xgb_metrics = self.train_xgboost(
-                X_train_bal, y_train_bal, X_test, y_test, num_features
+                X_train, y_train, X_test, y_test, num_features
             )
             
-            # Train Logistic
+            # Train Logistic (uses class_weight for imbalance)
             logistic_pipeline, logistic_metrics = self.train_logistic(
-                X_train_bal, y_train_bal, X_test, y_test, num_features
+                X_train, y_train, X_test, y_test, num_features
             )
             
             # Sanity check
