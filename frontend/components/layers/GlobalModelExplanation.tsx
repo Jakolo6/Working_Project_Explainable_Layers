@@ -210,9 +210,9 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
               Click to learn more about how the credit assessment works.
             </p>
           ) : isLoading ? (
-            <p className="text-sm text-slate-500">Loading...</p>
+            <p className="text-sm text-slate-600">Loading...</p>
           ) : (
-            <p className="text-sm text-slate-500">Global explanation not available. Generate it from the admin panel.</p>
+            <p className="text-sm text-slate-600">Global explanation not available. Generate it from the admin panel.</p>
           )}
         </div>
       )}
@@ -223,14 +223,14 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
           {isLoading ? (
             <div className="p-8 text-center">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
-              <p className="text-slate-500">Loading explanation...</p>
+              <p className="text-slate-600">Loading explanation...</p>
             </div>
           ) : error ? (
             <div className="p-8 text-center">
               <div className="text-red-500 text-4xl mb-3">⚠️</div>
               <p className="text-red-700 font-semibold mb-2">Failed to Load Global Explanation</p>
               <p className="text-red-600 text-sm">{error}</p>
-              <p className="text-slate-500 text-xs mt-2">Generate the global explanation from the admin panel first.</p>
+              <p className="text-slate-600 text-xs mt-2">Generate the global explanation from the admin panel first.</p>
             </div>
           ) : !data?.available ? (
             <div className="p-8 text-center">
@@ -248,7 +248,7 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
                     className={`px-4 py-2 font-medium text-sm border-b-2 transition ${
                       activeTab === 'overview'
                         ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-600 hover:text-gray-700'
                     }`}
                   >
                     📋 Overview
@@ -258,7 +258,7 @@ export default function GlobalModelExplanation({ defaultExpanded = false, showVi
                     className={`px-4 py-2 font-medium text-sm border-b-2 transition ${
                       activeTab === 'visualizations'
                         ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-600 hover:text-gray-700'
                     }`}
                   >
                     📊 SHAP Visualizations

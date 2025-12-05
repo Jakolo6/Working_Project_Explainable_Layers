@@ -55,7 +55,7 @@ export default function LocalDecisionSummary({
             }`}>
               {decision.toUpperCase()} ({(probability * 100).toFixed(0)}% confidence)
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 mt-1">
               Model is {(probability * 100).toFixed(0)}% confident in this {decision}
             </p>
           </div>
@@ -87,7 +87,7 @@ export default function LocalDecisionSummary({
           ))}
         </div>
         
-        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500">
+        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-200 text-xs text-slate-600">
           <span>{shapFeatures.length} features analyzed</span>
           <span className="text-red-500">{riskIncreasingFeatures.length} risk-increasing</span>
           <span className="text-green-500">{riskDecreasingFeatures.length} risk-decreasing</span>
@@ -119,7 +119,7 @@ export default function LocalDecisionSummary({
               ({(probability * 100).toFixed(0)}% confidence)
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Model is {(probability * 100).toFixed(0)}% confident in this {decision}
           </p>
         </div>
@@ -129,15 +129,15 @@ export default function LocalDecisionSummary({
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
           <div className="text-2xl font-bold text-slate-800">{shapFeatures.length}</div>
-          <div className="text-xs text-slate-500 uppercase">Total Features</div>
+          <div className="text-xs text-slate-600 uppercase">Total Features</div>
         </div>
         <div className="bg-white rounded-lg p-3 text-center border border-red-200">
           <div className="text-2xl font-bold text-red-600">{riskIncreasingFeatures.length}</div>
-          <div className="text-xs text-slate-500 uppercase">Risk Increasing</div>
+          <div className="text-xs text-slate-600 uppercase">Risk Increasing</div>
         </div>
         <div className="bg-white rounded-lg p-3 text-center border border-green-200">
           <div className="text-2xl font-bold text-green-600">{riskDecreasingFeatures.length}</div>
-          <div className="text-xs text-slate-500 uppercase">Risk Decreasing</div>
+          <div className="text-xs text-slate-600 uppercase">Risk Decreasing</div>
         </div>
       </div>
 
@@ -147,7 +147,7 @@ export default function LocalDecisionSummary({
         <div className="space-y-2">
           {topFeatures.map((feature, idx) => (
             <div key={idx} className="flex items-center gap-3">
-              <span className="w-8 text-sm font-bold text-slate-400">#{idx + 1}</span>
+              <span className="w-8 text-sm font-bold text-slate-600">#{idx + 1}</span>
               <span className="w-40 text-sm text-slate-700 truncate" title={feature.feature}>
                 {feature.feature}
               </span>
@@ -174,7 +174,7 @@ export default function LocalDecisionSummary({
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 mt-4 text-xs text-slate-500">
+      <div className="flex gap-6 mt-4 text-xs text-slate-600">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-red-400"></div>
           <span>Red = Factor increased risk for this applicant</span>

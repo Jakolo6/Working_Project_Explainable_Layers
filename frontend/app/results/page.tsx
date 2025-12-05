@@ -267,7 +267,7 @@ function ResultsContent() {
       <div className="flex justify-between mb-1">
         <span className="text-sm font-medium text-gray-700">{label}</span>
         <span className="text-sm font-bold text-gray-900">
-          {(mean || 0).toFixed(2)} <span className="text-gray-500 font-normal">± {(std || 0).toFixed(2)}</span>
+          {(mean || 0).toFixed(2)} <span className="text-gray-600 font-normal">± {(std || 0).toFixed(2)}</span>
         </span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-3">
@@ -348,27 +348,27 @@ function ResultsContent() {
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Sessions</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Sessions</p>
                 <p className="text-2xl font-bold">{stats.total_sessions}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Completed</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Completed</p>
                 <p className="text-2xl font-bold">{stats.completed_sessions}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Ratings</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Ratings</p>
                 <p className="text-2xl font-bold">{stats.total_ratings}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Questionnaires</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Questionnaires</p>
                 <p className="text-2xl font-bold">{stats.total_questionnaires || 0}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-teal-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Predictions</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Predictions</p>
                 <p className="text-2xl font-bold">{stats.total_predictions || 0}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Completion</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase">Completion</p>
                 <p className="text-2xl font-bold">{completionRate}%</p>
               </div>
             </div>
@@ -377,7 +377,7 @@ function ResultsContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Overall Ratings (Mean ± SD)</h2>
-                <p className="text-xs text-gray-500 mb-4">n = {stats.total_ratings} ratings</p>
+                <p className="text-xs text-gray-600 mb-4">n = {stats.total_ratings} ratings</p>
                 <div className="space-y-4">
                   {renderStatWithStd('Understanding', stats.avg_understanding, stats.std_understanding, 'bg-blue-500')}
                   {renderStatWithStd('Communicability', stats.avg_communicability, stats.std_communicability, 'bg-green-500')}
@@ -389,17 +389,17 @@ function ResultsContent() {
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Post-Questionnaire Results</h2>
-                <p className="text-xs text-gray-500 mb-4">n = {stats.total_questionnaires || 0} questionnaires</p>
+                <p className="text-xs text-gray-600 mb-4">n = {stats.total_questionnaires || 0} questionnaires</p>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Intuitiveness</p>
                     <p className="text-3xl font-bold text-blue-600">{(stats.avg_intuitiveness || 0).toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">/ 5.0</p>
+                    <p className="text-xs text-gray-600">/ 5.0</p>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <p className="text-xs font-semibold text-gray-600 uppercase mb-1">AI Usefulness</p>
                     <p className="text-3xl font-bold text-green-600">{(stats.avg_usefulness || 0).toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">/ 5.0</p>
+                    <p className="text-xs text-gray-600">/ 5.0</p>
                   </div>
                 </div>
               </div>
@@ -473,7 +473,7 @@ function ResultsContent() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-gray-500 mt-4">
+              <p className="text-xs text-gray-600 mt-4">
                 Color coding: <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">≥4.0 (Good)</span>{' '}
                 <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">3.0-3.9 (Moderate)</span>{' '}
                 <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded">&lt;3.0 (Low)</span>
@@ -539,7 +539,7 @@ function ResultsContent() {
                     </div>
                   ))}
                   {Object.keys(stats.participant_backgrounds || {}).length === 0 && (
-                    <p className="text-gray-400 text-sm">No data yet</p>
+                    <p className="text-gray-600 text-sm">No data yet</p>
                   )}
                 </div>
               </div>
@@ -555,7 +555,7 @@ function ResultsContent() {
                     </div>
                   ))}
                   {Object.keys(stats.credit_experiences || {}).length === 0 && (
-                    <p className="text-gray-400 text-sm">No data yet</p>
+                    <p className="text-gray-600 text-sm">No data yet</p>
                   )}
                 </div>
               </div>
@@ -565,7 +565,7 @@ function ResultsContent() {
                 <h3 className="font-semibold text-gray-800 mb-3">AI Familiarity</h3>
                 <div className="text-center py-4">
                   <p className="text-4xl font-bold text-blue-600">{(stats.avg_ai_familiarity || 0).toFixed(2)}</p>
-                  <p className="text-sm text-gray-500">Average (1-5 scale)</p>
+                  <p className="text-sm text-gray-600">Average (1-5 scale)</p>
                 </div>
               </div>
 
@@ -580,7 +580,7 @@ function ResultsContent() {
                     </div>
                   ))}
                   {Object.keys(stats.preferred_explanation_styles || {}).length === 0 && (
-                    <p className="text-gray-400 text-sm">No data yet</p>
+                    <p className="text-gray-600 text-sm">No data yet</p>
                   )}
                 </div>
               </div>
@@ -604,7 +604,7 @@ function ResultsContent() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No improvement suggestions collected yet.</p>
+                <p className="text-gray-600">No improvement suggestions collected yet.</p>
               )}
             </div>
           </div>
@@ -646,7 +646,7 @@ function ResultsContent() {
                   <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
                 </div>
               ) : sessions.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No sessions found.</p>
+                <p className="text-gray-600 text-center py-8">No sessions found.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -703,7 +703,7 @@ function ResultsContent() {
                                   className={`px-1.5 py-0.5 rounded text-xs ${
                                     detail.layers_complete ? 'bg-green-100 text-green-800' :
                                     detail.layers_rated > 0 ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-gray-100 text-gray-400'
+                                    'bg-gray-100 text-gray-600'
                                   }`}
                                   title={`${PERSONA_SHORT_NAMES[personaId]}: ${detail.layers_rated}/4 layers${detail.layers_complete ? ' ✓' : ''}`}
                                 >

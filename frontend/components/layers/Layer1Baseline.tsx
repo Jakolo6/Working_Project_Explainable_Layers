@@ -4,7 +4,6 @@
 'use client'
 
 import React from 'react'
-import GlobalModelExplanation from './GlobalModelExplanation'
 import Tooltip from '@/components/ui/Tooltip'
 import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
@@ -80,9 +79,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
 
   return (
     <div className="space-y-6">
-      {/* Global Model Explanation - How the AI works in general (collapsed by default) */}
-      <GlobalModelExplanation defaultExpanded={false} showVisualizations={false} />
-
       {/* Simple SHAP Explanation */}
       <SHAPExplanation />
 
@@ -120,7 +116,7 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-gray-900">{confidencePercent}%</div>
-            <p className="text-sm text-gray-500">Model Confidence</p>
+            <p className="text-sm text-gray-600">Model Confidence</p>
           </div>
         </div>
       </div>
@@ -154,11 +150,11 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rank</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Feature</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Value</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">SHAP Value</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Effect</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Rank</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Feature</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Value</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">SHAP Value</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Effect</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -171,7 +167,7 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
                 
                 return (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-3 text-gray-400 font-mono">
+                    <td className="px-4 py-3 text-gray-600 font-mono">
                       {idx + 1}
                     </td>
                     <td className="px-4 py-3">

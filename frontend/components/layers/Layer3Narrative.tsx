@@ -3,7 +3,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import GlobalModelExplanation from './GlobalModelExplanation'
 import LocalDecisionSummary from './LocalDecisionSummary'
 import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
@@ -108,9 +107,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
 
   return (
     <div className="space-y-6">
-      {/* Global Model Explanation - How the tool works in general */}
-      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
-
       {/* Simple SHAP Explanation */}
       <SHAPExplanation compact={true} />
 
@@ -183,7 +179,7 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
                   {formatNarrative(narrative)}
                 </div>
               ) : (
-                <p className="text-gray-500">No narrative available.</p>
+                <p className="text-gray-600">No narrative available.</p>
               )}
             </div>
           </div>
@@ -217,7 +213,7 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
                       {feature.feature}
                       {isCreditHistoryFeature(feature.feature) && <span className="ml-1 text-amber-600">⚠</span>}
                     </span>
-                    <span className="text-slate-500 text-sm ml-2">= {feature.value}</span>
+                    <span className="text-slate-600 text-sm ml-2">= {feature.value}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

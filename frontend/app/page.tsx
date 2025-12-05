@@ -142,7 +142,7 @@ export default function Home() {
         {/* ============================================ */}
         <section className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-3">
-            Curious about the tech? <span className="text-gray-500 font-normal">(Optional)</span>
+            Curious about the tech? <span className="text-gray-600 font-normal">(Optional)</span>
           </h2>
           <p className="text-gray-600 mb-4">
             If you are interested in how this platform was built, you are welcome to explore 
@@ -150,14 +150,14 @@ export default function Home() {
             <Link href="/dataset" className="text-blue-600 hover:underline font-medium"> Dataset</Link>, and 
             <Link href="/model" className="text-blue-600 hover:underline font-medium"> Model</Link> pages.
           </p>
-          <p className="text-gray-500 text-sm italic">
+          <p className="text-gray-600 text-sm italic">
             Note: This is completely optional. You do not need to review these technical details 
             to participate in the experiment.
           </p>
         </section>
 
         {/* Footer */}
-        <div className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+        <div className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-600 text-sm">
           <p>
             Questions? Contact the researcher at{' '}
             <a href="mailto:jakob.lindner@novasbe.pt" className="text-blue-600 hover:underline">

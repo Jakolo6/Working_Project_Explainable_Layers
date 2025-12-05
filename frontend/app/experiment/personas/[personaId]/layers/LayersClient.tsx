@@ -50,6 +50,35 @@ const LAYER_NAMES = [
 
 const TOTAL_LAYERS = 4
 
+// Features to hide from the explanation interface (still in model, just not displayed)
+// These features add cognitive load without providing clear actionable insights
+const HIDDEN_FEATURES = [
+  'Credit History',
+  'Existing Credits',
+  'Number of Dependents',
+  'Years at Residence',
+  'Other Debtors/Guarantors',
+  'Other Payment Plans',
+  // Also match potential variations
+  'credit_history',
+  'existing_credits',
+  'num_dependents',
+  'residence_since',
+  'other_debtors',
+  'other_payment_plans',
+]
+
+// Filter out hidden features from SHAP features array
+function filterShapFeatures(features: SHAPFeature[]): SHAPFeature[] {
+  return features.filter(f => {
+    const featureLower = f.feature.toLowerCase()
+    return !HIDDEN_FEATURES.some(hidden => 
+      featureLower.includes(hidden.toLowerCase()) || 
+      hidden.toLowerCase().includes(featureLower)
+    )
+  })
+}
+
 export default function LayersClient({ personaId }: LayersClientProps) {
   const router = useRouter()
   
@@ -242,28 +271,28 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             <Layer1Baseline
               decision={prediction.decision}
               probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
+              shapFeatures={filterShapFeatures(prediction.shap_features)}
             />
           )}
           {currentLayerIndex === 1 && (
             <Layer2Dashboard
               decision={prediction.decision}
               probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
+              shapFeatures={filterShapFeatures(prediction.shap_features)}
             />
           )}
           {currentLayerIndex === 2 && (
             <Layer3Narrative
               decision={prediction.decision}
               probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
+              shapFeatures={filterShapFeatures(prediction.shap_features)}
             />
           )}
           {currentLayerIndex === 3 && (
             <Layer4Counterfactual
               decision={prediction.decision}
               probability={prediction.probability}
-              shapFeatures={prediction.shap_features}
+              shapFeatures={filterShapFeatures(prediction.shap_features)}
             />
           )}
         </div>
@@ -301,7 +330,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>Strongly disagree</span>
                 <span>Strongly agree</span>
               </div>
@@ -327,7 +356,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>Strongly disagree</span>
                 <span>Strongly agree</span>
               </div>
@@ -353,7 +382,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>Strongly disagree</span>
                 <span>Strongly agree</span>
               </div>
@@ -379,7 +408,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>Strongly disagree</span>
                 <span>Strongly agree</span>
               </div>
@@ -405,7 +434,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
                 <span>Strongly disagree</span>
                 <span>Strongly agree</span>
               </div>

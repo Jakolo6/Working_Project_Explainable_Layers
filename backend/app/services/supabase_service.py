@@ -411,6 +411,23 @@ class SupabaseService:
                 "avg_intuitiveness": round(avg_intuitiveness, 2),
                 "avg_usefulness": round(avg_usefulness, 2),
                 "improvement_suggestions": suggestions,
+                
+                # === ADVANCED ANALYTICS DATA ===
+                
+                # Raw ratings for box plots (per layer, per dimension)
+                "raw_ratings_by_layer": self._get_raw_ratings_by_layer(ratings),
+                
+                # Time-on-task data per layer
+                "time_stats_by_layer": self._get_time_stats_by_layer(ratings),
+                
+                # Funnel data (drop-off analysis)
+                "funnel_data": self._get_funnel_data(consented_sessions, ratings, predictions),
+                
+                # Correlation matrix data
+                "correlation_data": self._get_correlation_data(ratings),
+                
+                # Ratings by demographic for filtering
+                "ratings_by_background": self._get_ratings_by_background(ratings, consented_sessions),
             }
             
         except Exception as e:
@@ -423,3 +440,136 @@ class SupabaseService:
                 "total_ratings": 0,
                 "error": str(e)
             }
+    
+    def _get_raw_ratings_by_layer(self, ratings: list) -> Dict:
+        """Get raw rating values for box plot visualization"""
+        result = {}
+        for layer_num in [1, 2, 3, 4]:
+            layer_ratings = [r for r in ratings if r.get('layer_number') == layer_num]
+            result[f'layer_{layer_num}'] = {
+                'understanding': [r.get('understanding_rating', 0) or 0 for r in layer_ratings],
+                'communicability': [r.get('communicability_rating', 0) or 0 for r in layer_ratings],
+                'fairness': [r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings],
+                'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings],
+                'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings],
+                'time_seconds': [r.get('time_spent_seconds', 0) or 0 for r in layer_ratings],
+            }
+        return result
+    
+    def _get_time_stats_by_layer(self, ratings: list) -> Dict:
+        """Get detailed time statistics per layer"""
+        import statistics
+        result = {}
+        for layer_num in [1, 2, 3, 4]:
+            times = [r.get('time_spent_seconds', 0) or 0 for r in ratings if r.get('layer_number') == layer_num]
+            if times:
+                result[f'layer_{layer_num}'] = {
+                    'mean': round(sum(times) / len(times), 1),
+                    'median': round(statistics.median(times), 1) if times else 0,
+                    'min': min(times),
+                    'max': max(times),
+                    'std': round(statistics.stdev(times), 1) if len(times) > 1 else 0,
+                    'values': times
+                }
+            else:
+                result[f'layer_{layer_num}'] = {'mean': 0, 'median': 0, 'min': 0, 'max': 0, 'std': 0, 'values': []}
+        return result
+    
+    def _get_funnel_data(self, sessions: list, ratings: list, predictions: list) -> Dict:
+        """Calculate drop-off funnel data"""
+        total_consented = len(sessions)
+        
+        # Sessions with at least one prediction (started a persona)
+        sessions_with_predictions = set(p.get('session_id') for p in predictions)
+        started_persona = len(sessions_with_predictions)
+        
+        # Sessions with ratings for each persona
+        persona_completion = {}
+        for persona in ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']:
+            sessions_with_persona = set(
+                r.get('session_id') for r in ratings 
+                if r.get('persona_id') == persona
+            )
+            # Count sessions that completed all 4 layers for this persona
+            completed_sessions = set()
+            for session_id in sessions_with_persona:
+                layer_count = len([r for r in ratings if r.get('session_id') == session_id and r.get('persona_id') == persona])
+                if layer_count >= 4:
+                    completed_sessions.add(session_id)
+            persona_completion[persona] = len(completed_sessions)
+        
+        # Sessions that completed all 3 personas
+        completed_all = len([s for s in sessions if s.get('completed')])
+        
+        return {
+            'consented': total_consented,
+            'started_persona_1': started_persona,
+            'completed_persona_1': persona_completion.get('elderly-woman', 0),
+            'completed_persona_2': persona_completion.get('young-entrepreneur', 0),
+            'completed_persona_3': persona_completion.get('middle-aged-employee', 0),
+            'completed_all': completed_all,
+        }
+    
+    def _get_correlation_data(self, ratings: list) -> Dict:
+        """Calculate correlation between dimensions"""
+        import statistics
+        
+        if len(ratings) < 3:
+            return {'correlations': {}, 'insufficient_data': True}
+        
+        # Extract all dimension values
+        dims = {
+            'understanding': [r.get('understanding_rating', 0) or 0 for r in ratings],
+            'communicability': [r.get('communicability_rating', 0) or 0 for r in ratings],
+            'fairness': [r.get('perceived_fairness_rating', 0) or 0 for r in ratings],
+            'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in ratings],
+            'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in ratings],
+        }
+        
+        # Calculate Pearson correlation for each pair
+        def pearson_corr(x, y):
+            n = len(x)
+            if n < 3:
+                return 0
+            mean_x, mean_y = sum(x)/n, sum(y)/n
+            std_x = statistics.stdev(x) if n > 1 else 1
+            std_y = statistics.stdev(y) if n > 1 else 1
+            if std_x == 0 or std_y == 0:
+                return 0
+            cov = sum((x[i] - mean_x) * (y[i] - mean_y) for i in range(n)) / (n - 1)
+            return round(cov / (std_x * std_y), 3)
+        
+        correlations = {}
+        dim_names = list(dims.keys())
+        for i, dim1 in enumerate(dim_names):
+            for dim2 in dim_names[i+1:]:
+                key = f"{dim1}_vs_{dim2}"
+                correlations[key] = pearson_corr(dims[dim1], dims[dim2])
+        
+        return {'correlations': correlations, 'insufficient_data': False}
+    
+    def _get_ratings_by_background(self, ratings: list, sessions: list) -> Dict:
+        """Get ratings grouped by participant background for filtering"""
+        # Create session -> background mapping
+        session_bg = {s.get('session_id'): s.get('participant_background') for s in sessions}
+        
+        result = {}
+        for bg in ['banking', 'data_analytics', 'student', 'other']:
+            bg_ratings = [r for r in ratings if session_bg.get(r.get('session_id')) == bg]
+            if bg_ratings:
+                result[bg] = {
+                    'count': len(bg_ratings),
+                    'layer_stats': {}
+                }
+                for layer_num in [1, 2, 3, 4]:
+                    layer_ratings = [r for r in bg_ratings if r.get('layer_number') == layer_num]
+                    if layer_ratings:
+                        result[bg]['layer_stats'][f'layer_{layer_num}'] = {
+                            'count': len(layer_ratings),
+                            'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                            'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                            'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                            'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                            'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
+                        }
+        return result

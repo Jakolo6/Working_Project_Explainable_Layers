@@ -196,7 +196,7 @@ function AdminContent() {
               </span>
             </div>
             <h3 className="font-semibold text-gray-900 mb-1">XGBoost Model</h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               Updated: {formatDate(assets?.assets.model.last_modified || null)}
             </p>
           </div>
@@ -216,7 +216,7 @@ function AdminContent() {
               </span>
             </div>
             <h3 className="font-semibold text-gray-900 mb-1">Global Explanation</h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               Updated: {formatDate(assets?.assets.global_explanation.last_modified || null)}
             </p>
           </div>
@@ -236,7 +236,7 @@ function AdminContent() {
               </span>
             </div>
             <h3 className="font-semibold text-gray-900 mb-1">Performance Stats</h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               Updated: {formatDate(assets?.assets.performance_stats.last_modified || null)}
             </p>
           </div>

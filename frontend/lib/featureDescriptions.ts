@@ -12,9 +12,9 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
     name: 'Checking Account Status',
     description: 'The balance status of the applicant\'s checking account. A healthy checking account with regular deposits suggests stable cash flow and lower default risk. Overdrawn accounts or no account may indicate financial stress.',
     values: {
-      'lt_0_dm': 'Less than 0 DM – account is currently overdrawn',
-      '0_to_200_dm': '0 to under 200 DM – small positive balance',
-      'gte_200_dm': '200 DM or more / salary paid in – regular account activity or incoming salary',
+      'lt_0_dm': 'Less than €0 – account is currently overdrawn',
+      '0_to_200_dm': '€0 to under €200 – small positive balance',
+      'gte_200_dm': '€200 or more / salary paid in – regular account activity or incoming salary',
       'no_account': 'No checking account – no regular bank account information available'
     }
   },
@@ -59,7 +59,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Credit Amount
   'Credit Amount': {
     name: 'Credit Amount',
-    description: 'The total loan amount requested in Deutsche Marks (DM). Larger loans represent greater financial exposure for the bank. The risk depends on whether the amount is proportional to the applicant\'s income and assets.'
+    description: 'The total loan amount requested in Euros (€). Larger loans represent greater financial exposure for the bank. The risk depends on whether the amount is proportional to the applicant\'s income and assets.'
   },
 
   // Savings Account
@@ -67,10 +67,10 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
     name: 'Savings Account/Bonds',
     description: 'The applicant\'s savings buffer. Higher savings indicate financial discipline and a safety net for unexpected expenses. This reduces default risk as the applicant can draw on savings if income is disrupted.',
     values: {
-      'lt_100_dm': 'Less than 100 DM – low savings recorded',
-      '100_to_500_dm': '100 to under 500 DM – moderate savings',
-      '500_to_1000_dm': '500 to under 1,000 DM – higher savings',
-      'gte_1000_dm': '1,000 DM or more – substantial savings',
+      'lt_100_dm': 'Less than €100 – low savings recorded',
+      '100_to_500_dm': '€100 to under €500 – moderate savings',
+      '500_to_1000_dm': '€500 to under €1,000 – higher savings',
+      'gte_1000_dm': '€1,000 or more – substantial savings',
       'unknown': 'Unknown or no savings account – no savings information available'
     }
   },
@@ -231,7 +231,7 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
 
   'Duration Risk Score': {
     name: 'Duration Risk Score',
-    description: 'Total exposure metric (Duration × Credit Amount). Large loans over long periods create maximum risk exposure. A 48-month loan for 10,000 DM has much higher duration risk than a 12-month loan for 2,000 DM.'
+    description: 'Total exposure metric (Duration × Credit Amount). Large loans over long periods create maximum risk exposure. A 48-month loan for €10,000 has much higher duration risk than a 12-month loan for €2,000.'
   },
 
   // Additional features that may appear

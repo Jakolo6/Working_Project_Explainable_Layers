@@ -4,6 +4,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import ModelOverviewCard from '@/components/ModelOverviewCard'
 
 type PersonaId = 'elderly-woman' | 'young-entrepreneur' | 'middle-aged-employee'
 
@@ -167,6 +168,9 @@ export default function PersonaSelectionPage() {
             />
           </div>
         </div>
+
+        {/* Model Overview - Scannable "How the AI Works" card */}
+        <ModelOverviewCard />
 
         <section className="rounded-xl bg-blue-50 border border-blue-200 p-8 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">🏦 You are a Bank Clerk</h2>

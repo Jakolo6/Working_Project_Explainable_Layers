@@ -250,7 +250,7 @@ export default function ExperimentStartPage() {
                 </button>
               ))}
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-600 mt-1">
               <span>Not familiar at all</span>
               <span>Very familiar</span>
             </div>

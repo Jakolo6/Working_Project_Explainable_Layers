@@ -310,7 +310,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
           <div className="border-b border-gray-200 pb-4">
             <h2 className="text-2xl font-semibold text-gray-900">Credit Application</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               All fields below are editable. Review and adjust as needed.
             </p>
           </div>
@@ -629,22 +629,22 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">Sex</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Sex</label>
                   <input
                     type="text"
                     value={application.sex}
                     disabled
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-200 text-gray-500 cursor-not-allowed"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-200 text-gray-600 cursor-not-allowed"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">Foreign Worker</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Foreign Worker</label>
                   <input
                     type="text"
                     value={application.foreign_worker}
                     disabled
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-200 text-gray-500 cursor-not-allowed"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 bg-gray-200 text-gray-600 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -666,7 +666,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
               >
                 {isSubmitting ? 'Generating...' : 'Generate AI Decision & Explanations'}
               </button>
-              <p className="text-center text-sm text-gray-500 mt-3">
+              <p className="text-center text-sm text-gray-600 mt-3">
                 ⚠️ Note: Proceeding will lock these values and generate the prediction. You cannot return to this step.
               </p>
             </div>

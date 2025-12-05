@@ -126,69 +126,86 @@ async def generate_narrative(request: NarrativeRequest):
 
 
 async def _generate_llm_narrative(request: NarrativeRequest, api_key: str) -> str:
-    """Generate narrative using OpenAI API with global model context."""
+    """
+    Generate analyst-grade narrative using OpenAI API with rich statistical context.
+    
+    This upgraded version provides:
+    - Comparative analysis against dataset benchmarks
+    - Percentile standings for numerical features
+    - Actionable suggestions for mutable features
+    - Proper handling of dataset quirks (Credit History)
+    """
     try:
         from openai import OpenAI
+        from app.services.context_builder import build_narrative_context
+        
         client = OpenAI(api_key=api_key)
         
-        # Get global context from R2-based explanation
-        try:
-            from app.services.global_explanation_generator import get_global_explanation_assets
-            assets = get_global_explanation_assets()
-            if assets.get("available") and assets.get("narrative"):
-                global_context = assets["narrative"]
-            else:
-                global_context = _get_default_global_context()
-        except Exception:
-            global_context = _get_default_global_context()
+        # Convert Pydantic models to dicts for context builder
+        shap_features_dict = [
+            {"feature": f.feature, "value": f.value, "shap_value": f.shap_value, "impact": f.impact}
+            for f in request.shap_features
+        ]
+        all_features_dict = None
+        if request.all_features:
+            all_features_dict = [
+                {"feature": f.feature, "value": f.value, "shap_value": f.shap_value, "impact": f.impact}
+                for f in request.all_features
+            ]
         
-        # Build context from SHAP features
-        positive_features = [f for f in request.shap_features if f.impact == 'positive']
-        negative_features = [f for f in request.shap_features if f.impact == 'negative']
+        # Build rich context payload
+        rich_context = build_narrative_context(
+            decision=request.decision,
+            probability=request.probability,
+            shap_features=shap_features_dict,
+            all_features=all_features_dict
+        )
         
-        # Check if Credit History is among the features to add special context
-        credit_history_note = ""
-        for f in request.shap_features:
-            if "credit history" in f.feature.lower() or "credit_history" in f.feature.lower():
-                credit_history_note = f"\n\nNOTE: This applicant's Credit History is '{f.value}'. "
-                break
-        
-        features_summary = {
-            "decision": request.decision,
-            "confidence": f"{request.probability * 100:.1f}%",
-            "total_features": len(request.all_features) if request.all_features else len(request.shap_features),
-            "risk_increasing": [{"name": f.feature, "value": f.value, "shap": round(f.shap_value, 3)} for f in positive_features[:3]],
-            "risk_decreasing": [{"name": f.feature, "value": f.value, "shap": round(f.shap_value, 3)} for f in negative_features[:3]]
-        }
-        
-        system_prompt = """You are helping a bank clerk explain a credit decision to a customer.
-Write in simple, everyday language that a non-technical person can understand.
+        # Master System Prompt - Analyst-Grade
+        system_prompt = """You are an expert Credit Analyst Assistant. Your goal is to explain a credit decision to a customer in simple, human terms using specific statistical context.
 
-NEVER use technical terms like: SHAP, feature importance, log-odds, probability scores, model output, prediction values.
-INSTEAD use terms like: factors, indicators, patterns, assessment, analysis.
+### 1. CORE RULES
+- **Tone:** Professional, empathetic, objective.
+- **Forbidden Terms:** SHAP, Feature Importance, Log-odds, XGBoost, Training Data, Machine Learning, Algorithm, Model Output, Prediction Score.
+- **Use Instead:** factors, indicators, patterns, assessment, analysis, profile, typical range.
+- **Key Formatting:** Use **bold** for the most important factors.
 
-IMPORTANT CONTEXT ABOUT THE DATA:
-This AI model was trained on the 1994 German Credit Dataset. Due to historical lending practices from that era, some patterns in the data may seem counterintuitive:
-- The "Credit History" feature shows unusual patterns because banks in 1994 were more cautious with applicants who had problematic histories, approving only the most creditworthy among them.
-- This means applicants with "critical" credit history in the training data actually had lower default rates than those with "all paid" history.
-- When explaining Credit History impacts, acknowledge this is based on historical patterns that may not reflect modern expectations.
+### 2. HOW TO USE THE DATA CONTEXT
+- **Comparative Analysis:** Never just say "Your duration is high." Say "Your loan duration (48 months) is significantly higher than our typical approved range (12-24 months)."
+- **Percentiles:** Use the percentile data to contextualize. "Your loan amount places you in the 85th percentile—higher than most approved applicants."
+- **Actionability:** If the decision is REJECTED, suggest changes ONLY to MUTABLE features (Duration, Amount, Savings, Checking). NEVER suggest changing Age, Employment History, or Credit History.
+- **Fairness:** If asked about Gender or Nationality, state clearly that these attributes were strictly excluded from the decision to ensure fairness.
 
-The explanation should:
-1. Clearly state the decision outcome
-2. Explain the main reasons in human terms
-3. Reference the applicant's specific situation
-4. Be honest and balanced (mention both positive and concerning factors if present)
-5. If Credit History appears counterintuitive, briefly note it reflects historical lending patterns
+### 3. HANDLING DATASET QUIRKS (CRITICAL)
+- **Credit History:** This assessment model shows that "Critical/Existing Credits" categories often correlate with approval. This reflects historical patterns where applicants with existing credit relationships demonstrated reliability. If this factor helped the applicant, explain: "Your established history of managing credits played a positive role."
+- **Do NOT mention:** The year 1994, "training data", "dataset bias", or technical explanations of why patterns exist.
 
-Keep the explanation under 150 words. Use **bold** for key points."""
+### 4. RESPONSE STRUCTURE
+1. **The Verdict:** Clear statement of the decision (Approved/Rejected) with confidence level.
+2. **The Main Reason:** The top 1-2 factors, explained using comparative context (e.g., "Your savings buffer is lower than what we typically see for a loan of this size").
+3. **The Silver Lining:** Mention 1 positive factor if available, even for rejections.
+4. **The Next Step (If Rejected):** One concrete, actionable suggestion based on MUTABLE features only.
 
-        user_prompt = f"""GLOBAL MODEL CONTEXT:
-{global_context}{credit_history_note}
+### 5. LENGTH
+Keep the explanation between 100-150 words. Be concise but informative."""
 
-THIS APPLICANT'S ANALYSIS:
-{json.dumps(features_summary, indent=2)}
+        # Build the user prompt with rich context
+        user_prompt = f"""APPLICANT ANALYSIS:
+{json.dumps(rich_context['applicant_analysis'], indent=2)}
 
-Write a clear explanation for this specific decision that a bank clerk could share with the customer. If Credit History shows an unexpected pattern (e.g., 'critical' history helping approval or 'all paid' hurting it), briefly explain this reflects historical data patterns."""
+COMPARATIVE CONTEXT (How this applicant compares to typical approved applicants):
+{json.dumps(rich_context['comparative_context'], indent=2)}
+
+ACTIONABLE SUGGESTIONS (Only for mutable features):
+{json.dumps(rich_context['actionable_suggestions'], indent=2)}
+
+RULES OF ENGAGEMENT:
+- Mutable features (can suggest changes): {rich_context['rules_of_engagement']['mutable_features']}
+- Immutable features (never suggest changes): {rich_context['rules_of_engagement']['immutable_features']}
+- Excluded for fairness: {rich_context['rules_of_engagement']['excluded_for_fairness']}
+- Dataset note: {rich_context['rules_of_engagement'].get('dataset_bias_warning', 'None')}
+
+Generate a clear, empathetic explanation following the response structure. Use the comparative context to make specific, data-driven statements."""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -196,34 +213,117 @@ Write a clear explanation for this specific decision that a bank clerk could sha
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=250,
+            max_tokens=300,
             temperature=0.3
         )
         
         return response.choices[0].message.content
         
+    except ImportError as e:
+        print(f"[WARNING] Context builder not available, falling back to basic generation: {e}")
+        # Fallback to simpler generation if context builder fails
+        return await _generate_basic_llm_narrative(request, api_key)
     except Exception as e:
         print(f"[ERROR] OpenAI API call failed: {e}")
         raise
 
 
+async def _generate_basic_llm_narrative(request: NarrativeRequest, api_key: str) -> str:
+    """Fallback basic LLM narrative generation without rich context."""
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key)
+    
+    positive_features = [f for f in request.shap_features if f.impact == 'positive']
+    negative_features = [f for f in request.shap_features if f.impact == 'negative']
+    
+    features_summary = {
+        "decision": request.decision,
+        "confidence": f"{request.probability * 100:.1f}%",
+        "risk_increasing": [{"name": f.feature, "value": f.value} for f in positive_features[:3]],
+        "risk_decreasing": [{"name": f.feature, "value": f.value} for f in negative_features[:3]]
+    }
+    
+    system_prompt = """You are a Credit Analyst explaining a decision to a customer.
+Be professional and empathetic. Use simple language.
+Never use technical terms like SHAP, feature importance, or log-odds.
+Keep the explanation under 150 words. Use **bold** for key points."""
+
+    user_prompt = f"""Decision: {request.decision.upper()}
+Confidence: {request.probability * 100:.1f}%
+Analysis: {json.dumps(features_summary, indent=2)}
+
+Write a clear explanation for this credit decision."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        max_tokens=200,
+        temperature=0.3
+    )
+    
+    return response.choices[0].message.content
+
+
 def _generate_template_narrative(request: NarrativeRequest) -> str:
-    """Generate template-based narrative as fallback."""
+    """Generate template-based narrative as fallback with rich context when available."""
     decision = request.decision.upper()
     confidence = request.probability * 100
     
     positive = [f for f in request.shap_features if f.impact == 'positive']
     negative = [f for f in request.shap_features if f.impact == 'negative']
     
-    narrative = f"**Decision Summary:** The credit application was **{decision}** with {confidence:.0f}% confidence.\n\n"
+    # Try to get rich context for better template generation
+    try:
+        from app.services.context_builder import build_narrative_context
+        shap_features_dict = [
+            {"feature": f.feature, "value": f.value, "shap_value": f.shap_value, "impact": f.impact}
+            for f in request.shap_features
+        ]
+        rich_context = build_narrative_context(
+            decision=request.decision,
+            probability=request.probability,
+            shap_features=shap_features_dict
+        )
+        has_rich_context = True
+    except Exception:
+        rich_context = None
+        has_rich_context = False
+    
+    # Build narrative with comparative context if available
+    narrative = f"**Decision: {decision}** (Confidence: {confidence:.0f}%)\n\n"
     
     if positive:
-        risk_factors = ", ".join([f"**{f.feature}** ({f.value})" for f in positive[:3]])
-        narrative += f"**Risk-Increasing Factors:** {risk_factors}. These factors contributed to a higher perceived risk.\n\n"
+        narrative += "**Key Factors Raising Concerns:**\n"
+        for f in positive[:3]:
+            feature_context = ""
+            if has_rich_context:
+                # Try to get comparative context
+                feature_key = f.feature.lower().replace(' ', '_').replace('(months)', '').strip()
+                for key, ctx in rich_context.get('comparative_context', {}).items():
+                    if key in feature_key or feature_key in key:
+                        if ctx.get('typical_approved_range'):
+                            feature_context = f" (typical approved range: {ctx['typical_approved_range']} {ctx.get('unit', '')})"
+                        break
+            narrative += f"- **{f.feature}**: {f.value}{feature_context}\n"
+        narrative += "\n"
     
     if negative:
-        favorable_factors = ", ".join([f"**{f.feature}** ({f.value})" for f in negative[:3]])
-        narrative += f"**Risk-Decreasing Factors:** {favorable_factors}. These factors helped reduce the overall risk assessment.\n\n"
+        narrative += "**Positive Factors:**\n"
+        for f in negative[:3]:
+            narrative += f"- **{f.feature}**: {f.value}\n"
+        narrative += "\n"
+    
+    # Add actionable suggestion for rejections
+    if request.decision == 'rejected' and has_rich_context:
+        suggestions = rich_context.get('actionable_suggestions', [])
+        if suggestions:
+            narrative += "**What Could Help:**\n"
+            for s in suggestions[:2]:
+                narrative += f"- {s.get('suggestion', '')}\n"
+            narrative += "\n"
     
     # Check for Credit History and add context if present
     credit_history_feature = None
@@ -233,10 +333,10 @@ def _generate_template_narrative(request: NarrativeRequest) -> str:
             break
     
     if credit_history_feature:
-        narrative += "**Note on Credit History:** This model was trained on 1994 German banking data. Due to historical lending practices, the Credit History feature may show counterintuitive patterns—banks at that time were more cautious with applicants who had problematic histories, approving only the most creditworthy among them.\n\n"
+        narrative += "**Note:** Your credit history assessment reflects established patterns in managing credit relationships.\n\n"
     
     total = len(request.all_features) if request.all_features else len(request.shap_features)
-    narrative += f"The model analyzed **{total} features** in total. The balance between risk-increasing and risk-decreasing factors determined the final outcome."
+    narrative += f"*This assessment analyzed {total} factors in your profile.*"
     
     return narrative
 

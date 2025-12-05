@@ -222,7 +222,7 @@ export default function QuestionnaireClient({ personaId }: QuestionnaireClientPr
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-2 px-1">
                 <span>Not intuitive at all</span>
                 <span>Very intuitive</span>
               </div>
@@ -249,7 +249,7 @@ export default function QuestionnaireClient({ personaId }: QuestionnaireClientPr
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+              <div className="flex justify-between text-xs text-gray-600 mt-2 px-1">
                 <span>Not useful at all</span>
                 <span>Extremely useful</span>
               </div>
@@ -279,7 +279,7 @@ export default function QuestionnaireClient({ personaId }: QuestionnaireClientPr
             {isSubmitting ? 'Submitting...' : 'Complete & Continue to Next Persona →'}
           </button>
 
-          <p className="text-sm text-gray-500 text-center mt-4">
+          <p className="text-sm text-gray-600 text-center mt-4">
             * Required questions
           </p>
         </div>

@@ -169,11 +169,11 @@ Summary:
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="h-12 w-12 text-indigo-300 mx-auto mb-3" />
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-700 mb-4">
               Ask me anything about this credit decision. I have access to both the global model behavior and this specific applicant&apos;s data.
             </p>
             <div className="space-y-2">
-              <p className="text-xs text-gray-500 mb-2">Suggested questions:</p>
+              <p className="text-xs text-gray-600 mb-2">Suggested questions:</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestedQuestions.map((q, i) => (
                   <button

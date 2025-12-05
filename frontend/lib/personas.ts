@@ -80,8 +80,8 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   'elderly-woman': {
     age: 67,
     sex: 'female',
-    checking_account_status: '0 to 200 DM',
-    savings_account: '100 to 500 DM',
+    checking_account_status: '€0 to €200',
+    savings_account: '€100 to €500',
     credit_amount: 4000,
     duration_months: 24,
     employment_status: 'unemployed', // retired
@@ -102,8 +102,8 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   'young-entrepreneur': {
     age: 27,
     sex: 'male',
-    checking_account_status: '0 to 200 DM',
-    savings_account: 'less than 100 DM',
+    checking_account_status: '€0 to €200',
+    savings_account: 'less than €100',
     credit_amount: 12000,
     duration_months: 36,
     employment_status: '1 to 4 years',
@@ -124,8 +124,8 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   'middle-aged-employee': {
     age: 44,
     sex: 'female',
-    checking_account_status: 'less than 0 DM',
-    savings_account: '100 to 500 DM',
+    checking_account_status: 'less than €0',
+    savings_account: '€100 to €500',
     credit_amount: 20000,
     duration_months: 48,
     employment_status: '4 to 7 years',

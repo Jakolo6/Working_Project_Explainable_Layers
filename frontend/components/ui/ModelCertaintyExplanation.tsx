@@ -42,7 +42,7 @@ export default function ModelCertaintyExplanation({
         </span>
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-600 hover:text-gray-600"
           title="What does this mean?"
         >
           <HelpCircle size={14} />
@@ -74,12 +74,12 @@ export default function ModelCertaintyExplanation({
         className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-100 transition"
       >
         <div className="flex items-center gap-3">
-          <HelpCircle size={18} className="text-slate-500" />
+          <HelpCircle size={18} className="text-slate-600" />
           <span className="font-medium text-slate-700">
             What does "{confidencePercent}% confidence" mean?
           </span>
         </div>
-        {isExpanded ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+        {isExpanded ? <ChevronUp size={18} className="text-slate-600" /> : <ChevronDown size={18} className="text-slate-600" />}
       </button>
       
       {isExpanded && (

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { ArrowRight, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, Sliders, RefreshCw, Info, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
-import GlobalModelExplanation from './GlobalModelExplanation'
 import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 
@@ -29,19 +28,19 @@ const FEATURE_OPTIONS: Record<string, { label: string; options: { value: string;
     label: 'Checking Account',
     options: [
       { value: 'No Checking Account', label: 'No checking account', riskLevel: 0.15 },
-      { value: 'Negative Balance (< 0 DM)', label: 'Negative balance (< 0 DM)', riskLevel: 0.10 },
-      { value: '0–200 DM', label: 'Low balance (0-200 DM)', riskLevel: 0.05 },
-      { value: '≥ 200 DM', label: 'Good balance (≥ 200 DM)', riskLevel: -0.10 },
+      { value: 'Negative Balance (< €0)', label: 'Negative balance (< €0)', riskLevel: 0.10 },
+      { value: '€0–200', label: 'Low balance (€0-200)', riskLevel: 0.05 },
+      { value: '≥ €200', label: 'Good balance (≥ €200)', riskLevel: -0.10 },
     ]
   },
   'Savings Account Status': {
     label: 'Savings Account',
     options: [
       { value: 'No Savings', label: 'No savings', riskLevel: 0.12 },
-      { value: '< 100 DM', label: 'Less than 100 DM', riskLevel: 0.08 },
-      { value: '100–500 DM', label: '100-500 DM', riskLevel: 0.02 },
-      { value: '500–1000 DM', label: '500-1,000 DM', riskLevel: -0.05 },
-      { value: '≥ 1000 DM', label: '1,000+ DM', riskLevel: -0.12 },
+      { value: '< €100', label: 'Less than €100', riskLevel: 0.08 },
+      { value: '€100–500', label: '€100-500', riskLevel: 0.02 },
+      { value: '€500–1000', label: '€500-1,000', riskLevel: -0.05 },
+      { value: '≥ €1000', label: '€1,000+', riskLevel: -0.12 },
     ]
   },
   'Employment Duration': {
@@ -72,7 +71,7 @@ const GLOBAL_INSIGHTS: Record<string, { trend: 'up' | 'down' | 'mixed'; insight:
   },
   'Savings Account Status': {
     trend: 'down',
-    insight: 'Higher savings provide a financial safety buffer. Applicants with 500+ DM savings show significantly lower default rates.'
+    insight: 'Higher savings provide a financial safety buffer. Applicants with €500+ savings show significantly lower default rates.'
   },
   'Employment Duration': {
     trend: 'down',
@@ -117,7 +116,7 @@ function getDisplayValue(feature: string, value: string): string {
       return `${numVal} months`
     }
     if (featureLower.includes('amount') || featureLower.includes('credit')) {
-      return `${numVal.toLocaleString()} DM`
+      return `€${numVal.toLocaleString()}`
     }
     if (featureLower.includes('age')) {
       return `${numVal} years old`
@@ -138,21 +137,21 @@ function getSuggestedChange(feature: string, currentValue: string, impact: 'posi
   if (featureLower.includes('checking')) {
     if (currentValue.toLowerCase().includes('no_checking') || currentValue.toLowerCase().includes('no checking')) {
       return {
-        newValue: 'Good balance (≥ 200 DM)',
+        newValue: 'Good balance (≥ €200)',
         explanation: 'Having a positive checking balance shows financial stability',
         riskReduction: 0.25
       }
     }
     if (currentValue.includes('< 0') || currentValue.toLowerCase().includes('negative') || currentValue.includes('lt_0')) {
       return {
-        newValue: 'Good balance (≥ 200 DM)',
+        newValue: 'Good balance (≥ €200)',
         explanation: 'A positive balance indicates better cash flow management',
         riskReduction: 0.20
       }
     }
     if (currentValue.includes('0') && currentValue.includes('200')) {
       return {
-        newValue: 'Good balance (≥ 200 DM)',
+        newValue: 'Good balance (≥ €200)',
         explanation: 'Higher balances provide more financial cushion',
         riskReduction: 0.15
       }
@@ -163,14 +162,14 @@ function getSuggestedChange(feature: string, currentValue: string, impact: 'posi
   if (featureLower.includes('saving')) {
     if (currentValue.toLowerCase().includes('unknown') || currentValue.toLowerCase().includes('none') || currentValue.includes('< 100') || currentValue.includes('lt_100')) {
       return {
-        newValue: '500-1,000 DM savings',
+        newValue: '€500-1,000 savings',
         explanation: 'Savings provide a safety buffer for unexpected expenses',
         riskReduction: 0.18
       }
     }
     if (currentValue.includes('100') && currentValue.includes('500')) {
       return {
-        newValue: '1,000+ DM savings',
+        newValue: '€1,000+ savings',
         explanation: 'Higher savings significantly reduce default risk',
         riskReduction: 0.14
       }
@@ -403,9 +402,6 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
 
   return (
     <div className="space-y-6">
-      {/* Global Model Explanation - How the tool works in general */}
-      <GlobalModelExplanation defaultExpanded={false} showVisualizations={true} />
-
       {/* Simple SHAP Explanation */}
       <SHAPExplanation compact={true} />
 
@@ -461,7 +457,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
           <Lightbulb className="text-amber-500" size={20} />
           <h3 className="text-lg font-semibold text-gray-900">How Key Features Affect Risk</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           General patterns the model learned from historical data:
         </p>
         
@@ -495,12 +491,12 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Scenarios to Achieve {targetOutcome.charAt(0).toUpperCase() + targetOutcome.slice(1)}
         </h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           These scenarios show what changes would be needed to flip the decision.
         </p>
         
         {scenarios.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-600">
             <Info size={32} className="mx-auto mb-2 opacity-50" />
             <p>No clear counterfactual scenarios could be generated for this application.</p>
           </div>
@@ -529,7 +525,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                       <span className="font-semibold text-gray-900">
                         {idx === 0 ? 'Single Change' : idx === 1 ? 'Two Changes' : 'Three Changes'}
                       </span>
-                      <span className="text-gray-500 text-sm ml-2">
+                      <span className="text-gray-600 text-sm ml-2">
                         ({scenario.changes.length} feature{scenario.changes.length !== 1 ? 's' : ''})
                       </span>
                     </div>
@@ -542,7 +538,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                     }`}>
                       → {scenario.newDecision.toUpperCase()}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-600 mt-1">
                       {Math.round(scenario.newConfidence * 100)}% confidence
                     </div>
                   </div>
@@ -555,7 +551,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                     This scenario would flip the decision to {scenario.newDecision}
                   </div>
                 ) : (
-                  <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-500 flex items-center gap-2">
+                  <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-sm text-gray-600 flex items-center gap-2">
                     <Info size={16} />
                     Not enough to flip the decision (still {decision})
                   </div>
@@ -575,7 +571,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                           <span className="text-red-800 font-medium">{change.current}</span>
                         </div>
                         
-                        <ArrowRight className="text-gray-400 flex-shrink-0" size={20} />
+                        <ArrowRight className="text-gray-600 flex-shrink-0" size={20} />
                         
                         <div className="flex-1 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
                           <span className="text-xs text-green-600 font-medium block mb-0.5">Change to</span>
@@ -583,7 +579,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                         </div>
                       </div>
                       
-                      <p className="text-sm text-gray-500 italic">
+                      <p className="text-sm text-gray-600 italic">
                         💡 {change.explanation}
                       </p>
                     </div>
@@ -605,7 +601,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             <Sliders className="text-indigo-600" size={22} />
             <div className="text-left">
               <span className="font-semibold text-gray-900 block">Try It Yourself</span>
-              <span className="text-sm text-gray-500">Adjust features and see how the decision changes</span>
+              <span className="text-sm text-gray-600">Adjust features and see how the decision changes</span>
             </div>
           </div>
           <span className={`transform transition ${showSandbox ? 'rotate-180' : ''}`}>
@@ -616,7 +612,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
         {showSandbox && (
           <div className="p-6 border-t border-gray-100">
             {/* Instruction */}
-            <p className="text-sm text-gray-500 mb-4 flex items-center gap-2">
+            <p className="text-sm text-gray-600 mb-4 flex items-center gap-2">
               <Info size={16} className="text-indigo-500" />
               Change any value below — the estimated decision updates automatically.
             </p>
@@ -645,7 +641,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1">
                       Original: {getDisplayValue(featureName, currentFeature.value)}
                     </p>
                   </div>

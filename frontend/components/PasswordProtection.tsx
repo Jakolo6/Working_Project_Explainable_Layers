@@ -108,7 +108,7 @@ export default function PasswordProtection({ children, pageName = 'this page' }:
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-gray-600" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -125,9 +125,9 @@ export default function PasswordProtection({ children, pageName = 'this page' }:
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      <EyeOff className="h-5 w-5 text-gray-600 hover:text-gray-600" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      <Eye className="h-5 w-5 text-gray-600 hover:text-gray-600" />
                     )}
                   </button>
                 </div>
@@ -149,7 +149,7 @@ export default function PasswordProtection({ children, pageName = 'this page' }:
             </form>
             
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-gray-600 text-center">
                 🔒 This page is protected for research data security.
                 <br />
                 Session expires after 1 hour of inactivity.
@@ -158,7 +158,7 @@ export default function PasswordProtection({ children, pageName = 'this page' }:
           </div>
           
           {/* Footer */}
-          <p className="text-center text-sm text-gray-400 mt-6">
+          <p className="text-center text-sm text-gray-600 mt-6">
             XAI Financial Services Research Platform
           </p>
         </div>
