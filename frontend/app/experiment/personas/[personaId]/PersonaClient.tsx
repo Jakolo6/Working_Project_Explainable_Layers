@@ -130,7 +130,12 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
   
   const mapValue = (value: string): string => {
     const normalized = value.toLowerCase().trim()
-    return VALUE_MAPPING[normalized] || normalized
+    const mapped = VALUE_MAPPING[normalized] || normalized
+    // Debug logging for troubleshooting
+    if (mapped === normalized && VALUE_MAPPING[normalized] === undefined) {
+      console.log(`[MAPPING] No mapping found for: "${value}" (normalized: "${normalized}")`)
+    }
+    return mapped
   }
 
   // Map installment rate from numerical (1-4) to categorical
