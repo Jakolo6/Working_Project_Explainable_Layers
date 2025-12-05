@@ -3,8 +3,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import LocalDecisionSummary from './LocalDecisionSummary'
-import ModelCertaintyExplanation from '@/components/ui/ModelCertaintyExplanation'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
 
@@ -106,22 +104,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
 
   return (
     <div className="space-y-6">
-      {/* Local Decision Summary - This specific applicant */}
-      <div className="border-t-4 border-indigo-200 pt-4">
-        <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-          <span>👤</span> This Applicant&apos;s Decision
-        </h3>
-        <LocalDecisionSummary
-          decision={decision}
-          probability={probability}
-          shapFeatures={shapFeatures}
-          compact={true}
-        />
-      </div>
-      
-      {/* Model Certainty Explanation */}
-      <ModelCertaintyExplanation probability={probability} decision={decision} />
-      
       <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
         <div className="flex items-start gap-4 mb-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
