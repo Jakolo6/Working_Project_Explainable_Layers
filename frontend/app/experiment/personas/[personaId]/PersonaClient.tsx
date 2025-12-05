@@ -133,6 +133,18 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
     return VALUE_MAPPING[normalized] || normalized
   }
 
+  // Map installment rate from numerical (1-4) to categorical
+  const mapInstallmentRate = (value: number | string): string => {
+    const numValue = typeof value === 'string' ? parseInt(value) : value
+    const mapping: Record<number, string> = {
+      1: 'ge_35_percent',      // ≥35% (highest burden)
+      2: '25_to_35_percent',   // 25-35%
+      3: '20_to_25_percent',   // 20-25%
+      4: 'lt_20_percent'       // <20% (lowest burden)
+    }
+    return mapping[numValue] || 'lt_20_percent'
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!application || !sessionId || isLocked) return
@@ -152,7 +164,7 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
         credit_amount: Number(application.credit_amount),
         savings_status: mapValue(application.savings_account),
         employment: mapValue(application.employment_status),
-        installment_commitment: Number(application.installment_rate),
+        installment_commitment: mapInstallmentRate(application.installment_rate),
         other_debtors: mapValue(application.other_debtors),
         residence_since: Number(application.present_residence_since),
         property_magnitude: mapValue(application.property),
@@ -348,13 +360,17 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Installment Rate (% of disposable income)
             </label>
-            <input
-              type="number"
+            <select
               value={application.installment_rate}
-              onChange={(e) => handleFieldChange('installment_rate', e.target.value === '' ? '' : parseInt(e.target.value))}
+              onChange={(e) => handleFieldChange('installment_rate', e.target.value)}
               disabled={isLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-900 disabled:cursor-not-allowed"
-            />
+            >
+              <option value="4">&lt;20% of income (Low Burden)</option>
+              <option value="3">20-25% of income (Moderate)</option>
+              <option value="2">25-35% of income (Moderate-High)</option>
+              <option value="1">≥35% of income (High Burden)</option>
+            </select>
           </div>
 
           {/* Residence Since */}

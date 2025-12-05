@@ -91,7 +91,13 @@ export const FEATURE_DESCRIPTIONS: { [key: string]: FeatureDescription } = {
   // Installment Rate (percentage of income)
   'Installment Rate': {
     name: 'Installment Rate',
-    description: 'What percentage of disposable income goes to loan payments. Higher rates (3-4) mean the applicant is stretching their budget thin, leaving less room for unexpected expenses. Lower rates (1-2) suggest comfortable repayment capacity.'
+    description: 'Percentage of disposable income dedicated to loan payments. Categories: 1 (≥35%, high burden), 2 (25-35%), 3 (20-25%), 4 (<20%, low burden). Lower percentages indicate more comfortable repayment capacity and reduced risk of default.',
+    values: {
+      'ge_35_percent': '≥35% – High burden, stretching budget',
+      '25_to_35_percent': '25-35% – Moderate-high burden',
+      '20_to_25_percent': '20-25% – Moderate burden',
+      'lt_20_percent': '<20% – Low burden, comfortable'
+    }
   },
 
   // Personal Status

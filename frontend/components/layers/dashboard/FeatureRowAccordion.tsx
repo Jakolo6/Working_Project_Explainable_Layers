@@ -52,20 +52,6 @@ export const FEATURE_BENCHMARKS: Record<string, FeatureBenchmark> = {
     unit: 'years',
     higherIsBetter: true
   },
-  'installment_rate': {
-    min: 1,
-    max: 4,
-    typicalRange: [2, 3],
-    unit: '%',
-    higherIsBetter: false
-  },
-  'installment rate': {
-    min: 1,
-    max: 4,
-    typicalRange: [2, 3],
-    unit: '%',
-    higherIsBetter: false
-  },
   'present_residence_since': {
     min: 1,
     max: 4,
