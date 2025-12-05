@@ -529,7 +529,16 @@ from historical biases rather than causal relationships.
                     "min": float(df[feat].min()) if feat in df.columns else None,
                     "max": float(df[feat].max()) if feat in df.columns else None
                 }
-                for feat in ['duration', 'credit_amount', 'age', 'installment_commitment']
+                for feat in ['duration', 'credit_amount', 'age']  # Removed installment_commitment - it's categorical now
+            ],
+            "categorical_features": [
+                {
+                    "name": feat,
+                    "display_name": self.FEATURE_DISPLAY_NAMES.get(feat, feat),
+                    "unique_values": int(df[feat].nunique()) if feat in df.columns else None,
+                    "most_common": str(df[feat].mode()[0]) if feat in df.columns and len(df[feat].mode()) > 0 else None
+                }
+                for feat in ['installment_commitment', 'checking_status', 'credit_history', 'purpose', 'savings_status']
             ],
             # Feature importance for frontend contextualized global insight
             "top_features": top_features,
