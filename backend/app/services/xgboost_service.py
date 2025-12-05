@@ -377,7 +377,29 @@ class XGBoostService:
             elif base_feature in original_values:
                 # Engineered or numerical feature
                 raw_value = original_values[base_feature]
-                if isinstance(raw_value, float):
+                
+                # Special formatting for engineered features to show the equation
+                if base_feature == 'stability_score':
+                    age = original_values.get('age', 0)
+                    emp_years = original_values.get('employment_years', 0)
+                    display_value = f"{int(raw_value)} (Age {int(age)} × Employment {int(emp_years)} years)"
+                elif base_feature == 'monthly_burden':
+                    credit = original_values.get('credit_amount', 0)
+                    duration = original_values.get('duration', 1)
+                    display_value = f"€{raw_value:.2f} (€{int(credit)} ÷ {int(duration)} months)"
+                elif base_feature == 'risk_ratio':
+                    credit = original_values.get('credit_amount', 0)
+                    age = original_values.get('age', 1)
+                    display_value = f"{raw_value:.2f} (€{int(credit)} ÷ Age {int(age)} × 100)"
+                elif base_feature == 'credit_to_income_proxy':
+                    credit = original_values.get('credit_amount', 0)
+                    age = original_values.get('age', 1)
+                    display_value = f"€{raw_value:.2f} (€{int(credit)} ÷ Age {int(age)})"
+                elif base_feature == 'duration_risk':
+                    duration = original_values.get('duration', 0)
+                    credit = original_values.get('credit_amount', 0)
+                    display_value = f"{int(raw_value)} ({int(duration)} months × €{int(credit)})"
+                elif isinstance(raw_value, float):
                     if raw_value == int(raw_value):
                         display_value = str(int(raw_value))
                     else:
