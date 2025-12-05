@@ -359,10 +359,10 @@ export default function ModelPage() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <MetricCard label="Accuracy" value={metrics.xgboost.accuracy || 0} />
-              <MetricCard label="ROC-AUC Score" value={metrics.xgboost.auc_roc || 0} />
+              <MetricCard label="ROC-AUC Score" value={metrics.xgboost.roc_auc || 0} />
               <MetricCard label="Precision" value={metrics.xgboost.precision || 0} />
               <MetricCard label="Recall" value={metrics.xgboost.recall || 0} />
-              <MetricCard label="F1 Score" value={metrics.xgboost.f1_score || 0} />
+              <MetricCard label="F1 Score" value={metrics.xgboost.f1 || 0} />
               {metrics.training_info?.train_samples && (
                 <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
               )}
@@ -400,10 +400,10 @@ export default function ModelPage() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <MetricCard label="Accuracy" value={metrics.logistic_regression.accuracy || 0} />
-              <MetricCard label="ROC-AUC Score" value={metrics.logistic_regression.auc_roc || 0} />
+              <MetricCard label="ROC-AUC Score" value={metrics.logistic_regression.roc_auc || 0} />
               <MetricCard label="Precision" value={metrics.logistic_regression.precision || 0} />
               <MetricCard label="Recall" value={metrics.logistic_regression.recall || 0} />
-              <MetricCard label="F1 Score" value={metrics.logistic_regression.f1_score || 0} />
+              <MetricCard label="F1 Score" value={metrics.logistic_regression.f1 || 0} />
               {metrics.training_info?.train_samples && (
                 <MetricCard label="Train Size" value={metrics.training_info.train_samples} format="number" />
               )}
