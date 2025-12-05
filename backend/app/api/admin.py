@@ -719,11 +719,7 @@ async def list_all_sessions():
 async def delete_session(session_id: str):
     """
     Delete a specific session and all its related data.
-    This will delete:
-    - The session record
-    - All layer_ratings for this session
-    - All predictions for this session
-    - All post_questionnaires for this session
+    With ON DELETE CASCADE in the schema, deleting the session will cascade to related tables.
     """
     try:
         config = get_settings()
@@ -731,6 +727,15 @@ async def delete_session(session_id: str):
         
         supabase = create_client(config.supabase_url, config.supabase_key)
         
+        # First verify the session exists
+        check_result = supabase.table('sessions').select('session_id').eq('session_id', session_id).execute()
+        if not check_result.data or len(check_result.data) == 0:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Session {session_id} not found"
+            )
+        
+        # Count related records before deletion for reporting
         deleted_counts = {
             'ratings': 0,
             'predictions': 0,
@@ -738,40 +743,34 @@ async def delete_session(session_id: str):
             'session': 0
         }
         
-        # Delete in order to respect foreign key constraints
-        # 1. Delete layer_ratings first
         try:
-            result = supabase.table('layer_ratings').delete().eq('session_id', session_id).execute()
-            deleted_counts['ratings'] = len(result.data) if result.data else 0
-        except Exception as e:
-            print(f"Error deleting layer_ratings for {session_id}: {e}")
+            ratings_result = supabase.table('layer_ratings').select('id', count='exact').eq('session_id', session_id).execute()
+            deleted_counts['ratings'] = ratings_result.count if ratings_result.count else 0
+        except:
+            pass
         
-        # 2. Delete predictions
         try:
-            result = supabase.table('predictions').delete().eq('session_id', session_id).execute()
-            deleted_counts['predictions'] = len(result.data) if result.data else 0
-        except Exception as e:
-            print(f"Error deleting predictions for {session_id}: {e}")
+            predictions_result = supabase.table('predictions').select('id', count='exact').eq('session_id', session_id).execute()
+            deleted_counts['predictions'] = predictions_result.count if predictions_result.count else 0
+        except:
+            pass
         
-        # 3. Delete post_questionnaires
         try:
-            result = supabase.table('post_questionnaires').delete().eq('session_id', session_id).execute()
-            deleted_counts['questionnaires'] = len(result.data) if result.data else 0
-        except Exception as e:
-            print(f"Error deleting post_questionnaires for {session_id}: {e}")
+            questionnaires_result = supabase.table('post_questionnaires').select('id', count='exact').eq('session_id', session_id).execute()
+            deleted_counts['questionnaires'] = questionnaires_result.count if questionnaires_result.count else 0
+        except:
+            pass
         
-        # 4. Delete session last
-        try:
-            result = supabase.table('sessions').delete().eq('session_id', session_id).execute()
-            deleted_counts['session'] = len(result.data) if result.data else 0
-        except Exception as e:
-            print(f"Error deleting session {session_id}: {e}")
+        # Delete session - CASCADE will handle related tables
+        result = supabase.table('sessions').delete().eq('session_id', session_id).execute()
         
-        if deleted_counts['session'] == 0:
+        if not result.data or len(result.data) == 0:
             raise HTTPException(
-                status_code=404,
-                detail=f"Session {session_id} not found"
+                status_code=500,
+                detail=f"Failed to delete session {session_id}. Check RLS policies in Supabase."
             )
+        
+        deleted_counts['session'] = 1
         
         return {
             'success': True,

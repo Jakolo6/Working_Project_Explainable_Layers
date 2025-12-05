@@ -699,6 +699,24 @@ function ResultsContent() {
                         </tr>
                       ))}
                     </tbody>
+                    {/* Summary Footer */}
+                    <tfoot className="bg-gray-100 border-t-2 border-gray-300">
+                      <tr>
+                        <td colSpan={4} className="py-3 px-2 font-bold text-right">
+                          Totals ({sessions.length} sessions):
+                        </td>
+                        <td className="text-center py-3 px-2 font-bold">
+                          {sessions.reduce((sum, s) => sum + s.ratings_count, 0)}
+                        </td>
+                        <td className="text-center py-3 px-2 font-bold">
+                          {sessions.reduce((sum, s) => sum + s.predictions_count, 0)}
+                        </td>
+                        <td className="text-center py-3 px-2 font-bold">
+                          {sessions.reduce((sum, s) => sum + s.questionnaires_count, 0)}
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               )}
