@@ -69,8 +69,8 @@ class NotebookPreprocessor:
             'critical'        # Worst: Critical/problematic (highest risk)
         ],
         'purpose': [
-            'new_car',        # Lower risk purposes
-            'used_car',
+            'car_new',        # Lower risk purposes (FIXED: was 'new_car')
+            'car_used',       # FIXED: was 'used_car'
             'furniture',
             'radio_tv',
             'domestic_appliances',
@@ -78,8 +78,7 @@ class NotebookPreprocessor:
             'education',
             'retraining',
             'business',
-            'vacation',       # Higher risk purposes
-            'others'
+            'others'          # Higher risk purposes (removed 'vacation' - not in dataset)
         ],
         'savings_status': [
             'ge_1000_dm',     # Best: High savings (lowest risk)
@@ -113,9 +112,9 @@ class NotebookPreprocessor:
         ],
         'property_magnitude': [
             'real_estate',       # Best: Owns real estate
-            'building_society',  # Building society savings
-            'car_other',         # Car or other property
-            'unknown'            # Worst: Unknown/no property
+            'savings_agreement', # Building society savings (FIXED: was 'building_society')
+            'car_or_other',      # Car or other property (FIXED: was 'car_other')
+            'unknown_no_property' # Worst: Unknown/no property (FIXED: was 'unknown')
         ],
         'other_payment_plans': [
             'none',           # Best: No other obligations
