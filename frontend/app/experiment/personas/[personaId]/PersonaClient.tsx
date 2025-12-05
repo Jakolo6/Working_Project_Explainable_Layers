@@ -248,6 +248,28 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
           <p className="text-lg text-gray-600">{persona.description}</p>
         </div>
 
+        {/* Decision Display - At Top When Generated */}
+        {decision && (
+          <div className="mb-6 bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">AI Decision</h2>
+            <div className={`p-6 rounded-lg ${decision.result === 'approved' ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
+              <p className="text-2xl font-bold mb-2">
+                {decision.result === 'approved' ? '✓ APPROVED' : '✗ REJECTED'}
+              </p>
+              <p className="text-lg">
+                Confidence: {(decision.probability * 100).toFixed(1)}%
+              </p>
+            </div>
+            
+            <button
+              onClick={handleContinue}
+              className="w-full mt-6 rounded-lg bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 transition"
+            >
+              Continue to Explanation Layers →
+            </button>
+          </div>
+        )}
+
         {/* Step 1: Review Context Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
           <div className="flex items-start gap-3">
@@ -650,28 +672,6 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             </div>
           )}
         </form>
-
-        {/* Decision Display */}
-        {decision && (
-          <div className="mt-8 bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">AI Decision</h2>
-            <div className={`p-6 rounded-lg ${decision.result === 'approved' ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
-              <p className="text-2xl font-bold mb-2">
-                {decision.result === 'approved' ? '✓ APPROVED' : '✗ REJECTED'}
-              </p>
-              <p className="text-lg">
-                Confidence: {(decision.probability * 100).toFixed(1)}%
-              </p>
-            </div>
-            
-            <button
-              onClick={handleContinue}
-              className="w-full mt-6 rounded-lg bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 transition"
-            >
-              Continue to Explanation Layers →
-            </button>
-          </div>
-        )}
       </div>
     </main>
   )
