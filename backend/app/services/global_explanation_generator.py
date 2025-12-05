@@ -315,9 +315,11 @@ from historical biases rather than causal relationships.
             try:
                 # Try to convert to float - will work for numeric, fail for categorical
                 numeric_vals = pd.to_numeric(raw_vals, errors='coerce')
-                if numeric_vals.notna().any() and np.std(numeric_vals.dropna()) > 0:
+                # Check if we have any valid numeric values (not all NaN)
+                valid_mask = ~np.isnan(numeric_vals)
+                if valid_mask.any() and np.std(numeric_vals[valid_mask]) > 0:
                     # Numeric feature with variation
-                    colors = plt.cm.coolwarm((numeric_vals - numeric_vals.min()) / (numeric_vals.max() - numeric_vals.min() + 1e-10))
+                    colors = plt.cm.coolwarm((numeric_vals - np.nanmin(numeric_vals)) / (np.nanmax(numeric_vals) - np.nanmin(numeric_vals) + 1e-10))
                 else:
                     # Numeric but no variation, or all NaN (categorical)
                     colors = plt.cm.coolwarm(np.ones(len(raw_vals)) * 0.5)
