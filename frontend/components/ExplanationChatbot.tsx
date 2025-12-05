@@ -138,30 +138,47 @@ Summary:
   }
 
   const suggestedQuestions = [
-    "Why was this applicant " + (decision === 'approved' ? 'approved' : 'rejected') + "?",
-    "What are the main risk factors?",
-    "How does their checking account affect the decision?",
-    "What could improve this applicant's chances?",
-    "Explain the Credit History anomaly"
+    "How does this applicant's profile compare to typical approvals?",
+    "What concrete advice can I give them to improve their odds?",
+    "Did sensitive attributes like Gender affect this score?",
+    "How should I explain the 'Installment Rate' risk to the client?"
   ]
 
   return (
     <div className="bg-white border-2 border-indigo-200 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white">
-          <Bot className="h-5 w-5" />
-          <span className="font-semibold">Ask About This Decision</span>
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white">
+            <Bot className="h-5 w-5" />
+            <span className="font-semibold">Ask About This Decision</span>
+          </div>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="text-white/80 hover:text-white p-1 rounded"
+              title="Clear chat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearChat}
-            className="text-white/80 hover:text-white p-1 rounded"
-            title="Clear chat"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        )}
+        {/* Information Badge */}
+        <div className="mt-2 flex items-start gap-2 text-white/90 text-xs bg-white/10 rounded-lg px-3 py-2">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium mb-1">This AI assistant has access to:</p>
+            <ul className="space-y-0.5 text-white/80">
+              <li>• <strong>This applicant's decision</strong> ({decision.toUpperCase()}, {Math.round(probability * 100)}% confidence)</li>
+              <li>• <strong>All {shapFeatures.length} SHAP feature values</strong> and their impacts</li>
+              <li>• <strong>Global model behavior</strong> and typical approval patterns</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Messages Area */}
@@ -169,11 +186,14 @@ Summary:
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="h-12 w-12 text-indigo-300 mx-auto mb-3" />
-            <p className="text-gray-700 mb-4">
-              Ask me anything about this credit decision. I have access to both the global model behavior and this specific applicant&apos;s data.
+            <p className="text-gray-700 font-medium mb-2">
+              Ask me anything about this credit decision
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              I can compare this applicant to typical patterns, suggest improvements, and explain any factor in detail.
             </p>
             <div className="space-y-2">
-              <p className="text-xs text-gray-600 mb-2">Suggested questions:</p>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Try asking:</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestedQuestions.map((q, i) => (
                   <button
