@@ -798,6 +798,7 @@ async def delete_session(session_id: str):
             pass
         
         # Delete session - CASCADE will handle related tables
+        # Note: RLS must allow DELETE or use service role key
         result = supabase.table('sessions').delete().eq('session_id', session_id).execute()
         
         if not result.data or len(result.data) == 0:
