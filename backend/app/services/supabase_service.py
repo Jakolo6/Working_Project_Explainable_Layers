@@ -137,7 +137,7 @@ class SupabaseService:
         
         Expected rating_data:
         - session_id: str
-        - persona_id: str (elderly-woman, young-entrepreneur, middle-aged-employee)
+        - persona_id: str (elderly-woman, young-entrepreneur)
         - layer_number: int (1-4)
         - layer_name: str
         - understanding_rating: int (1-5)
@@ -286,7 +286,7 @@ class SupabaseService:
             
             # Per-persona statistics
             persona_stats = {}
-            for persona in ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']:
+            for persona in ['elderly-woman', 'young-entrepreneur']:
                 persona_ratings = [r for r in ratings if r.get('persona_id') == persona]
                 if persona_ratings:
                     persona_stats[persona] = {
@@ -485,7 +485,7 @@ class SupabaseService:
         
         # Sessions with ratings for each persona
         persona_completion = {}
-        for persona in ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']:
+        for persona in ['elderly-woman', 'young-entrepreneur']:
             sessions_with_persona = set(
                 r.get('session_id') for r in ratings 
                 if r.get('persona_id') == persona
@@ -506,7 +506,6 @@ class SupabaseService:
             'started_persona_1': started_persona,
             'completed_persona_1': persona_completion.get('elderly-woman', 0),
             'completed_persona_2': persona_completion.get('young-entrepreneur', 0),
-            'completed_persona_3': persona_completion.get('middle-aged-employee', 0),
             'completed_all': completed_all,
         }
     

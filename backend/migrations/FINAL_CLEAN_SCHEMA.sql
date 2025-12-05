@@ -4,7 +4,7 @@
 -- Date: 2025-12-02
 -- 
 -- EXPERIMENT STRUCTURE:
--- - 3 Personas: elderly-woman, young-entrepreneur, middle-aged-employee
+-- - 2 Personas: elderly-woman (LOW RISK), young-entrepreneur (HIGH RISK)
 -- - 4 Layers per persona: Layer 1-4 (Baseline SHAP, Dashboard, Narrative, Counterfactual)
 -- - 5 Rating dimensions per layer (Likert 1-5)
 -- - Post-questionnaire after EACH persona (not just at the end)
@@ -63,7 +63,7 @@ CREATE TABLE sessions (
 CREATE TABLE predictions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
+    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur')),
     
     -- Prediction result
     decision TEXT NOT NULL CHECK (decision IN ('approved', 'rejected')),
@@ -87,7 +87,7 @@ CREATE TABLE predictions (
 CREATE TABLE layer_ratings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
+    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur')),
     
     -- Layer identification (1-4)
     layer_number INTEGER NOT NULL CHECK (layer_number >= 1 AND layer_number <= 4),
@@ -120,7 +120,7 @@ CREATE TABLE layer_ratings (
 CREATE TABLE post_questionnaires (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur', 'middle-aged-employee')),
+    persona_id TEXT NOT NULL CHECK (persona_id IN ('elderly-woman', 'young-entrepreneur')),
     
     -- Layer preference questions (layer_1 to layer_4)
     most_helpful_layer TEXT NOT NULL CHECK (most_helpful_layer IN ('layer_1', 'layer_2', 'layer_3', 'layer_4')),

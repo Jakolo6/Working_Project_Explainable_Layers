@@ -686,7 +686,7 @@ async def list_all_sessions():
         
         # Get counts for each session
         enriched_sessions = []
-        personas = ['elderly-woman', 'young-entrepreneur', 'middle-aged-employee']
+        personas = ['elderly-woman', 'young-entrepreneur']
         
         for session in sessions:
             session_id = session.get('session_id')

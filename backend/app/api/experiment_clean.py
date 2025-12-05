@@ -120,7 +120,7 @@ class SessionResponse(BaseModel):
 class PostQuestionnaire(BaseModel):
     """Post-experiment questionnaire - submitted after EACH persona"""
     session_id: str
-    persona_id: str  # elderly-woman, young-entrepreneur, middle-aged-employee
+    persona_id: str  # elderly-woman, young-entrepreneur
     most_helpful_layer: str  # layer_1, layer_2, layer_3, layer_4
     most_trusted_layer: str  # layer_1, layer_2, layer_3, layer_4
     best_for_customer: str  # layer_1, layer_2, layer_3, layer_4

@@ -5,7 +5,7 @@
 This schema supports a within-subjects experiment design for evaluating explainable AI in credit decisions.
 
 ### Experiment Structure
-- **3 Personas**: elderly-woman, young-entrepreneur, middle-aged-employee
+- **2 Personas**: elderly-woman (LOW RISK), young-entrepreneur (HIGH RISK)
 - **4 Explanation Layers** per persona:
   1. Baseline SHAP Explanation (technical table)
   2. Interactive Dashboard (visual charts)
@@ -43,7 +43,7 @@ Stores AI predictions for each persona.
 | Column | Type | Description |
 |--------|------|-------------|
 | session_id | TEXT | FK to sessions |
-| persona_id | TEXT | elderly-woman, young-entrepreneur, middle-aged-employee |
+| persona_id | TEXT | elderly-woman, young-entrepreneur |
 | decision | TEXT | approved or rejected |
 | probability | DECIMAL | Model confidence (0-1) |
 | shap_values | JSONB | SHAP feature contributions |
