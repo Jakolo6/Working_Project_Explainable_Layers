@@ -12,6 +12,7 @@ from io import BytesIO
 from typing import Dict, Any
 
 from .notebook_preprocessing import NotebookPreprocessor, validate_user_input
+from .feature_engineering import engineer_features
 
 
 class LogisticService:
@@ -115,39 +116,37 @@ class LogisticService:
         decision = "approved" if prediction == 0 else "rejected"
         confidence = float(max(probabilities))
         
+        # IMPROVED: Calculate prediction strength metrics
+        prob_good = float(probabilities[0])
+        prob_bad = float(probabilities[1])
+        probability_margin = abs(prob_good - prob_bad)  # How far apart are the probabilities?
+        
+        # Classify confidence level based on margin
+        if probability_margin >= 0.4:
+            confidence_level = 'high'      # Very confident (e.g., 0.8 vs 0.2)
+        elif probability_margin >= 0.2:
+            confidence_level = 'medium'    # Moderately confident (e.g., 0.6 vs 0.4)
+        else:
+            confidence_level = 'low'       # Weak prediction (e.g., 0.55 vs 0.45)
+        
         return {
             'decision': decision,
             'prediction': int(prediction),
             'confidence': confidence,
-            'probability_good': float(probabilities[0]),
-            'probability_bad': float(probabilities[1]),
+            'probability_good': prob_good,
+            'probability_bad': prob_bad,
+            'probability_margin': probability_margin,  # NEW: Shows prediction strength
+            'confidence_level': confidence_level,      # NEW: 'high', 'medium', or 'low'
             'model': 'logistic'
         }
     
     def _engineer_features(self, user_input: Dict[str, Any]) -> pd.DataFrame:
         """
-        Engineer features from user input.
+        Engineer features from user input using shared engineering module.
         Model pipeline will handle encoding.
         """
         df = pd.DataFrame([user_input])
-        
-        # Map employment to years
-        df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
-        
-        # Convert installment_commitment from numerical (1-4) to categorical if needed
-        if 'installment_commitment' in df.columns:
-            df['installment_commitment'] = df['installment_commitment'].apply(
-                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
-            )
-        
-        # Create engineered features
-        df['monthly_burden'] = df['credit_amount'] / df['duration']
-        df['stability_score'] = df['age'] * df['employment_years']
-        df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
-        df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
-        df['duration_risk'] = df['duration'] * df['credit_amount']
-        
-        return df
+        return engineer_features(df)
     
     def get_coefficients(self, top_n: int = 15) -> Dict[str, float]:
         """

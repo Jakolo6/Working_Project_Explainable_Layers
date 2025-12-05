@@ -13,6 +13,7 @@ import shap
 from typing import Dict, Any, Tuple
 
 from .notebook_preprocessing import NotebookPreprocessor, validate_user_input
+from .feature_engineering import engineer_features
 
 
 class XGBoostService:
@@ -77,6 +78,9 @@ class XGBoostService:
         """
         Load notebook-trained XGBoost model from R2.
         Model is a Pipeline with preprocessing built-in.
+        
+        PERFORMANCE FIX: Initialize SHAP explainer here during startup,
+        not on first request. This prevents latency spike on first prediction.
         """
         s3 = self._create_s3_client()
         
@@ -90,6 +94,12 @@ class XGBoostService:
             
             print("✓ XGBoost model loaded from R2")
             print(f"  Model type: {type(self.model).__name__}")
+            
+            # PERFORMANCE FIX: Initialize SHAP explainer immediately
+            # This takes time but happens during startup, not on first user request
+            print("  Initializing SHAP explainer...")
+            self.explainer = shap.TreeExplainer(self.model.named_steps['model'])
+            print("✓ SHAP explainer initialized")
             
         except Exception as e:
             raise RuntimeError(f"Failed to load XGBoost model: {e}")
@@ -143,12 +153,27 @@ class XGBoostService:
         decision = "approved" if prediction == 0 else "rejected"
         confidence = float(max(probabilities))
         
+        # IMPROVED: Calculate prediction strength metrics
+        prob_good = float(probabilities[0])
+        prob_bad = float(probabilities[1])
+        probability_margin = abs(prob_good - prob_bad)  # How far apart are the probabilities?
+        
+        # Classify confidence level based on margin
+        if probability_margin >= 0.4:
+            confidence_level = 'high'      # Very confident (e.g., 0.8 vs 0.2)
+        elif probability_margin >= 0.2:
+            confidence_level = 'medium'    # Moderately confident (e.g., 0.6 vs 0.4)
+        else:
+            confidence_level = 'low'       # Weak prediction (e.g., 0.55 vs 0.45)
+        
         return {
             'decision': decision,
             'prediction': int(prediction),
             'confidence': confidence,
-            'probability_good': float(probabilities[0]),
-            'probability_bad': float(probabilities[1]),
+            'probability_good': prob_good,
+            'probability_bad': prob_bad,
+            'probability_margin': probability_margin,  # NEW: Shows prediction strength
+            'confidence_level': confidence_level,      # NEW: 'high', 'medium', or 'low'
             'model': 'xgboost'
         }
     
@@ -282,9 +307,10 @@ class XGBoostService:
             columns=self.model.named_steps['preprocess'].get_feature_names_out()
         )
         
-        # Create SHAP explainer if not exists (use the XGBoost model, not pipeline)
+        # SHAP explainer is now initialized in load_model_from_r2()
+        # No lazy initialization needed - prevents first-request latency
         if self.explainer is None:
-            self.explainer = shap.TreeExplainer(self.model.named_steps['model'])
+            raise ValueError("SHAP explainer not initialized. Call load_model_from_r2() first.")
         
         # Calculate SHAP values
         shap_values = self.explainer.shap_values(X_transformed_df)
@@ -437,28 +463,11 @@ class XGBoostService:
     
     def _engineer_features(self, user_input: Dict[str, Any]) -> pd.DataFrame:
         """
-        Engineer features from user input.
+        Engineer features from user input using shared engineering module.
         Model pipeline will handle encoding.
         """
         df = pd.DataFrame([user_input])
-        
-        # Map employment to years
-        df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
-        
-        # Convert installment_commitment from numerical (1-4) to categorical if needed
-        if 'installment_commitment' in df.columns:
-            df['installment_commitment'] = df['installment_commitment'].apply(
-                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
-            )
-        
-        # Create engineered features
-        df['monthly_burden'] = df['credit_amount'] / df['duration']
-        df['stability_score'] = df['age'] * df['employment_years']
-        df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
-        df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
-        df['duration_risk'] = df['duration'] * df['credit_amount']
-        
-        return df
+        return engineer_features(df)
     
     def get_feature_importance(self, top_n: int = 15) -> Dict[str, float]:
         """

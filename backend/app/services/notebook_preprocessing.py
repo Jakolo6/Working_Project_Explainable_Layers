@@ -7,7 +7,10 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-from typing import Tuple, Dict, Any
+from typing import Dict, Any, Optional
+
+# Import shared feature engineering
+from .feature_engineering import engineer_features as shared_engineer_features, EMPLOYMENT_YEARS_MAP, INSTALLMENT_RATE_MAP
 
 
 class NotebookPreprocessor:
@@ -41,21 +44,10 @@ class NotebookPreprocessor:
     ]
     
     # Employment mapping for feature engineering
-    EMPLOYMENT_YEARS_MAP = {
-        'unemployed': 0,
-        'lt_1_year': 0.5,
-        '1_to_4_years': 2.5,
-        '4_to_7_years': 5.5,
-        'ge_7_years': 10
-    }
+    EMPLOYMENT_YEARS_MAP = EMPLOYMENT_YEARS_MAP
     
     # Installment rate mapping: 1-4 scale to categorical
-    INSTALLMENT_RATE_MAP = {
-        1: 'ge_35_percent',      # ≥35% (highest burden)
-        2: '25_to_35_percent',   # 25-35%
-        3: '20_to_25_percent',   # 20-25%
-        4: 'lt_20_percent'       # <20% (lowest burden)
-    }
+    INSTALLMENT_RATE_MAP = INSTALLMENT_RATE_MAP
     
     # RISK-ORDERED CATEGORIES for OrdinalEncoder
     # Order: Lower risk (better) → Higher risk (worse)
@@ -165,7 +157,7 @@ class NotebookPreprocessor:
     
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Create engineered features exactly as in notebook.
+        Apply feature engineering using shared engineering module.
         
         Args:
             df: DataFrame with base features
@@ -173,8 +165,6 @@ class NotebookPreprocessor:
         Returns:
             DataFrame with engineered features added
         """
-        df = df.copy()
-        
         # Debug: Check data types before engineering
         print(f"[DEBUG] Data types before engineering: {df.dtypes.to_dict()}")
         print(f"[DEBUG] Sample values: {df.iloc[0].to_dict()}")
@@ -186,23 +176,9 @@ class NotebookPreprocessor:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        # Convert installment_commitment from numerical (1-4) to categorical
-        if 'installment_commitment' in df.columns:
-            # Handle both numerical and string inputs
-            df['installment_commitment'] = df['installment_commitment'].apply(
-                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
-            )
-            print(f"[DEBUG] Converted installment_commitment to categorical")
-        
-        # Map employment to years
-        df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
-        
-        # Create engineered features
-        df['monthly_burden'] = df['credit_amount'] / df['duration']
-        df['stability_score'] = df['age'] * df['employment_years']
-        df['risk_ratio'] = df['credit_amount'] / (df['age'] * 100)
-        df['credit_to_income_proxy'] = df['credit_amount'] / df['age']
-        df['duration_risk'] = df['duration'] * df['credit_amount']
+        # Use shared engineering function for consistency
+        df = shared_engineer_features(df)
+        print(f"[DEBUG] Feature engineering complete")
         
         return df
     
@@ -216,7 +192,11 @@ class NotebookPreprocessor:
             
         XGBoost:
             - Numerical: Passthrough (no scaling)
-            - Categorical: OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+            - Categorical: OneHotEncoder (CHANGED from OrdinalEncoder to match production)
+        
+        IMPORTANT: XGBoost now uses OneHotEncoder to match ModelTrainingService.
+        This ensures SHAP explanations work correctly in production (XGBoostService
+        expects OneHot columns like 'job_skilled', not ordinal values).
         """
         if self.model_type == 'logistic':
             return ColumnTransformer([
@@ -224,14 +204,14 @@ class NotebookPreprocessor:
                 ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), self.CAT_FEATURES)
             ])
         else:  # xgboost
-            # Use risk-ordered categories for semantically meaningful SHAP values
-            ordered_categories = [self.CATEGORY_ORDER[feat] for feat in self.CAT_FEATURES]
+            # FIXED: Use OneHotEncoder to match production pipeline
+            # Production XGBoostService expects OneHot columns for SHAP grouping
             return ColumnTransformer([
                 ('num', 'passthrough', self.num_features_all),
-                ('cat', OrdinalEncoder(
-                    categories=ordered_categories,
-                    handle_unknown='use_encoded_value', 
-                    unknown_value=-1
+                ('cat', OneHotEncoder(
+                    drop=None,  # Don't drop - XGBoost handles collinearity
+                    sparse_output=False,
+                    handle_unknown='ignore'
                 ), self.CAT_FEATURES)
             ])
     
@@ -364,13 +344,20 @@ def validate_user_input(user_input: Dict[str, Any]) -> Dict[str, str]:
         elif not isinstance(user_input[feat], (int, float)):
             errors[feat] = f"Must be a number, got {type(user_input[feat])}"
     
-    # Required categorical features
+    # Required categorical features with STRICT enum validation
     required_cat = NotebookPreprocessor.CAT_FEATURES
     for feat in required_cat:
         if feat not in user_input:
             errors[feat] = f"Missing required feature: {feat}"
         elif not isinstance(user_input[feat], str):
             errors[feat] = f"Must be a string, got {type(user_input[feat])}"
+        else:
+            # CRITICAL: Validate that the value is in the allowed set
+            # This prevents silent failures where OneHotEncoder creates all-zero vectors
+            if feat in NotebookPreprocessor.CATEGORY_ORDER:
+                valid_values = NotebookPreprocessor.CATEGORY_ORDER[feat]
+                if user_input[feat] not in valid_values:
+                    errors[feat] = f"Invalid value '{user_input[feat]}'. Must be one of: {valid_values}"
     
     # Validate ranges
     if 'age' in user_input:
