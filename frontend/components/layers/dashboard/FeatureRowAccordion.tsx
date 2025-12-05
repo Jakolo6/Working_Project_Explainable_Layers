@@ -4,7 +4,10 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, AlertTriangle } from 'lucide-react'
 import GlobalDistributionLine from './GlobalDistributionLine'
+import CategoricalComparison from './CategoricalComparison'
+import RiskLadder from './RiskLadder'
 import InfoTooltip from './InfoTooltip'
+import { getCategoryStats, getRiskLadder, hasRiskLadder } from '@/lib/categoricalMetadata'
 
 // Feature benchmark data structure
 export interface FeatureBenchmark {
@@ -485,6 +488,40 @@ export default function FeatureRowAccordion({
                   </div>
                 </div>
               )}
+
+              {/* Categorical Comparison - for categorical features */}
+              {!benchmark && numericValue === undefined && (() => {
+                const categoryStats = getCategoryStats(featureKey, value)
+                const riskLadder = getRiskLadder(featureKey, value)
+                const hasLadder = hasRiskLadder(featureKey)
+                
+                if (!categoryStats) return null
+                
+                return (
+                  <div className="bg-white rounded-lg border border-gray-200 p-3.5">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                      How You Compare
+                    </h4>
+                    
+                    {/* Show Risk Ladder if available, otherwise show basic comparison */}
+                    {hasLadder && riskLadder ? (
+                      <RiskLadder
+                        featureName={featureName}
+                        steps={riskLadder}
+                        userStepIndex={riskLadder.findIndex(step => step.isUserStep)}
+                      />
+                    ) : (
+                      <CategoricalComparison
+                        featureName={featureName}
+                        userValue={value}
+                        successRate={categoryStats.successRate}
+                        frequency={categoryStats.frequency}
+                        isRiskIncreasing={impact === 'positive'}
+                      />
+                    )}
+                  </div>
+                )
+              })()}
 
               {/* Credit History Warning */}
               {isCreditHistory && (
