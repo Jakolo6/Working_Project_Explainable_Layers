@@ -62,6 +62,9 @@ export default function PersonaSelectionPage() {
   const [completedPersonas, setCompletedPersonas] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     const storedSessionId = typeof window !== 'undefined' ? window.localStorage.getItem(SESSION_STORAGE_KEY) : null
     if (!storedSessionId) {
       setSessionState({ status: 'invalid', sessionId: null, error: 'Session not found. Please start the experiment first.' })

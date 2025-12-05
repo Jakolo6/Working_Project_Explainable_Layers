@@ -13,6 +13,9 @@ export default function CompletePage() {
   const [isMarking, setIsMarking] = useState(true)
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     const markSessionComplete = async () => {
       // Count completed personas
       let count = 0

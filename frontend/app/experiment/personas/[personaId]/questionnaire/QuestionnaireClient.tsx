@@ -30,6 +30,9 @@ export default function QuestionnaireClient({ personaId }: QuestionnaireClientPr
   })
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     // Load persona
     const personaData = getPersona(personaId)
     if (!personaData) {

@@ -28,6 +28,9 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     // Load persona data
     const personaData = getPersona(personaId)
     const appData = getPersonaApplication(personaId)

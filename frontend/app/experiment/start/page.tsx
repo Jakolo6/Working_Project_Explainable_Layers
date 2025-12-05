@@ -55,6 +55,9 @@ export default function ExperimentStartPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     const existingSessionId = typeof window !== 'undefined' ? window.localStorage.getItem(SESSION_STORAGE_KEY) : null
     if (existingSessionId) {
       setSessionId(existingSessionId)
