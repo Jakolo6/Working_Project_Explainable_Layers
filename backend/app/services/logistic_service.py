@@ -28,6 +28,13 @@ class LogisticService:
             'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
             '4_to_7_years': 5.5, 'ge_7_years': 10
         }
+        # Installment rate mapping: 1-4 scale to categorical
+        self.INSTALLMENT_RATE_MAP = {
+            1: 'ge_35_percent',      # ≥35% (highest burden)
+            2: '25_to_35_percent',   # 25-35%
+            3: '20_to_25_percent',   # 20-25%
+            4: 'lt_20_percent'       # <20% (lowest burden)
+        }
         
     def _create_s3_client(self):
         """Create S3 client for R2"""
@@ -73,7 +80,7 @@ class LogisticService:
                     'credit_amount': 5000,
                     'savings_status': 'lt_100_dm',
                     'employment': 'ge_7_years',
-                    'installment_commitment': 4,
+                    'installment_commitment': 'lt_20_percent',
                     'other_debtors': 'none',
                     'residence_since': 2,
                     'property_magnitude': 'car_or_other',
@@ -126,6 +133,12 @@ class LogisticService:
         
         # Map employment to years
         df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
+        
+        # Convert installment_commitment from numerical (1-4) to categorical if needed
+        if 'installment_commitment' in df.columns:
+            df['installment_commitment'] = df['installment_commitment'].apply(
+                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
+            )
         
         # Create engineered features
         df['monthly_burden'] = df['credit_amount'] / df['duration']

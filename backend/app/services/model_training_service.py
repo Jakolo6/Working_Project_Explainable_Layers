@@ -50,20 +50,29 @@ CATEGORY_ORDER = {
     'other_debtors': ['guarantor', 'co_applicant', 'none'],
     'property_magnitude': ['real_estate', 'building_society', 'car_other', 'unknown'],
     'other_payment_plans': ['none', 'stores', 'bank'],
-    'own_telephone': ['yes', 'none']
+    'own_telephone': ['yes', 'none'],
+    'installment_commitment': ['lt_20_percent', '20_to_25_percent', '25_to_35_percent', 'ge_35_percent']
 }
 
 # Feature definitions
-NUM_FEATURES = ['duration', 'credit_amount', 'installment_commitment', 
+NUM_FEATURES = ['duration', 'credit_amount', 
                 'residence_since', 'age', 'existing_credits', 'num_dependents']
 
 CAT_FEATURES = ['checking_status', 'credit_history', 'purpose', 'savings_status', 
                 'employment', 'housing', 'job', 'other_debtors', 
-                'property_magnitude', 'other_payment_plans', 'own_telephone']
+                'property_magnitude', 'other_payment_plans', 'own_telephone', 'installment_commitment']
 
 EMPLOYMENT_YEARS_MAP = {
     'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
     '4_to_7_years': 5.5, 'ge_7_years': 10
+}
+
+# Installment rate mapping: 1-4 scale to categorical
+INSTALLMENT_RATE_MAP = {
+    1: 'ge_35_percent',      # ≥35% (highest burden)
+    2: '25_to_35_percent',   # 25-35%
+    3: '20_to_25_percent',   # 20-25%
+    4: 'lt_20_percent'       # <20% (lowest burden)
 }
 
 
@@ -110,6 +119,11 @@ class ModelTrainingService:
         
         # Map employment to years
         df['employment_years'] = df['employment'].map(EMPLOYMENT_YEARS_MAP)
+        
+        # Convert installment_commitment from numerical (1-4) to categorical
+        if 'installment_commitment' in df.columns:
+            df['installment_commitment'] = df['installment_commitment'].map(INSTALLMENT_RATE_MAP)
+            self.log("✓ Converted installment_commitment to categorical")
         
         # Create engineered features
         df['monthly_burden'] = df['credit_amount'] / df['duration']
@@ -354,7 +368,7 @@ class ModelTrainingService:
         
         # Test applicants
         safe_applicant = {
-            'duration': 12, 'credit_amount': 2000, 'installment_commitment': 1,
+            'duration': 12, 'credit_amount': 2000, 'installment_commitment': 'lt_20_percent',
             'residence_since': 4, 'age': 45, 'existing_credits': 1, 'num_dependents': 1,
             'monthly_burden': 166.67, 'stability_score': 450, 'risk_ratio': 0.44,
             'credit_to_income_proxy': 44.4, 'duration_risk': 24000,
@@ -366,7 +380,7 @@ class ModelTrainingService:
         }
         
         risky_applicant = {
-            'duration': 48, 'credit_amount': 15000, 'installment_commitment': 4,
+            'duration': 48, 'credit_amount': 15000, 'installment_commitment': 'ge_35_percent',
             'residence_since': 1, 'age': 22, 'existing_credits': 4, 'num_dependents': 2,
             'monthly_burden': 312.5, 'stability_score': 0, 'risk_ratio': 6.82,
             'credit_to_income_proxy': 681.8, 'duration_risk': 720000,

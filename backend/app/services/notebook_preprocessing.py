@@ -24,7 +24,7 @@ class NotebookPreprocessor:
     
     # Feature definitions (exactly as in notebook)
     NUM_FEATURES_BASE = [
-        'duration', 'credit_amount', 'installment_commitment',
+        'duration', 'credit_amount',
         'residence_since', 'age', 'existing_credits', 'num_dependents'
     ]
     
@@ -37,7 +37,7 @@ class NotebookPreprocessor:
         'checking_status', 'credit_history', 'purpose',
         'savings_status', 'employment', 'housing', 'job',
         'other_debtors', 'property_magnitude', 'other_payment_plans',
-        'own_telephone'
+        'own_telephone', 'installment_commitment'
     ]
     
     # Employment mapping for feature engineering
@@ -47,6 +47,14 @@ class NotebookPreprocessor:
         '1_to_4_years': 2.5,
         '4_to_7_years': 5.5,
         'ge_7_years': 10
+    }
+    
+    # Installment rate mapping: 1-4 scale to categorical
+    INSTALLMENT_RATE_MAP = {
+        1: 'ge_35_percent',      # ≥35% (highest burden)
+        2: '25_to_35_percent',   # 25-35%
+        3: '20_to_25_percent',   # 20-25%
+        4: 'lt_20_percent'       # <20% (lowest burden)
     }
     
     # RISK-ORDERED CATEGORIES for OrdinalEncoder
@@ -125,6 +133,12 @@ class NotebookPreprocessor:
         'own_telephone': [
             'yes',            # Has telephone (slightly better)
             'none'            # No telephone
+        ],
+        'installment_commitment': [
+            'lt_20_percent',      # Best: <20% burden (lowest risk)
+            '20_to_25_percent',   # 20-25% burden
+            '25_to_35_percent',   # 25-35% burden
+            'ge_35_percent'       # Worst: ≥35% burden (highest risk)
         ]
     }
     
@@ -165,12 +179,20 @@ class NotebookPreprocessor:
         print(f"[DEBUG] Data types before engineering: {df.dtypes.to_dict()}")
         print(f"[DEBUG] Sample values: {df.iloc[0].to_dict()}")
         
-        # Ensure numerical columns are numeric
-        num_cols = ['duration', 'credit_amount', 'installment_commitment', 'residence_since', 
+        # Ensure numerical columns are numeric (excluding installment_commitment which is now categorical)
+        num_cols = ['duration', 'credit_amount', 'residence_since', 
                     'age', 'existing_credits', 'num_dependents']
         for col in num_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        # Convert installment_commitment from numerical (1-4) to categorical
+        if 'installment_commitment' in df.columns:
+            # Handle both numerical and string inputs
+            df['installment_commitment'] = df['installment_commitment'].apply(
+                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
+            )
+            print(f"[DEBUG] Converted installment_commitment to categorical")
         
         # Map employment to years
         df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
@@ -284,7 +306,7 @@ class NotebookPreprocessor:
                     'credit_amount': 5000,
                     'savings_status': 'lt_100_dm',
                     'employment': 'ge_7_years',
-                    'installment_commitment': 4,
+                    'installment_commitment': 'lt_20_percent',
                     'other_debtors': 'none',
                     'residence_since': 2,
                     'property_magnitude': 'car',

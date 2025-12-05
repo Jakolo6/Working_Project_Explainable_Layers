@@ -30,6 +30,13 @@ class XGBoostService:
             'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
             '4_to_7_years': 5.5, 'ge_7_years': 10
         }
+        # Installment rate mapping: 1-4 scale to categorical
+        self.INSTALLMENT_RATE_MAP = {
+            1: 'ge_35_percent',      # ≥35% (highest burden)
+            2: '25_to_35_percent',   # 25-35%
+            3: '20_to_25_percent',   # 20-25%
+            4: 'lt_20_percent'       # <20% (lowest burden)
+        }
         # Human-readable feature names
         self.FEATURE_NAMES = {
             'duration': 'Loan Duration (months)',
@@ -101,7 +108,7 @@ class XGBoostService:
                     'credit_amount': 5000,
                     'savings_status': 'lt_100_dm',
                     'employment': 'ge_7_years',
-                    'installment_commitment': 4,
+                    'installment_commitment': 'lt_20_percent',
                     'other_debtors': 'none',
                     'residence_since': 2,
                     'property_magnitude': 'car_or_other',
@@ -159,6 +166,7 @@ class XGBoostService:
         'housing': 'Housing Status',
         'job': 'Job Type',
         'own_telephone': 'Telephone Registration',
+        'installment_commitment': 'Installment Rate',
         'foreign_worker': 'Foreign Worker Status',
         'personal_status': 'Personal Status'
     }
@@ -235,6 +243,12 @@ class XGBoostService:
         'own_telephone': {
             'none': 'No Telephone',
             'yes_registered': 'Registered Telephone'
+        },
+        'installment_commitment': {
+            'ge_35_percent': '≥35% (High Burden)',
+            '25_to_35_percent': '25-35% (Moderate-High)',
+            '20_to_25_percent': '20-25% (Moderate)',
+            'lt_20_percent': '<20% (Low Burden)'
         }
     }
 
@@ -430,6 +444,12 @@ class XGBoostService:
         
         # Map employment to years
         df['employment_years'] = df['employment'].map(self.EMPLOYMENT_YEARS_MAP)
+        
+        # Convert installment_commitment from numerical (1-4) to categorical if needed
+        if 'installment_commitment' in df.columns:
+            df['installment_commitment'] = df['installment_commitment'].apply(
+                lambda x: self.INSTALLMENT_RATE_MAP.get(x, x) if isinstance(x, int) else x
+            )
         
         # Create engineered features
         df['monthly_burden'] = df['credit_amount'] / df['duration']
