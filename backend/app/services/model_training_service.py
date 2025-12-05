@@ -436,7 +436,7 @@ class ModelTrainingService:
     
     def save_models_to_r2(self, xgb_pipeline: Pipeline, logistic_pipeline: Pipeline,
                           xgb_metrics: Dict, logistic_metrics: Dict,
-                          sanity_results: Dict) -> Dict[str, str]:
+                          sanity_results: Dict, X_train: pd.DataFrame, X_test: pd.DataFrame) -> Dict[str, str]:
         """Save trained models and metrics to R2."""
         self.log("Uploading models to R2...")
         r2 = self._create_r2_client()
@@ -467,13 +467,34 @@ class ModelTrainingService:
         uploaded['logistic_model'] = 'models/logistic_model.pkl'
         self.log("  ✓ Uploaded logistic_model.pkl")
         
-        # Save metrics
+        # Get feature importance for XGBoost
+        feature_importance = []
+        if hasattr(xgb_pipeline.named_steps['model'], 'feature_importances_'):
+            feature_names = xgb_pipeline.named_steps['preprocess'].get_feature_names_out()
+            importances = xgb_pipeline.named_steps['model'].feature_importances_
+            feature_importance = [
+                {'feature': name, 'importance': float(imp)}
+                for name, imp in sorted(zip(feature_names, importances), 
+                                       key=lambda x: abs(x[1]), reverse=True)
+            ]
+        
+        # Save metrics with all fields frontend expects
         metrics = {
             'timestamp': datetime.now().isoformat(),
             'xgboost': xgb_metrics,
-            'logistic': logistic_metrics,
+            'logistic_regression': logistic_metrics,  # Frontend expects 'logistic_regression'
             'sanity_check': sanity_results,
-            'encoding': 'risk_ordered_ordinal',
+            'training_info': {
+                'train_samples': len(X_train),
+                'test_samples': len(X_test),
+                'encoding': 'risk_ordered_ordinal'
+            },
+            'features': {
+                'total_features': len(X_train.columns),
+                'numerical_features': len(NUM_FEATURES_BASE) + len(ENGINEERED_FEATURES),
+                'categorical_features': len(CAT_FEATURES)
+            },
+            'feature_importance_top15': feature_importance[:15],
             'category_order': CATEGORY_ORDER
         }
         
@@ -527,7 +548,7 @@ class ModelTrainingService:
             uploaded = self.save_models_to_r2(
                 xgb_pipeline, logistic_pipeline,
                 xgb_metrics, logistic_metrics,
-                sanity_results
+                sanity_results, X_train, X_test
             )
             
             self.log("=" * 60)
