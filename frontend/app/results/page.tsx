@@ -685,11 +685,11 @@ function ResultsContent() {
                           </td>
                           <td className="text-center py-3 px-2">
                             <span className={`px-2 py-1 rounded text-xs font-bold ${
-                              session.personas_completed === 3 ? 'bg-green-100 text-green-800' :
+                              session.personas_completed === 2 ? 'bg-green-100 text-green-800' :
                               session.personas_completed > 0 ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-600'
                             }`}>
-                              {session.personas_completed}/3
+                              {session.personas_completed}/2
                             </span>
                           </td>
                           <td className="py-3 px-2">
