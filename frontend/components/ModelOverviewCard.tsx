@@ -120,7 +120,7 @@ export default function ModelOverviewCard() {
             <div className="space-y-2">
               {topFeatures.map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <span className="w-28 text-sm text-slate-600 truncate">{feature.name}</span>
+                  <span className="w-40 text-sm text-slate-600 text-right flex-shrink-0">{feature.name}</span>
                   <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-blue-500 rounded-full transition-all duration-500"
