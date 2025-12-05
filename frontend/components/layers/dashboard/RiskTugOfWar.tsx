@@ -25,28 +25,28 @@ export default function RiskTugOfWar({
   const normalizedSupport = total > 0 ? (supportPercent / total) * 100 : 50
 
   return (
-    <div className="w-full">
+    <div className="w-full px-2">
       {/* Tug of War Visual */}
-      <div className="relative py-6">
+      <div className="relative py-6 px-6">
         {/* Central axis line */}
-        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full transform -translate-y-1/2" />
+        <div className="absolute top-1/2 left-6 right-6 h-1 bg-gray-200 rounded-full transform -translate-y-1/2" />
 
         {/* Risk side (Left - Red) */}
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${normalizedRisk}%` }}
+          animate={{ width: `calc(${normalizedRisk}% - 24px)` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="absolute top-1/2 right-1/2 h-3 bg-gradient-to-l from-red-400 to-red-600 rounded-l-full transform -translate-y-1/2"
-          style={{ transformOrigin: 'right' }}
+          style={{ transformOrigin: 'right', marginRight: '6px' }}
         />
 
         {/* Support side (Right - Green) */}
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${normalizedSupport}%` }}
+          animate={{ width: `calc(${normalizedSupport}% - 24px)` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="absolute top-1/2 left-1/2 h-3 bg-gradient-to-r from-green-400 to-green-600 rounded-r-full transform -translate-y-1/2"
-          style={{ transformOrigin: 'left' }}
+          style={{ transformOrigin: 'left', marginLeft: '6px' }}
         />
 
         {/* Center pivot point with probability gauge */}
@@ -79,9 +79,9 @@ export default function RiskTugOfWar({
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="absolute top-1/2 left-4 transform -translate-y-1/2"
+          className="absolute top-1/2 left-0 transform -translate-y-1/2"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-red-500">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-red-500">
             <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </motion.div>
@@ -90,42 +90,42 @@ export default function RiskTugOfWar({
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="absolute top-1/2 right-4 transform -translate-y-1/2"
+          className="absolute top-1/2 right-0 transform -translate-y-1/2"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-green-500">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-green-500">
             <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </motion.div>
       </div>
 
       {/* Labels */}
-      <div className="flex justify-between items-start mt-2">
+      <div className="flex justify-between items-start mt-2 px-2">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-center"
+          className="text-left flex-1"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-sm font-semibold text-red-700">Risk Drivers</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
+            <span className="text-xs font-semibold text-red-700">Risk Drivers</span>
           </div>
-          <span className="text-2xl font-bold text-red-600">{Math.round(normalizedRisk)}%</span>
-          <p className="text-xs text-gray-500 mt-1">of total influence</p>
+          <span className="text-xl font-bold text-red-600 block">{Math.round(normalizedRisk)}%</span>
+          <p className="text-xs text-gray-500">of total influence</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-center"
+          className="text-right flex-1"
         >
-          <div className="flex items-center gap-2 justify-end">
-            <span className="text-sm font-semibold text-green-700">Strengths</span>
-            <div className="w-3 h-3 rounded-full bg-green-500" />
+          <div className="flex items-center gap-1.5 justify-end">
+            <span className="text-xs font-semibold text-green-700">Strengths</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
           </div>
-          <span className="text-2xl font-bold text-green-600">{Math.round(normalizedSupport)}%</span>
-          <p className="text-xs text-gray-500 mt-1">of total influence</p>
+          <span className="text-xl font-bold text-green-600 block">{Math.round(normalizedSupport)}%</span>
+          <p className="text-xs text-gray-500">of total influence</p>
         </motion.div>
       </div>
     </div>
