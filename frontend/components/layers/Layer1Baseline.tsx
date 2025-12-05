@@ -5,7 +5,6 @@
 
 import React from 'react'
 import Tooltip from '@/components/ui/Tooltip'
-import SHAPExplanation from '@/components/ui/SHAPExplanation'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
 
@@ -79,24 +78,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
 
   return (
     <div className="space-y-6">
-      {/* Simple SHAP Explanation */}
-      <SHAPExplanation />
-
-      {/* Credit History Note - moved above table */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-amber-600 text-lg">⚠️</span>
-          <div>
-            <h4 className="font-medium text-amber-900 mb-1">About Historical Data</h4>
-            <p className="text-sm text-amber-800">
-              This model uses patterns from 1994 German banking data. Some factors, 
-              especially credit history categories, may behave differently than modern expectations.
-              Features marked with ⚠ should be interpreted with caution.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Decision Summary */}
       <div className={`p-5 rounded-lg border-2 ${
         isApproved 
@@ -122,22 +103,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
       </div>
 
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-gray-900">{shapFeatures.length}</div>
-          <div className="text-sm text-gray-600">Total Factors</div>
-        </div>
-        <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-red-700">{positiveFeatures.length}</div>
-          <div className="text-sm text-red-600">Risk Increasing</div>
-        </div>
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-green-700">{negativeFeatures.length}</div>
-          <div className="text-sm text-green-600">Risk Decreasing</div>
-        </div>
-      </div>
-
       {/* Complete SHAP Values Table - with fixed height and scroll */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 sticky top-0 z-10">
@@ -153,7 +118,11 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Rank</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Feature</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Value</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">SHAP Value</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                  <Tooltip content="SHAP (SHapley Additive exPlanations) values show how much each feature pushed the prediction toward approval (negative values) or rejection (positive values). Larger absolute values = stronger influence.">
+                    <span className="cursor-help border-b border-dotted border-gray-400">SHAP Value</span>
+                  </Tooltip>
+                </th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Effect</th>
               </tr>
             </thead>
