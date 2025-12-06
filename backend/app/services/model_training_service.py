@@ -56,27 +56,8 @@ CATEGORY_ORDER = {
     'installment_commitment': ['lt_20_percent', '20_to_25_percent', '25_to_35_percent', 'ge_35_percent']
 }
 
-# Feature definitions
-NUM_FEATURES = ['duration', 'credit_amount', 
-                'residence_since', 'age', 'existing_credits', 'num_dependents']
-
-CAT_FEATURES = ['checking_status', 'credit_history', 'purpose', 'savings_status', 
-                'employment', 'housing', 'job', 'other_debtors', 
-                'property_magnitude', 'other_payment_plans', 'own_telephone', 'installment_commitment']
-
-EMPLOYMENT_YEARS_MAP = {
-    'unemployed': 0, 'lt_1_year': 0.5, '1_to_4_years': 2.5,
-    '4_to_7_years': 5.5, 'ge_7_years': 10
-}
-
-# Installment rate mapping: 1-4 scale to categorical
-# CORRECTED ENCODING: 1 = lowest burden, 4 = highest burden
-INSTALLMENT_RATE_MAP = {
-    1: 'lt_20_percent',      # <20% (LOWEST burden)
-    2: '20_to_25_percent',   # 20-25%
-    3: '25_to_35_percent',   # 25-35%
-    4: 'ge_35_percent'       # ≥35% (HIGHEST burden)
-}
+# Get feature lists from shared module
+NUM_FEATURES, CAT_FEATURES, ENGINEERED_FEATURES = get_feature_lists()
 
 
 class ModelTrainingService:
@@ -469,7 +450,7 @@ class ModelTrainingService:
             },
             'features': {
                 'total_features': len(X_train.columns),
-                'numerical_features': len(NUM_FEATURES_BASE) + len(ENGINEERED_FEATURES),
+                'numerical_features': len(NUM_FEATURES) + len(ENGINEERED_FEATURES),
                 'categorical_features': len(CAT_FEATURES)
             },
             'feature_importance_top15': feature_importance[:15],
