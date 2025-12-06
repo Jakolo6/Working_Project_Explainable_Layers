@@ -23,11 +23,95 @@
 -- - Results dashboard updated to show only 4 dimensions
 
 -- ============================================================================
--- STEP 1: Drop the perceived_fairness_rating column
+-- STEP 1: Drop the perceived_fairness_rating column (CASCADE to drop dependent views)
 -- ============================================================================
 
+-- Note: This will also drop views that depend on this column:
+-- - experiment_complete_data
+-- - layer_performance_analysis
+-- These views will need to be recreated without the fairness column
+
 ALTER TABLE layer_ratings
-DROP COLUMN IF EXISTS perceived_fairness_rating;
+DROP COLUMN IF EXISTS perceived_fairness_rating CASCADE;
+
+-- ============================================================================
+-- STEP 1b: Recreate the dropped views without fairness column
+-- ============================================================================
+
+-- Recreate experiment_complete_data view (without fairness)
+CREATE VIEW experiment_complete_data AS
+SELECT 
+    s.session_id,
+    s.consent_given,
+    s.age,
+    s.gender,
+    s.financial_relationship,
+    s.preferred_explanation_style,
+    s.ai_trust_instinct,
+    s.ai_fairness_stance,
+    s.completed,
+    s.created_at AS session_started,
+    s.completed_at AS session_completed,
+    
+    -- Layer ratings aggregated (4 dimensions)
+    COUNT(DISTINCT lr.id) AS total_layer_ratings,
+    ROUND(AVG(lr.understanding_rating)::numeric, 2) AS avg_understanding,
+    ROUND(AVG(lr.communicability_rating)::numeric, 2) AS avg_communicability,
+    ROUND(AVG(lr.cognitive_load_rating)::numeric, 2) AS avg_cognitive_load,
+    ROUND(AVG(lr.reliance_intention_rating)::numeric, 2) AS avg_reliance,
+    SUM(lr.time_spent_seconds) AS total_time_spent_seconds,
+    
+    -- Post questionnaire
+    pq.most_helpful_layer,
+    pq.most_trusted_layer,
+    pq.best_for_customer,
+    pq.overall_intuitiveness,
+    pq.ai_usefulness,
+    pq.improvement_suggestions
+    
+FROM sessions s
+LEFT JOIN layer_ratings lr ON s.session_id = lr.session_id
+LEFT JOIN post_questionnaires pq ON s.session_id = pq.session_id
+WHERE s.consent_given = TRUE
+GROUP BY 
+    s.session_id, s.consent_given, s.age, s.gender, s.financial_relationship,
+    s.preferred_explanation_style, s.ai_trust_instinct, s.ai_fairness_stance,
+    s.completed, s.created_at, s.completed_at,
+    pq.most_helpful_layer, pq.most_trusted_layer, pq.best_for_customer,
+    pq.overall_intuitiveness, pq.ai_usefulness, pq.improvement_suggestions;
+
+-- Recreate layer_performance_analysis view (without fairness)
+CREATE VIEW layer_performance_analysis AS
+SELECT 
+    lr.layer_number,
+    lr.layer_name,
+    lr.persona_id,
+    COUNT(*) AS total_ratings,
+    
+    -- Understanding
+    ROUND(AVG(lr.understanding_rating)::numeric, 2) AS avg_understanding,
+    ROUND(STDDEV(lr.understanding_rating)::numeric, 2) AS stddev_understanding,
+    
+    -- Communicability
+    ROUND(AVG(lr.communicability_rating)::numeric, 2) AS avg_communicability,
+    ROUND(STDDEV(lr.communicability_rating)::numeric, 2) AS stddev_communicability,
+    
+    -- Cognitive Load (Mental Ease)
+    ROUND(AVG(lr.cognitive_load_rating)::numeric, 2) AS avg_cognitive_load,
+    ROUND(STDDEV(lr.cognitive_load_rating)::numeric, 2) AS stddev_cognitive_load,
+    
+    -- Reliance Intention
+    ROUND(AVG(lr.reliance_intention_rating)::numeric, 2) AS avg_reliance,
+    ROUND(STDDEV(lr.reliance_intention_rating)::numeric, 2) AS stddev_reliance,
+    
+    -- Time Analysis
+    ROUND(AVG(lr.time_spent_seconds)::numeric, 1) AS avg_time_seconds,
+    MIN(lr.time_spent_seconds) AS min_time_seconds,
+    MAX(lr.time_spent_seconds) AS max_time_seconds
+
+FROM layer_ratings lr
+GROUP BY lr.layer_number, lr.layer_name, lr.persona_id
+ORDER BY lr.layer_number, lr.persona_id;
 
 -- ============================================================================
 -- STEP 2: Verify the change
