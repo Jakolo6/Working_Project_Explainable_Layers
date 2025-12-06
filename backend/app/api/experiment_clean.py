@@ -507,7 +507,8 @@ def map_frontend_to_backend(data: Dict[str, Any]) -> Dict[str, Any]:
         'other_installment_plans': 'other_payment_plans',
         'telephone': 'own_telephone',
         'duration_months': 'duration',
-        'installment_rate': 'installment_commitment'
+        'installment_rate': 'installment_commitment',
+        'property': 'property_magnitude'
     }
     
     # Value mappings for each field
@@ -522,8 +523,21 @@ def map_frontend_to_backend(data: Dict[str, Any]) -> Dict[str, Any]:
             'no credits taken': 'no_credits',
             'all credits paid back': 'all_paid',
             'existing credits paid back': 'existing_paid',
+            'existing credits paid back duly': 'existing_paid',
             'delay in paying off in the past': 'delayed_past',
             'critical account': 'critical'
+        },
+        'purpose': {
+            'car (new)': 'car_new',
+            'car (used)': 'car_used',
+            'furniture/equipment': 'furniture',
+            'radio/television': 'radio_tv',
+            'domestic appliances': 'domestic_appliances',
+            'repairs': 'repairs',
+            'education': 'education',
+            'retraining': 'retraining',
+            'business': 'business',
+            'others': 'others'
         },
         'savings_status': {
             'less than 100 DM': 'lt_100_dm',
