@@ -63,13 +63,49 @@ const FEATURE_NAME_MAP: Record<string, string> = {
   'Installment Rate': 'Installment Rate',
 };
 
-// Backend field name mapping (for API calls)
-const BACKEND_FIELD_MAP: Record<string, string> = {
-  'Credit Amount': 'credit_amount',
-  'Loan Duration (months)': 'duration',
-  'Checking Account Status': 'checking_status',
-  'Savings Account Status': 'savings_status',
-  'Installment Rate': 'installment_commitment',
+// Complete mapping from frontend field names to backend field names
+const FRONTEND_TO_BACKEND_MAP: Record<string, string> = {
+  // Financial
+  'checking_account_status': 'checking_status',
+  'savings_account': 'savings_status',
+  'credit_amount': 'credit_amount',
+  'duration_months': 'duration',
+  
+  // Employment & Housing
+  'employment_status': 'employment',
+  'present_residence_since': 'residence_since',
+  'property': 'property_magnitude',
+  'housing': 'housing',
+  
+  // Credit History
+  'credit_history': 'credit_history',
+  'purpose': 'purpose',
+  'installment_rate': 'installment_commitment',
+  'existing_credits': 'existing_credits',
+  
+  // Personal
+  'age': 'age',
+  'sex': 'sex',
+  'num_dependents': 'num_dependents',
+  
+  // Other
+  'other_debtors': 'other_debtors',
+  'other_installment_plans': 'other_payment_plans',
+  'job': 'job',
+  'telephone': 'own_telephone',
+  'foreign_worker': 'foreign_worker'
+};
+
+// Helper function to transform frontend data to backend format
+const transformToBackendFormat = (frontendData: Record<string, any>): Record<string, any> => {
+  const backendData: Record<string, any> = {};
+  
+  for (const [frontendKey, value] of Object.entries(frontendData)) {
+    const backendKey = FRONTEND_TO_BACKEND_MAP[frontendKey] || frontendKey;
+    backendData[backendKey] = value;
+  }
+  
+  return backendData;
 };
 
 export default function Layer4Counterfactual({ decision, probability, shapFeatures }: SolutionFinderProps) {
@@ -116,36 +152,50 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
   const visibleFeatures = featuresToShow();
 
   // Call backend for real prediction
-  const fetchPrediction = useCallback(async (data: Record<string, any>) => {
+  const fetchPrediction = useCallback(async (frontendData: Record<string, any>) => {
     setLivePrediction(prev => ({ ...prev, isLoading: true }));
     
     try {
+      // Transform frontend field names to backend field names
+      const backendData = transformToBackendFormat(frontendData);
+      
+      console.log('[Layer4] Sending to backend:', backendData);
+      
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/api/v1/experiment/predict-counterfactual`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ application_data: data })
+        body: JSON.stringify({ application_data: backendData })
       });
       
-      if (!response.ok) throw new Error('Prediction failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Layer4] API error:', errorText);
+        throw new Error('Prediction failed');
+      }
       
       const result = await response.json();
+      console.log('[Layer4] Prediction result:', result);
+      
       setLivePrediction({
         decision: result.decision,
         probability: result.probability,
         isLoading: false
       });
     } catch (error) {
-      console.error('Prediction error:', error);
+      console.error('[Layer4] Prediction error:', error);
       setLivePrediction(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
 
   // Debounced prediction update
-  const handleFeatureChange = useCallback((feature: string, value: any) => {
-    const backendField = BACKEND_FIELD_MAP[feature] || feature;
-    const newData = { ...modifiedData, [backendField]: value };
+  const handleFeatureChange = useCallback((frontendField: string, value: any) => {
+    // Update the modified data with the new value (keep frontend field names in state)
+    const newData = { ...modifiedData, [frontendField]: value };
     setModifiedData(newData);
+    
+    console.log('[Layer4] Feature changed:', frontendField, '=', value);
+    console.log('[Layer4] Complete data:', newData);
     
     // Debounce API call
     if (debounceTimer) clearTimeout(debounceTimer);
@@ -159,18 +209,18 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
   const applyQuickFix = () => {
     if (!originalApplication) return;
     const newAmount = Math.round(originalApplication.credit_amount * 0.8);
-    handleFeatureChange('Credit Amount', newAmount);
+    handleFeatureChange('credit_amount', newAmount);
   };
 
   const applySafeBet = () => {
     if (!originalApplication) return;
     const newDuration = Math.max(6, originalApplication.duration_months - 12);
-    handleFeatureChange('Loan Duration (months)', newDuration);
+    handleFeatureChange('duration_months', newDuration);
   };
 
   const applyCommitment = () => {
     // Simulate moving up one savings category
-    handleFeatureChange('Savings Account Status', '500 to 1000 DM');
+    handleFeatureChange('savings_account', '500 to 1000 DM');
   };
 
   // Calculate gap to approval
@@ -265,7 +315,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 max="20000"
                 step="100"
                 value={modifiedData.credit_amount || 0}
-                onChange={(e) => handleFeatureChange('Credit Amount', Number(e.target.value))}
+                onChange={(e) => handleFeatureChange('credit_amount', Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
               <div className="flex justify-between text-xs text-gray-500">
@@ -297,7 +347,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 max="72"
                 step="6"
                 value={modifiedData.duration || modifiedData.duration_months || 0}
-                onChange={(e) => handleFeatureChange('Loan Duration (months)', Number(e.target.value))}
+                onChange={(e) => handleFeatureChange('duration_months', Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
               <div className="flex justify-between text-xs text-gray-500">
