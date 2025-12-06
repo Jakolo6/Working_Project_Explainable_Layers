@@ -57,6 +57,24 @@ export default function ExplanationChatbot({ decision, probability, shapFeatures
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Calculate interest rate based on risk
+  const calculateInterestRate = (): string => {
+    if (decision === 'rejected') {
+      return 'N/A (Loan rejected)'
+    }
+    
+    // Convert probability to risk score (lower probability = higher risk)
+    const riskScore = 1 - probability
+    
+    // Base rate: 4.5%
+    // Risk premium: 0% to 8% based on risk score
+    const baseRate = 4.5
+    const riskPremium = riskScore * 8
+    const totalRate = baseRate + riskPremium
+    
+    return totalRate.toFixed(2) + '%'
+  }
+
   // Build context for the AI
   const buildSystemContext = () => {
     // Filter out Credit History features (counterintuitive due to dataset bias)
@@ -69,6 +87,8 @@ export default function ExplanationChatbot({ decision, probability, shapFeatures
     const riskIncreasing = filteredFeatures.filter(f => f.impact === 'positive')
     const riskDecreasing = filteredFeatures.filter(f => f.impact === 'negative')
 
+    const interestRate = calculateInterestRate()
+    
     return `You are a helpful AI assistant for bank clerks reviewing credit decisions. You explain AI-based credit risk assessments in clear, professional language.
 
 NOTE: Credit History features have been excluded from this analysis due to counterintuitive patterns in the historical dataset. Focus on other reliable factors.
@@ -79,6 +99,8 @@ ${globalContext || 'Global model analysis not available. The model uses XGBoost 
 === THIS APPLICANT'S DECISION ===
 Decision: ${decision.toUpperCase()}
 Confidence: ${(probability * 100).toFixed(1)}%
+Loan Interest Rate: ${interestRate}
+${decision === 'approved' ? `(Calculated as: Base rate 4.5% + Risk premium ${((1 - probability) * 8).toFixed(2)}% = ${interestRate})` : ''}
 
 Top Contributing Factors:
 ${topFeatures.map((f, i) => `${i + 1}. ${f.feature}: ${f.value} (SHAP: ${f.shap_value > 0 ? '+' : ''}${f.shap_value.toFixed(3)}, ${f.impact === 'positive' ? 'INCREASES risk' : 'DECREASES risk'})`).join('\n')}
@@ -180,6 +202,7 @@ Summary:
             <p className="font-medium mb-1">This AI assistant has access to:</p>
             <ul className="space-y-0.5 text-white/80">
               <li>• <strong>This applicant's decision</strong> ({decision.toUpperCase()}, {Math.round(probability * 100)}% confidence)</li>
+              <li>• <strong>Loan interest rate</strong> ({calculateInterestRate()})</li>
               <li>• <strong>All {shapFeatures.length} SHAP feature values</strong> and their impacts</li>
               <li>• <strong>Global model behavior</strong> and typical approval patterns</li>
             </ul>
