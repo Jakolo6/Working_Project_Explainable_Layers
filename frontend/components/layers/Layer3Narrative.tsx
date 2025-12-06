@@ -2,7 +2,7 @@
 
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
 import DecisionHeader from './DecisionHeader'
@@ -42,7 +42,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
   const [isLoading, setIsLoading] = useState(true)
   const [isLLMGenerated, setIsLLMGenerated] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
   
   // Check if any credit_history features are in the top features
   const hasCreditHistoryFeature = top5Features.some(f => isCreditHistoryFeature(f.feature))
@@ -55,16 +54,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
       features: top5Features.map(f => ({ feature: f.feature, value: f.value }))
     })
   }
-  
-  useEffect(() => {
-    // Cancel any previous request when component unmounts or dependencies change
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-        abortControllerRef.current = null
-      }
-    }
-  }, [decision, probability, shapFeatures])
   
   useEffect(() => {
     const fetchNarrative = async () => {
@@ -100,19 +89,11 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
       
       // 3. MAKE NEW REQUEST
       try {
-        // Cancel previous request if any
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort()
-        }
-        
-        // Create new abort controller
-        abortControllerRef.current = new AbortController()
-        
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
         
         console.log('[Layer3] Fetching new narrative from API')
         
-        // Create the fetch promise
+        // Create the fetch promise WITHOUT abort signal (let it complete naturally)
         const fetchPromise = fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -121,8 +102,8 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
             probability,
             shap_features: top5Features,
             all_features: shapFeatures
-          }),
-          signal: abortControllerRef.current.signal
+          })
+          // NO signal - let request complete even if component re-renders
         }).then(async (response) => {
           if (response.ok) {
             return await response.json()
@@ -149,12 +130,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
         setError(null)
         
       } catch (err) {
-        // Ignore abort errors (they're expected when component unmounts)
-        if (err instanceof Error && err.name === 'AbortError') {
-          console.log('[Layer3] Request cancelled')
-          return
-        }
-        
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate narrative'
         console.error('[ERROR] Narrative API error:', errorMessage)
         setError(errorMessage)
@@ -164,7 +139,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
         // Clean up in-flight request
         inflightRequests.delete(cacheKey)
         setIsLoading(false)
-        abortControllerRef.current = null
       }
     }
     
