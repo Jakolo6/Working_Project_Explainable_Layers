@@ -18,6 +18,7 @@ type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 const BACKGROUND_OPTIONS = [
   { value: 'banking', label: 'Banking / Credit / Risk / Retail Banking' },
   { value: 'data_analytics', label: 'Data / Analytics / BI / Machine Learning' },
+  { value: 'banking_and_analytics', label: 'Both Banking and Data Analytics' },
   { value: 'student', label: 'Student (Business / Analytics / related fields)' },
   { value: 'other', label: 'Other' }
 ]

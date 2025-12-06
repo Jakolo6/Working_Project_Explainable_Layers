@@ -87,6 +87,7 @@ const PERSONA_NAMES: Record<string, string> = {
 const BACKGROUND_LABELS: Record<string, string> = {
   'banking': 'Banking/Credit/Risk',
   'data_analytics': 'Data/Analytics/ML',
+  'banking_and_analytics': 'Banking + Analytics',
   'student': 'Student',
   'other': 'Other'
 }
