@@ -83,6 +83,56 @@ export const FEATURE_BENCHMARKS: Record<string, FeatureBenchmark> = {
     unit: 'credits',
     higherIsBetter: false
   },
+  // Engineered features
+  'monthly payment burden': {
+    min: 50,
+    max: 800,
+    typicalRange: [100, 250],
+    unit: '€/mo',
+    higherIsBetter: false
+  },
+  'monthly burden': {
+    min: 50,
+    max: 800,
+    typicalRange: [100, 250],
+    unit: '€/mo',
+    higherIsBetter: false
+  },
+  'financial stability score': {
+    min: 20,
+    max: 300,
+    typicalRange: [60, 150],
+    unit: 'points',
+    higherIsBetter: true
+  },
+  'stability score': {
+    min: 20,
+    max: 300,
+    typicalRange: [60, 150],
+    unit: 'points',
+    higherIsBetter: true
+  },
+  'duration risk score': {
+    min: 1000,
+    max: 1300000,
+    typicalRange: [12000, 75000],
+    unit: 'risk points',
+    higherIsBetter: false
+  },
+  'credit risk ratio': {
+    min: 0.3,
+    max: 8.0,
+    typicalRange: [1.0, 3.0],
+    unit: 'ratio',
+    higherIsBetter: false
+  },
+  'credit to income ratio': {
+    min: 10,
+    max: 800,
+    typicalRange: [50, 150],
+    unit: '€',
+    higherIsBetter: false
+  },
 }
 
 // Value-specific narratives for categorical features
