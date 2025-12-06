@@ -30,11 +30,12 @@ class LogisticService:
             '4_to_7_years': 5.5, 'ge_7_years': 10
         }
         # Installment rate mapping: 1-4 scale to categorical
+        # CORRECTED ENCODING: 1 = lowest burden, 4 = highest burden
         self.INSTALLMENT_RATE_MAP = {
-            1: 'ge_35_percent',      # ≥35% (highest burden)
-            2: '25_to_35_percent',   # 25-35%
-            3: '20_to_25_percent',   # 20-25%
-            4: 'lt_20_percent'       # <20% (lowest burden)
+            1: 'lt_20_percent',      # <20% (LOWEST burden)
+            2: '20_to_25_percent',   # 20-25%
+            3: '25_to_35_percent',   # 25-35%
+            4: 'ge_35_percent'       # ≥35% (HIGHEST burden)
         }
         
     def _create_s3_client(self):
