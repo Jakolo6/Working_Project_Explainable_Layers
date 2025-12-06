@@ -2,10 +2,16 @@
 
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
 import DecisionHeader from './DecisionHeader'
+
+// Global cache for narrative responses to prevent duplicate API calls
+const narrativeCache = new Map<string, { narrative: string; is_llm_generated: boolean }>()
+
+// Global set to track in-flight requests (deduplication)
+const inflightRequests = new Map<string, Promise<any>>()
 
 // Interface for SHAP feature data
 interface SHAPFeature {
@@ -36,17 +42,78 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
   const [isLoading, setIsLoading] = useState(true)
   const [isLLMGenerated, setIsLLMGenerated] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   
   // Check if any credit_history features are in the top features
   const hasCreditHistoryFeature = top5Features.some(f => isCreditHistoryFeature(f.feature))
   
+  // Generate cache key from request data
+  const getCacheKey = () => {
+    return JSON.stringify({
+      decision,
+      probability: probability.toFixed(4), // Round to avoid float precision issues
+      features: top5Features.map(f => ({ feature: f.feature, value: f.value }))
+    })
+  }
+  
+  useEffect(() => {
+    // Cancel any previous request when component unmounts or dependencies change
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
+      }
+    }
+  }, [decision, probability, shapFeatures])
+  
   useEffect(() => {
     const fetchNarrative = async () => {
+      if (shapFeatures.length === 0) return
+      
+      const cacheKey = getCacheKey()
+      
+      // 1. CHECK CACHE FIRST
+      const cached = narrativeCache.get(cacheKey)
+      if (cached) {
+        console.log('[Layer3] Using cached narrative')
+        setNarrative(cached.narrative)
+        setIsLLMGenerated(cached.is_llm_generated)
+        setIsLoading(false)
+        return
+      }
+      
+      // 2. CHECK IF REQUEST ALREADY IN-FLIGHT (DEDUPLICATION)
+      const existingRequest = inflightRequests.get(cacheKey)
+      if (existingRequest) {
+        console.log('[Layer3] Reusing in-flight request')
+        try {
+          const data = await existingRequest
+          setNarrative(data.narrative)
+          setIsLLMGenerated(data.is_llm_generated || false)
+          setIsLoading(false)
+          return
+        } catch (err) {
+          // If the in-flight request failed, we'll make a new one below
+          console.warn('[Layer3] In-flight request failed, retrying')
+        }
+      }
+      
+      // 3. MAKE NEW REQUEST
       try {
+        // Cancel previous request if any
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+        }
+        
+        // Create new abort controller
+        abortControllerRef.current = new AbortController()
+        
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
         
-        // No timeout - let OpenAI take as long as it needs for quality AI text
-        const response = await fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
+        console.log('[Layer3] Fetching new narrative from API')
+        
+        // Create the fetch promise
+        const fetchPromise = fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -54,30 +121,54 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
             probability,
             shap_features: top5Features,
             all_features: shapFeatures
-          })
+          }),
+          signal: abortControllerRef.current.signal
+        }).then(async (response) => {
+          if (response.ok) {
+            return await response.json()
+          } else {
+            throw new Error(`API returned ${response.status}`)
+          }
         })
         
-        if (response.ok) {
-          const data = await response.json()
-          setNarrative(data.narrative)
-          setIsLLMGenerated(data.is_llm_generated || false)
-        } else {
-          throw new Error(`API returned ${response.status}`)
-        }
+        // Store in-flight request for deduplication
+        inflightRequests.set(cacheKey, fetchPromise)
+        
+        // Wait for response
+        const data = await fetchPromise
+        
+        // Cache the response
+        narrativeCache.set(cacheKey, {
+          narrative: data.narrative,
+          is_llm_generated: data.is_llm_generated || false
+        })
+        
+        // Update state
+        setNarrative(data.narrative)
+        setIsLLMGenerated(data.is_llm_generated || false)
+        setError(null)
+        
       } catch (err) {
+        // Ignore abort errors (they're expected when component unmounts)
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('[Layer3] Request cancelled')
+          return
+        }
+        
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate narrative'
         console.error('[ERROR] Narrative API error:', errorMessage)
         setError(errorMessage)
         setNarrative('')
         setIsLLMGenerated(false)
       } finally {
+        // Clean up in-flight request
+        inflightRequests.delete(cacheKey)
         setIsLoading(false)
+        abortControllerRef.current = null
       }
     }
     
-    if (shapFeatures.length > 0) {
-      fetchNarrative()
-    }
+    fetchNarrative()
   }, [decision, probability, shapFeatures])
   
   if (shapFeatures.length === 0) {
