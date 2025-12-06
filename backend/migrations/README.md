@@ -1,11 +1,23 @@
 # Database Schema for XAI Credit Experiment
 
+## 🎯 CURRENT PRODUCTION SCHEMA
+
+**USE THIS FILE:** `PRODUCTION_SCHEMA.sql` ✅
+
+This is the **final, verified, production-ready** schema that matches your current working database.
+
+**Status:** ✅ Verified on 2025-12-06  
+**Database:** Supabase (PostgreSQL)  
+**Records:** 11 sessions, 16 predictions, 49 layer ratings
+
+---
+
 ## Overview
 
 This schema supports a within-subjects experiment design for evaluating explainable AI in credit decisions.
 
 ### Experiment Structure
-- **2 Personas**: elderly-woman (LOW RISK), young-entrepreneur (HIGH RISK)
+- **2 Personas**: elderly-woman (borderline approved), young-entrepreneur (borderline rejected)
 - **4 Explanation Layers** per persona:
   1. Baseline SHAP Explanation (technical table)
   2. Interactive Dashboard (visual charts)
@@ -17,7 +29,7 @@ This schema supports a within-subjects experiment design for evaluating explaina
   3. Perceived Fairness
   4. Cognitive Load
   5. Reliance Intention
-- **Total**: 3 personas × 4 layers = 12 layer ratings per participant
+- **Total**: 2 personas × 4 layers = 8 layer ratings per participant
 
 ## Tables
 
@@ -89,11 +101,21 @@ Per-layer statistics with mean, stddev for all rating dimensions.
 
 ## Setup
 
-Run `FINAL_CLEAN_SCHEMA.sql` in Supabase SQL Editor to:
-1. Drop all old tables
-2. Create new clean schema
-3. Set up indexes and RLS policies
+**Your database is already set up correctly!** ✅
+
+If you need to recreate the schema, run `PRODUCTION_SCHEMA.sql` in Supabase SQL Editor to:
+1. Create all tables (sessions, predictions, layer_ratings, post_questionnaires)
+2. Set up indexes for performance
+3. Enable RLS policies for security
 4. Create analysis views
+
+## Migration Files (Archive)
+
+- `PRODUCTION_SCHEMA.sql` - ✅ **CURRENT PRODUCTION SCHEMA** (use this one!)
+- `FINAL_CLEAN_SCHEMA.sql` - Previous version (archived)
+- `UPDATE_QUESTIONNAIRE_SCHEMA.sql` - Questionnaire updates (archived)
+- `ADD_DELETE_POLICIES.sql` - RLS policy updates (archived)
+- `REVIEW_ALL_DATA.sql` - Data analysis queries (archived)
 
 ## API Endpoints
 
