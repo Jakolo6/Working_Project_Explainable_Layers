@@ -44,6 +44,11 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
     const fetchNarrative = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        
+        // Add timeout to prevent long waits
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for narrative
+        
         const response = await fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -52,15 +57,18 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
             probability,
             shap_features: top5Features,
             all_features: shapFeatures
-          })
+          }),
+          signal: controller.signal
         })
+        
+        clearTimeout(timeoutId)
         
         if (response.ok) {
           const data = await response.json()
           setNarrative(data.narrative)
           setIsLLMGenerated(data.is_llm_generated || false)
         } else {
-          throw new Error('API error')
+          throw new Error(`API returned ${response.status}`)
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate narrative'
