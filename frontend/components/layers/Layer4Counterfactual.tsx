@@ -178,94 +178,39 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
   const isApproved = livePrediction.decision === 'approved';
   const hasFlipped = livePrediction.decision !== decision;
 
+  // Generate short counterfactual summary
+  const getSummary = () => {
+    if (hasFlipped && isApproved) {
+      return "Your adjustments successfully flipped the decision to APPROVED! The changes improved the risk assessment."
+    }
+    if (isApproved) {
+      return "Currently approved. Adjusting Credit Amount or Loan Duration can improve your interest rate."
+    }
+    return `This application needs ${gapToApproval.toFixed(0)}% improvement for approval. Try reducing Credit Amount or Loan Duration.`
+  }
+
   return (
     <div className="space-y-6">
       {/* Decision Header with Interest Rate */}
       <DecisionHeader decision={livePrediction.decision} probability={livePrediction.probability} />
       
-      {/* ═══════════════════════════════════════════════════════════════════════
-          ZONE A: NARRATIVE HEADER
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* Short Counterfactual Summary */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-2xl p-6 border-2 ${
+        className={`rounded-lg p-4 border ${
           isApproved
-            ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
-            : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
+            ? 'bg-green-50 border-green-200'
+            : 'bg-amber-50 border-amber-200'
         }`}
       >
-        <div className="flex items-start gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-            isApproved ? 'bg-green-100' : 'bg-amber-100'
-          }`}>
-            {isApproved ? (
-              <CheckCircle2 className="text-green-600" size={32} />
-            ) : (
-              <Target className="text-amber-600" size={32} />
-            )}
-          </div>
-          
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {isApproved ? '🎉 Approved!' : 'Solution Finder'}
-            </h2>
-            
-            {!isApproved && (
-              <p className="text-gray-700 mb-4">
-                This application is <strong>{gapToApproval.toFixed(1)}%</strong> away from approval.
-                Reducing <strong>Loan Duration</strong> or <strong>Credit Amount</strong> is the most direct path.
-              </p>
-            )}
-            
-            {isApproved && (
-              <p className="text-gray-700 mb-4">
-                {hasFlipped ? (
-                  <span className="text-green-700 font-semibold">
-                    ✓ Your adjustments flipped the decision to APPROVED!
-                  </span>
-                ) : (
-                  'Approved. Strengthening Savings would lower the interest rate.'
-                )}
-              </p>
-            )}
-            
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Current Score</span>
-                <span className="font-semibold">
-                  {(livePrediction.probability * 100).toFixed(0)}% confidence
-                </span>
-              </div>
-              <div className="h-4 bg-gray-200 rounded-full overflow-hidden relative">
-                {/* Approval threshold line */}
-                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10" />
-                
-                {/* Progress bar */}
-                <motion.div
-                  initial={{ width: `${probability * 100}%` }}
-                  animate={{ width: `${livePrediction.probability * 100}%` }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                  className={`h-full ${
-                    isApproved
-                      ? 'bg-gradient-to-r from-green-400 to-green-600'
-                      : 'bg-gradient-to-r from-amber-400 to-amber-600'
-                  }`}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>0%</span>
-                <span className="font-semibold">50% (Threshold)</span>
-                <span>100%</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p className="text-sm text-gray-700">
+          {getSummary()}
+        </p>
       </motion.div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          ZONE B: SMART SIMULATOR
+          INTERACTIVE SIMULATOR
           ═══════════════════════════════════════════════════════════════════════ */}
       <motion.div
         initial={{ opacity: 0 }}
