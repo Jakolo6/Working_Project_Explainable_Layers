@@ -499,15 +499,21 @@ async def predict_counterfactual(request: Dict[str, Any]):
     Output: { "decision": "approved"|"rejected", "probability": 0.85 }
     """
     try:
+        print("[DEBUG] Counterfactual request received")
         xgb_service, _, _ = get_services()
         
         # Extract application data
         application_data = request.get("application_data")
         if not application_data:
+            print("[ERROR] Missing application_data in request")
             raise HTTPException(status_code=400, detail="Missing application_data")
+        
+        print(f"[DEBUG] Application data: {application_data}")
         
         # Make prediction (fast - no SHAP)
         prediction_result = xgb_service.predict(application_data)
+        
+        print(f"[DEBUG] Prediction result: {prediction_result}")
         
         # Return only decision and probability
         # Note: XGBoost service returns 'confidence' which is the max probability
@@ -517,6 +523,10 @@ async def predict_counterfactual(request: Dict[str, Any]):
         }
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] Counterfactual prediction failed: {str(e)}")
+        print(f"[ERROR] Traceback: {error_details}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
