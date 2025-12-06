@@ -48,20 +48,20 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
   'elderly-woman': {
     id: 'elderly-woman',
     name: 'Maria',
-    age: 32,
+    age: 35,
     occupation: 'Skilled Employee',
-    loanAmount: 4800,
+    loanAmount: 3600,
     loanPurpose: 'Furniture purchase',
-    description: 'Maria is a 32-year-old skilled employee who wants to borrow €4,800 for furniture. She has moderate checking account balance (€0-200), modest savings (€100-500), and owns her home. However, she has a relatively high monthly payment burden and moderate credit amount. This represents a BORDERLINE APPROVED case (53% confidence) - the model barely approves her application.',
+    description: 'Maria is a 35-year-old skilled employee who wants to borrow €3,600 for furniture over 18 months. She has a modest checking account (€0-200), some savings (€100-500), and owns her home. With stable employment (4-7 years) and minimal existing debt, she represents a BORDERLINE APPROVED case (~53% confidence) - the model barely approves her application.',
   },
   'young-entrepreneur': {
     id: 'young-entrepreneur',
     name: 'Jonas',
-    age: 24,
+    age: 26,
     occupation: 'Unskilled Resident',
-    loanAmount: 7200,
+    loanAmount: 5400,
     loanPurpose: 'Furniture purchase',
-    description: 'Jonas is a 24-year-old unskilled worker who wants to borrow €7,200 for furniture. He has an overdrawn checking account (< €0), minimal savings (< €100), no property, and is renting. He recently started a new job (< 1 year), has a history of delayed payments, and is requesting a 48-month loan with high installment burden (≥35%). This represents a BORDERLINE REJECTED case (~45% confidence) - the model barely rejects his application due to accumulated risk factors.',
+    description: 'Jonas is a 26-year-old unskilled worker who wants to borrow €5,400 for furniture over 36 months. He has an overdrawn checking account (< €0), minimal savings (< €100), no property, and is renting. He has some employment history (1-4 years) but a history of delayed payments, with moderate-high installment burden (25-35%). This represents a BORDERLINE REJECTED case (~48% confidence) - the model barely rejects his application due to accumulated risk factors.',
   },
 }
 
@@ -71,20 +71,20 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   // BORDERLINE APPROVED - Maria
   // Mix of positive and negative factors - barely gets approved
   'elderly-woman': {
-    // SHAP Features - Mixed signals
-    age: 32,                                    // Moderate age
+    // SHAP Features - Mixed signals, slightly more positive
+    age: 35,                                    // More mature age (positive)
     checking_account_status: '0 to 200 DM',    // Some savings, not great
     savings_account: '100 to 500 DM',          // Modest savings
-    credit_amount: 4800,                        // Moderate amount
-    duration_months: 24,                        // Medium duration
-    employment_status: '1 to 4 years',          // Moderate employment history
-    present_residence_since: 2,                 // Some stability
+    credit_amount: 3600,                        // Lower amount (positive)
+    duration_months: 18,                        // Shorter duration (positive)
+    employment_status: '4 to 7 years',          // Better employment history (positive)
+    present_residence_since: 3,                 // More stability (positive)
     property: 'car or other',                   // Some assets, not property
     housing: 'own',                             // Homeowner (positive)
     credit_history: 'existing credits paid back duly', // Good but not perfect
     purpose: 'furniture/equipment',             // Moderate risk purpose
     installment_rate: 2,                        // Moderate burden (20-25%)
-    existing_credits: 2,                        // Some existing debt
+    existing_credits: 1,                        // Less existing debt (positive)
     other_debtors: 'none',                      // No guarantor (negative)
     other_installment_plans: 'none',            // No other obligations (positive)
     job: 'skilled employee / official',         // Decent job
@@ -100,21 +100,21 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   // Mix of positive and negative factors - barely gets rejected
   'young-entrepreneur': {
     // SHAP Features - Mixed signals, slightly more negative
-    age: 24,                                    // Younger age (less stable)
+    age: 26,                                    // Slightly older (less negative)
     checking_account_status: 'less than 0 DM', // Overdrawn (negative)
     savings_account: 'less than 100 DM',       // Minimal savings (negative)
-    credit_amount: 7200,                        // Higher amount (negative)
-    duration_months: 48,                        // Much longer duration (negative)
-    employment_status: 'less than 1 year',      // New job (negative)
-    present_residence_since: 1,                 // Low stability
+    credit_amount: 5400,                        // Lower amount (less negative)
+    duration_months: 36,                        // Shorter duration (less negative)
+    employment_status: '1 to 4 years',          // Better employment (less negative)
+    present_residence_since: 2,                 // More stability (less negative)
     property: 'unknown/no property',            // No assets (negative)
     housing: 'rent',                            // Renting (negative)
     credit_history: 'delay in paying off in the past', // Some payment issues (negative)
     purpose: 'furniture/equipment',             // Less practical purpose
-    installment_rate: 4,                        // High burden (>=35%)
-    existing_credits: 3,                        // More existing debt (negative)
+    installment_rate: 3,                        // Moderate-high burden (25-35%)
+    existing_credits: 2,                        // Less existing debt (less negative)
     other_debtors: 'none',                      // No guarantor (negative)
-    other_installment_plans: 'bank',            // Other obligations (negative)
+    other_installment_plans: 'none',            // No other obligations (positive)
     job: 'unskilled - resident',                // Lower skill level (negative)
     
     // Excluded Features (not in SHAP) - Set to neutral
