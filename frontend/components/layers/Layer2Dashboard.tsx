@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, XCircle, TrendingUp, TrendingDown, Sparkles, FileText, Percent, Star, ShieldAlert } from 'lucide-react'
+import { CheckCircle2, XCircle, TrendingUp, TrendingDown, Sparkles, FileText, ShieldAlert } from 'lucide-react'
 import RiskTugOfWar from './dashboard/RiskTugOfWar'
 import FeatureRowAccordion from './dashboard/FeatureRowAccordion'
 import InfoTooltip, { TOOLTIPS } from './dashboard/InfoTooltip'
@@ -178,67 +178,6 @@ function isCreditHistoryFeature(featureName: string): boolean {
          featureName.toLowerCase().includes('credit_history')
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// RISK-BASED PRICING CALCULATOR
-// ═══════════════════════════════════════════════════════════════════════
-
-interface InterestRateResult {
-  rate: string           // Formatted rate (e.g., "9.50%")
-  rateValue: number      // Numeric rate for comparison
-  tier: 'prime' | 'standard' | 'high-risk'
-  tierLabel: string
-  tierEmoji: string
-}
-
-function calculateInterestRate(
-  decision: 'approved' | 'rejected',
-  confidence: number
-): InterestRateResult | null {
-  // Step A: Handle Rejection - No credit offered
-  if (decision === 'rejected') {
-    return null
-  }
-
-  // Step B: Calculate Risk
-  // confidence is the probability of the winning class (approval)
-  // defaultRisk = probability of default = 1 - confidence
-  const defaultRisk = 1.0 - confidence
-
-  // Step C: The "Forgiving" Formula
-  // Base Rate: 4.5% (floor for best applicants)
-  // Risk Multiplier: 20 (scales risk to reasonable rate range)
-  const BASE_RATE = 4.5
-  const RISK_MULTIPLIER = 20
-  const rateValue = BASE_RATE + (defaultRisk * RISK_MULTIPLIER)
-
-  // Step D: Determine Tier
-  let tier: 'prime' | 'standard' | 'high-risk'
-  let tierLabel: string
-  let tierEmoji: string
-
-  if (rateValue < 7) {
-    tier = 'prime'
-    tierLabel = 'Prime Rate'
-    tierEmoji = '🌟'
-  } else if (rateValue < 11) {
-    tier = 'standard'
-    tierLabel = 'Standard Rate'
-    tierEmoji = '✓'
-  } else {
-    tier = 'high-risk'
-    tierLabel = 'High Risk Rate'
-    tierEmoji = '⚠️'
-  }
-
-  return {
-    rate: `${rateValue.toFixed(2)}%`,
-    rateValue,
-    tier,
-    tierLabel,
-    tierEmoji
-  }
-}
-
 // Processed feature with contribution percentage
 interface ProcessedFeature extends SHAPFeature {
   displayName: string
@@ -255,12 +194,6 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
   
   const isApproved = decision === 'approved'
   const confidencePercent = Math.round(probability * 100)
-  
-  // Calculate personalized interest rate (only for approved applicants)
-  const interestRate = useMemo(() => 
-    calculateInterestRate(decision, probability),
-    [decision, probability]
-  )
 
   // ═══════════════════════════════════════════════════════════════════════
   // PHASE 1: Data Transformation - Relative Impact % Logic
@@ -381,95 +314,8 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     <div className="space-y-6">
       {/* Decision Header with Interest Rate */}
       <DecisionHeader decision={decision} probability={probability} />
-      
-      {/* ═══════════════════════════════════════════════════════════════════════
-          PERSONALIZED RATE/RISK - Always at Top
-          ═══════════════════════════════════════════════════════════════════════ */}
-      
-      {/* Interest Rate Card (Approved) - DETAILED VERSION */}
-      {interestRate && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
-          className={`rounded-2xl p-6 border-2 ${
-            interestRate.tier === 'prime' 
-              ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300'
-              : interestRate.tier === 'standard'
-              ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300'
-              : 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300'
-          }`}
-        >
-          <div className="flex items-start justify-between">
-            {/* Left: Rate Display */}
-            <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                interestRate.tier === 'prime' 
-                  ? 'bg-emerald-100'
-                  : interestRate.tier === 'standard'
-                  ? 'bg-blue-100'
-                  : 'bg-orange-100'
-              }`}>
-                {interestRate.tier === 'prime' ? (
-                  <Star className="text-emerald-600" size={28} />
-                ) : interestRate.tier === 'standard' ? (
-                  <Percent className="text-blue-600" size={28} />
-                ) : (
-                  <ShieldAlert className="text-orange-600" size={28} />
-                )}
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Your Personalized Rate</p>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-4xl font-bold ${
-                    interestRate.tier === 'prime' 
-                      ? 'text-emerald-700'
-                      : interestRate.tier === 'standard'
-                      ? 'text-blue-700'
-                      : 'text-orange-700'
-                  }`}>
-                    {interestRate.rate}
-                  </span>
-                  <span className="text-gray-500 text-lg">APR</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Right: Tier Badge */}
-            <div className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 ${
-              interestRate.tier === 'prime' 
-                ? 'bg-emerald-100 text-emerald-800'
-                : interestRate.tier === 'standard'
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-orange-100 text-orange-800'
-            }`}>
-              <span>{interestRate.tierEmoji}</span>
-              <span>{interestRate.tierLabel}</span>
-            </div>
-          </div>
-
-          {/* Rate Explanation */}
-          <div className="mt-4 pt-4 border-t border-gray-200/50">
-            <div className="flex items-start gap-2">
-              <InfoTooltip 
-                content={`This rate is calculated from your risk profile. Base rate (4.5%) + Risk adjustment (${((1 - probability) * 20).toFixed(1)}%). Lower risk = lower rate.`}
-              />
-              <p className="text-sm text-gray-600">
-                Based on your <strong>{confidencePercent}% repayment probability</strong>. 
-                {interestRate.tier === 'high-risk' ? (
-                  <span className="text-orange-700"> Improving factors like Savings or reducing Loan Duration can lower this rate.</span>
-                ) : interestRate.tier === 'standard' ? (
-                  <span className="text-blue-700"> Good standing. Minor improvements could qualify you for our Prime rate.</span>
-                ) : (
-                  <span className="text-emerald-700"> Excellent! You qualify for our best available rate.</span>
-                )}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Rejection Risk Gauge (Rejected Only) - ALWAYS FIRST */}
+      {/* Rejection Risk Gauge (Rejected Only) */}
       {!isApproved && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
