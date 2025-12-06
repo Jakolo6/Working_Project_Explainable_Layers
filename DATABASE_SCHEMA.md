@@ -223,9 +223,9 @@
 
 ---
 
-## 🧹 **Recent Cleanup (2025-12-06)**
+## 🧹 **Recent Cleanup (2025-12-06/07)**
 
-### **Removed Legacy Columns from `sessions`:**
+### **1. Removed Legacy Columns from `sessions`:**
 
 | Column | Reason for Removal |
 |--------|-------------------|
@@ -235,6 +235,18 @@
 | `background_notes` | No longer collected |
 
 **Migration:** `CLEANUP_LEGACY_COLUMNS.sql`
+
+### **2. Updated `experiment_complete_data` View:**
+
+**Problem:** View was using old schema with legacy columns  
+**Solution:** Recreated view to include new demographic fields
+
+**Migration:** `UPDATE_VIEWS_FOR_NEW_SCHEMA.sql`
+
+**Changes:**
+- ✅ Added: `age`, `gender`, `financial_relationship`
+- ✅ Added: `ai_trust_instinct`, `ai_fairness_stance`
+- ❌ Removed: `participant_background`, `credit_experience`, `ai_familiarity`, `background_notes`
 
 ---
 
