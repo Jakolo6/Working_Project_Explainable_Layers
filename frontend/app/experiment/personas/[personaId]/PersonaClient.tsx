@@ -220,6 +220,11 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
         probability: result.probability
       })
       setIsLocked(true)
+      
+      // Automatically navigate to first layer after successful prediction
+      setTimeout(() => {
+        router.push(`/experiment/personas/${personaId}/layers/1`)
+      }, 500) // Small delay to show the decision briefly
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit application')
     } finally {
