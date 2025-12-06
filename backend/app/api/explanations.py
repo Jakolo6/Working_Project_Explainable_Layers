@@ -428,45 +428,48 @@ async def _generate_dashboard_llm_summary(request: NarrativeRequest, api_key: st
         positive_features = [f for f in request.shap_features if f.impact == 'positive'][:3]
         negative_features = [f for f in request.shap_features if f.impact == 'negative'][:3]
         
-        # Concise system prompt for dashboard
-        system_prompt = """You are a credit risk analyst providing a concise dashboard summary.
+        # Enhanced analytical prompt for dashboard
+        system_prompt = """You are a senior credit risk analyst providing an executive dashboard summary.
 
 STRICT REQUIREMENTS:
-- Maximum 50 words total
-- Use bullet points or very short lines
-- NO full paragraphs
-- Analytical, data-driven tone
-- Do NOT explain SHAP or methodology
-- Just summarize key factors and net outcome
-- Use **bold** for critical items
+- Maximum 60 words total
+- Analytical, insight-driven tone
+- Focus on WHY the decision makes sense
+- Highlight the MOST CRITICAL factor
+- Show risk/reward balance with numbers
+- Use **bold** for key insights
+- NO methodology explanations
 
 FORMAT EXAMPLE:
-**Decision: APPROVED** (68% confidence)
+**APPROVED** (68% confidence)
 
-**Key Drivers:**
-• High monthly burden (€200/mo) - main concern
-• Moderate credit amount (€4,800)
+**Critical Factor:** Monthly burden (€200) creates repayment risk despite 24-month term.
 
-**Mitigating Factors:**
-• Owns property
-• Stable employment
+**Risk Balance:**
+↑ Concerns: High debt-to-income ratio
+↓ Strengths: Property ownership, stable income
 
-**Net Assessment:** Strengths outweigh risks."""
+**Bottom Line:** Manageable risk - strengths offset payment concerns."""
 
-        # Build concise user prompt
-        risk_factors = "\n".join([f"• {f.feature}: {f.value}" for f in positive_features])
-        support_factors = "\n".join([f"• {f.feature}: {f.value}" for f in negative_features])
+        # Build enhanced user prompt with SHAP values
+        risk_factors = "\n".join([f"• {f.feature}: {f.value} (SHAP: {f.shap_value:+.2f})" for f in positive_features])
+        support_factors = "\n".join([f"• {f.feature}: {f.value} (SHAP: {f.shap_value:+.2f})" for f in negative_features])
         
         user_prompt = f"""Decision: {request.decision.upper()}
 Confidence: {request.probability * 100:.0f}%
 
-Risk Drivers:
+Top Risk Drivers (increasing default risk):
 {risk_factors if risk_factors else "None significant"}
 
-Strengths:
+Top Strengths (reducing default risk):
 {support_factors if support_factors else "None significant"}
 
-Generate a concise analytical summary (max 50 words, bullet format)."""
+Generate an executive dashboard summary:
+1. Identify the MOST CRITICAL factor (highest impact)
+2. Explain WHY this decision makes sense
+3. Show risk/reward balance
+4. Provide bottom-line assessment
+Maximum 60 words, analytical tone."""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -493,25 +496,37 @@ def _generate_dashboard_template(request: NarrativeRequest) -> str:
     positive = [f for f in request.shap_features if f.impact == 'positive'][:2]
     negative = [f for f in request.shap_features if f.impact == 'negative'][:2]
     
-    summary = f"**Decision: {decision}** ({confidence:.0f}% confidence)\n\n"
+    # Find most critical factor
+    all_features = sorted(request.shap_features, key=lambda f: abs(f.shap_value), reverse=True)
+    critical = all_features[0] if all_features else None
+    
+    summary = f"**{decision}** ({confidence:.0f}% confidence)\n\n"
+    
+    if critical:
+        impact_type = "risk" if critical.impact == 'positive' else "strength"
+        summary += f"**Critical Factor:** {critical.feature} ({critical.value}) - key {impact_type}\n\n"
+    
+    summary += "**Risk Balance:**\n"
     
     if positive:
-        summary += "**Risk Drivers:**\n"
-        for f in positive:
-            summary += f"• {f.feature}: {f.value}\n"
-        summary += "\n"
+        summary += "↑ Concerns: " + ", ".join([f.feature for f in positive]) + "\n"
     
     if negative:
-        summary += "**Strengths:**\n"
-        for f in negative:
-            summary += f"• {f.feature}: {f.value}\n"
-        summary += "\n"
+        summary += "↓ Strengths: " + ", ".join([f.feature for f in negative]) + "\n"
     
-    # Net assessment
+    summary += "\n"
+    
+    # Bottom line assessment
     if decision == "APPROVED":
-        summary += "**Net:** Strengths outweigh risks."
+        if confidence >= 70:
+            summary += "**Bottom Line:** Strong approval - strengths clearly outweigh risks."
+        else:
+            summary += "**Bottom Line:** Borderline approval - strengths narrowly offset concerns."
     else:
-        summary += "**Net:** Risks exceed acceptable threshold."
+        if confidence >= 70:
+            summary += "**Bottom Line:** Clear rejection - risks significantly exceed strengths."
+        else:
+            summary += "**Bottom Line:** Borderline rejection - accumulated risks tip the balance."
     
     return summary
 
