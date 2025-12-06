@@ -413,32 +413,29 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
         />
       </motion.div>
 
-      {/* AI-Generated Analyst Summary */}
+      {/* AI-Generated Dashboard Summary */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="relative overflow-hidden rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"
+        className="relative overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm"
       >
-        {/* Decorative corner accent */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-bl-full" />
-        
-        <div className="relative p-5">
-          <div className="flex items-start gap-3">
+        <div className="relative p-6">
+          <div className="flex items-start gap-4">
             {/* AI Icon */}
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
-              <Sparkles className="text-white" size={18} />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0 shadow-md">
+              <FileText className="text-white" size={20} />
             </div>
             
             <div className="flex-1 min-w-0">
               {/* Header */}
-              <div className="flex items-center gap-2 mb-2.5">
-                <h3 className="text-sm font-bold text-indigo-900">AI Analyst Summary</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-base font-bold text-slate-900">Quick Assessment</h3>
                 {isLoadingSummary && (
                   <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 )}
               </div>
@@ -446,22 +443,24 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
               {/* Content */}
               {isLoadingSummary ? (
                 <div className="space-y-2">
-                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-full" />
-                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-11/12" />
-                  <div className="h-3 bg-indigo-200/50 rounded animate-pulse w-4/5" />
+                  <div className="h-3 bg-slate-100 rounded animate-pulse w-full" />
+                  <div className="h-3 bg-slate-100 rounded animate-pulse w-11/12" />
+                  <div className="h-3 bg-slate-100 rounded animate-pulse w-4/5" />
                 </div>
               ) : (
-                <div className="text-sm text-gray-700 leading-relaxed space-y-2">
-                  {aiSummary?.split('\n').map((paragraph, idx) => {
+                <div className="text-sm text-slate-700 leading-relaxed space-y-1.5">
+                  {aiSummary?.split('\n').map((line, idx) => {
                     // Convert **bold** markdown to HTML
-                    const formattedText = paragraph.replace(
+                    const formattedText = line.replace(
                       /\*\*(.+?)\*\*/g,
-                      '<strong class="font-semibold text-gray-900">$1</strong>'
+                      '<strong class="font-bold text-slate-900">$1</strong>'
                     )
+                    // Check if it's a bullet point
+                    const isBullet = line.trim().startsWith('•') || line.trim().startsWith('-')
                     return (
                       <p
                         key={idx}
-                        className="text-sm"
+                        className={`text-sm ${isBullet ? 'ml-0' : ''} ${line.trim() === '' ? 'h-1' : ''}`}
                         dangerouslySetInnerHTML={{ __html: formattedText }}
                       />
                     )
