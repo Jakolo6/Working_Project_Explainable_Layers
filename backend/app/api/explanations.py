@@ -366,6 +366,157 @@ def _generate_template_narrative(request: NarrativeRequest) -> str:
 
 
 # ============================================================================
+# LEVEL 2: DASHBOARD SUMMARY ENDPOINT (Concise Analytical Text)
+# ============================================================================
+
+@router.post("/level2/dashboard", response_model=NarrativeResponse)
+async def generate_dashboard_summary(request: NarrativeRequest):
+    """
+    Generate concise, analytical summary for dashboard layer.
+    Under 50 words, bullet format, no paragraphs.
+    """
+    try:
+        openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        
+        if openai_key:
+            # Try LLM-based generation
+            narrative = await _generate_dashboard_llm_summary(request, openai_key)
+            is_llm = True
+        else:
+            # Template-based fallback
+            narrative = _generate_dashboard_template(request)
+            is_llm = False
+        
+        top_features = [
+            {
+                "feature": f.feature,
+                "value": f.value,
+                "shap_value": f.shap_value,
+                "impact": f.impact
+            }
+            for f in request.shap_features[:5]
+        ]
+        
+        return NarrativeResponse(
+            narrative=narrative,
+            top_features=top_features,
+            prediction=request.decision,
+            is_llm_generated=is_llm
+        )
+        
+    except Exception as e:
+        print(f"[ERROR] Dashboard summary generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate dashboard summary: {str(e)}"
+        )
+
+
+async def _generate_dashboard_llm_summary(request: NarrativeRequest, api_key: str) -> str:
+    """
+    Generate concise analytical summary for dashboard using OpenAI.
+    Maximum 50 words, bullet format, analytical tone.
+    """
+    try:
+        from openai import OpenAI
+        
+        client = OpenAI(api_key=api_key)
+        
+        # Get top risk and support factors
+        positive_features = [f for f in request.shap_features if f.impact == 'positive'][:3]
+        negative_features = [f for f in request.shap_features if f.impact == 'negative'][:3]
+        
+        # Concise system prompt for dashboard
+        system_prompt = """You are a credit risk analyst providing a concise dashboard summary.
+
+STRICT REQUIREMENTS:
+- Maximum 50 words total
+- Use bullet points or very short lines
+- NO full paragraphs
+- Analytical, data-driven tone
+- Do NOT explain SHAP or methodology
+- Just summarize key factors and net outcome
+- Use **bold** for critical items
+
+FORMAT EXAMPLE:
+**Decision: APPROVED** (68% confidence)
+
+**Key Drivers:**
+• High monthly burden (€200/mo) - main concern
+• Moderate credit amount (€4,800)
+
+**Mitigating Factors:**
+• Owns property
+• Stable employment
+
+**Net Assessment:** Strengths outweigh risks."""
+
+        # Build concise user prompt
+        risk_factors = "\n".join([f"• {f.feature}: {f.value}" for f in positive_features])
+        support_factors = "\n".join([f"• {f.feature}: {f.value}" for f in negative_features])
+        
+        user_prompt = f"""Decision: {request.decision.upper()}
+Confidence: {request.probability * 100:.0f}%
+
+Risk Drivers:
+{risk_factors if risk_factors else "None significant"}
+
+Strengths:
+{support_factors if support_factors else "None significant"}
+
+Generate a concise analytical summary (max 50 words, bullet format)."""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=100,  # Strict limit for brevity
+            temperature=0.1  # Very low for consistency
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"[ERROR] Dashboard LLM generation failed: {e}")
+        return _generate_dashboard_template(request)
+
+
+def _generate_dashboard_template(request: NarrativeRequest) -> str:
+    """Generate template-based dashboard summary as fallback."""
+    decision = request.decision.upper()
+    confidence = request.probability * 100
+    
+    positive = [f for f in request.shap_features if f.impact == 'positive'][:2]
+    negative = [f for f in request.shap_features if f.impact == 'negative'][:2]
+    
+    summary = f"**Decision: {decision}** ({confidence:.0f}% confidence)\n\n"
+    
+    if positive:
+        summary += "**Risk Drivers:**\n"
+        for f in positive:
+            summary += f"• {f.feature}: {f.value}\n"
+        summary += "\n"
+    
+    if negative:
+        summary += "**Strengths:**\n"
+        for f in negative:
+            summary += f"• {f.feature}: {f.value}\n"
+        summary += "\n"
+    
+    # Net assessment
+    if decision == "APPROVED":
+        summary += "**Net:** Strengths outweigh risks."
+    else:
+        summary += "**Net:** Risks exceed acceptable threshold."
+    
+    return summary
+
+
+# ============================================================================
 # LEVEL 3: COUNTERFACTUAL ENDPOINT
 # ============================================================================
 

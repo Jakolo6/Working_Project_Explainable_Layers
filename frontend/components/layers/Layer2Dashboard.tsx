@@ -255,20 +255,26 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
       const generateLocalSummary = () => {
-        const topConcern = concernFeatures[0]?.displayName?.toLowerCase()
-        const topStrength = supportiveFeatures[0]?.displayName?.toLowerCase()
+        const topConcern = concernFeatures[0]?.displayName
+        const topStrength = supportiveFeatures[0]?.displayName
+        
+        let summary = `**Decision: ${decision.toUpperCase()}** (${confidencePercent}% confidence)\n\n`
+        
+        if (topConcern) {
+          summary += `**Key Risk:**\n• ${topConcern}\n\n`
+        }
+        
+        if (topStrength) {
+          summary += `**Main Strength:**\n• ${topStrength}\n\n`
+        }
         
         if (decision === 'approved') {
-          if (topStrength) {
-            return `This application shows a favorable risk profile. The strongest supporting factor is the applicant's ${topStrength}, which significantly contributed to the positive assessment.${topConcern ? ` While ${topConcern} was noted as an area of attention, the overall balance favors approval.` : ''}`
-          }
-          return "This application demonstrates an acceptable risk profile based on the analyzed factors."
+          summary += `**Net:** Strengths outweigh risks.`
         } else {
-          if (topConcern) {
-            return `The primary concern in this application is the ${topConcern}, which carries significant weight in the risk assessment.${topStrength ? ` Despite positive indicators like ${topStrength}, the risk factors outweigh the strengths.` : ''}`
-          }
-          return "The combination of risk factors in this application exceeds the acceptable threshold."
+          summary += `**Net:** Risks exceed threshold.`
         }
+        
+        return summary
       }
       
       if (!apiUrl) {
@@ -278,7 +284,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
       
       setIsLoadingSummary(true)
       try {
-        const response = await fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
+        const response = await fetch(`${apiUrl}/api/v1/explanations/level2/dashboard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
