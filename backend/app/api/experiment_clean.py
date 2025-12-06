@@ -489,6 +489,107 @@ async def generate_natural_language_explanation(request: dict):
         )
 
 
+def map_frontend_to_backend(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Map frontend field names and values to backend format.
+    Frontend uses human-readable values, backend uses encoded values.
+    """
+    # Field name mappings
+    field_mapping = {
+        'checking_account_status': 'checking_status',
+        'savings_account': 'savings_status',
+        'employment_status': 'employment',
+        'present_residence_since': 'residence_since',
+        'other_installment_plans': 'other_payment_plans',
+        'telephone': 'own_telephone',
+        'duration_months': 'duration',
+        'installment_rate': 'installment_commitment'
+    }
+    
+    # Value mappings for each field
+    value_mappings = {
+        'checking_status': {
+            'less than 0 DM': 'lt_0_dm',
+            '0 to 200 DM': '0_to_200_dm',
+            'greater than 200 DM': 'ge_200_dm',
+            'no checking account': 'no_checking'
+        },
+        'credit_history': {
+            'no credits taken': 'no_credits',
+            'all credits paid back': 'all_paid',
+            'existing credits paid back': 'existing_paid',
+            'delay in paying off in the past': 'delayed_past',
+            'critical account': 'critical'
+        },
+        'savings_status': {
+            'less than 100 DM': 'lt_100_dm',
+            '100 to 500 DM': '100_to_500_dm',
+            '500 to 1000 DM': '500_to_1000_dm',
+            'greater than 1000 DM': 'ge_1000_dm',
+            'unknown': 'unknown'
+        },
+        'employment': {
+            'unemployed': 'unemployed',
+            'less than 1 year': 'lt_1_year',
+            '1 to 4 years': '1_to_4_years',
+            '4 to 7 years': '4_to_7_years',
+            'greater than 7 years': 'ge_7_years'
+        },
+        'job': {
+            'unemployed/unskilled - non-resident': 'unemployed_unskilled',
+            'unskilled - resident': 'unskilled_resident',
+            'skilled employee / official': 'skilled',
+            'management / self-employed': 'management'
+        },
+        'property_magnitude': {
+            'real estate': 'real_estate',
+            'building society savings': 'building_society',
+            'car or other': 'car_other',
+            'unknown/no property': 'unknown_no_property'
+        },
+        'other_payment_plans': {
+            'bank': 'bank',
+            'stores': 'stores',
+            'none': 'none'
+        },
+        'own_telephone': {
+            'yes': 'yes',
+            'no': 'none'
+        }
+    }
+    
+    # Start with a copy of the data
+    mapped_data = {}
+    
+    for key, value in data.items():
+        # Map field name
+        backend_key = field_mapping.get(key, key)
+        
+        # Handle installment_rate (numeric to categorical)
+        if key == 'installment_rate' or backend_key == 'installment_commitment':
+            if isinstance(value, (int, float)):
+                # Map numeric to categorical
+                rate_map = {
+                    1: 'lt_20_percent',
+                    2: '20_to_25_percent',
+                    3: '25_to_35_percent',
+                    4: 'ge_35_percent'
+                }
+                mapped_data['installment_commitment'] = rate_map.get(int(value), 'lt_20_percent')
+            else:
+                mapped_data['installment_commitment'] = value
+            continue
+        
+        # Map value if mapping exists
+        if backend_key in value_mappings and isinstance(value, str):
+            mapped_value = value_mappings[backend_key].get(value, value)
+            mapped_data[backend_key] = mapped_value
+        else:
+            mapped_data[backend_key] = value
+    
+    return mapped_data
+
+
 @router.post("/predict-counterfactual")
 async def predict_counterfactual(request: Dict[str, Any]):
     """
@@ -508,10 +609,14 @@ async def predict_counterfactual(request: Dict[str, Any]):
             print("[ERROR] Missing application_data in request")
             raise HTTPException(status_code=400, detail="Missing application_data")
         
-        print(f"[DEBUG] Application data: {application_data}")
+        print(f"[DEBUG] Raw application data: {application_data}")
+        
+        # Map frontend format to backend format
+        mapped_data = map_frontend_to_backend(application_data)
+        print(f"[DEBUG] Mapped application data: {mapped_data}")
         
         # Make prediction (fast - no SHAP)
-        prediction_result = xgb_service.predict(application_data)
+        prediction_result = xgb_service.predict(mapped_data)
         
         print(f"[DEBUG] Prediction result: {prediction_result}")
         
