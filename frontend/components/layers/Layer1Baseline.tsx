@@ -7,6 +7,7 @@ import React from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import DecisionHeader from './DecisionHeader'
 
 // Simple display name mapping (same as in Layer2Dashboard)
 const FEATURE_DISPLAY_MAP: Record<string, string> = {
@@ -78,29 +79,8 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
 
   return (
     <div className="space-y-6">
-      {/* Decision Summary */}
-      <div className={`p-5 rounded-lg border-2 ${
-        isApproved 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-red-50 border-red-200'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Decision: <span className={isApproved ? 'text-green-700' : 'text-red-700'}>
-                {decision.toUpperCase()}
-              </span>
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Based on analysis of {shapFeatures.length} factors
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">{confidencePercent}%</div>
-            <p className="text-sm text-gray-600">Model Confidence</p>
-          </div>
-        </div>
-      </div>
+      {/* Decision Header with Interest Rate */}
+      <DecisionHeader decision={decision} probability={probability} />
 
 
       {/* Complete SHAP Values Table - with fixed height and scroll */}

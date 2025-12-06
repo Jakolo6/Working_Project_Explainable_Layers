@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { getPersonaApplication } from '@/lib/personas'
 import { useParams } from 'next/navigation'
+import DecisionHeader from './DecisionHeader'
 
 interface SHAPFeature {
   feature: string
@@ -179,6 +180,9 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
 
   return (
     <div className="space-y-6">
+      {/* Decision Header with Interest Rate */}
+      <DecisionHeader decision={livePrediction.decision} probability={livePrediction.probability} />
+      
       {/* ═══════════════════════════════════════════════════════════════════════
           ZONE A: NARRATIVE HEADER
           ═══════════════════════════════════════════════════════════════════════ */}

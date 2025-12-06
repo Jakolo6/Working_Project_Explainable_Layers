@@ -10,6 +10,7 @@ import { CheckCircle2, XCircle, TrendingUp, TrendingDown, Sparkles, FileText, Pe
 import RiskTugOfWar from './dashboard/RiskTugOfWar'
 import FeatureRowAccordion from './dashboard/FeatureRowAccordion'
 import InfoTooltip, { TOOLTIPS } from './dashboard/InfoTooltip'
+import DecisionHeader from './DecisionHeader'
 
 interface SHAPFeature {
   feature: string
@@ -377,11 +378,14 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
 
   return (
     <div className="space-y-6">
+      {/* Decision Header with Interest Rate */}
+      <DecisionHeader decision={decision} probability={probability} />
+      
       {/* ═══════════════════════════════════════════════════════════════════════
           PERSONALIZED RATE/RISK - Always at Top
           ═══════════════════════════════════════════════════════════════════════ */}
       
-      {/* Interest Rate Card (Approved) - ALWAYS FIRST */}
+      {/* Interest Rate Card (Approved) - DETAILED VERSION */}
       {interestRate && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

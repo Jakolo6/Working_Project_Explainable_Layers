@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react'
 import CreditHistoryWarning, { isCreditHistoryFeature } from '@/components/CreditHistoryWarning'
 import ExplanationChatbot from '@/components/ExplanationChatbot'
+import DecisionHeader from './DecisionHeader'
 
 // Interface for SHAP feature data
 interface SHAPFeature {
@@ -104,6 +105,9 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
 
   return (
     <div className="space-y-6">
+      {/* Decision Header with Interest Rate */}
+      <DecisionHeader decision={decision} probability={probability} />
+      
       <div className="bg-white rounded-lg border-2 border-slate-200 p-6">
         <div className="flex items-start gap-4 mb-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
