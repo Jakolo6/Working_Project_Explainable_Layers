@@ -84,19 +84,22 @@ This is a known data anomaly that we preserve for research transparency."""
 async def generate_narrative(request: NarrativeRequest):
     """
     Generate natural language explanation combining global + local SHAP.
-    Uses OpenAI if available, falls back to template-based generation.
+    DISABLED: OpenAI calls are too slow (6+ seconds), causing layer transitions to hang.
+    Using fast template-based generation only.
     """
     try:
-        openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        # DISABLED: OpenAI is too slow for real-time UX
+        # openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        # if openai_key:
+        #     narrative = await _generate_llm_narrative(request, openai_key)
+        #     is_llm = True
+        # else:
+        #     narrative = _generate_template_narrative(request)
+        #     is_llm = False
         
-        if openai_key:
-            # Try LLM-based generation
-            narrative = await _generate_llm_narrative(request, openai_key)
-            is_llm = True
-        else:
-            # Template-based fallback
-            narrative = _generate_template_narrative(request)
-            is_llm = False
+        # Always use fast template generation
+        narrative = _generate_template_narrative(request)
+        is_llm = False
         
         top_features = [
             {
@@ -373,19 +376,22 @@ def _generate_template_narrative(request: NarrativeRequest) -> str:
 async def generate_dashboard_summary(request: NarrativeRequest):
     """
     Generate concise, analytical summary for dashboard layer.
-    Under 50 words, bullet format, no paragraphs.
+    DISABLED: OpenAI calls are too slow, causing layer transitions to hang.
+    Using fast template-based generation only.
     """
     try:
-        openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        # DISABLED: OpenAI is too slow for real-time UX
+        # openai_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("Openai_Key")
+        # if openai_key:
+        #     narrative = await _generate_dashboard_llm_summary(request, openai_key)
+        #     is_llm = True
+        # else:
+        #     narrative = _generate_dashboard_template(request)
+        #     is_llm = False
         
-        if openai_key:
-            # Try LLM-based generation
-            narrative = await _generate_dashboard_llm_summary(request, openai_key)
-            is_llm = True
-        else:
-            # Template-based fallback
-            narrative = _generate_dashboard_template(request)
-            is_llm = False
+        # Always use fast template generation
+        narrative = _generate_dashboard_template(request)
+        is_llm = False
         
         top_features = [
             {
