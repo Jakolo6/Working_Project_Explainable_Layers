@@ -510,9 +510,10 @@ async def predict_counterfactual(request: Dict[str, Any]):
         prediction_result = xgb_service.predict(application_data)
         
         # Return only decision and probability
+        # Note: XGBoost service returns 'confidence' which is the max probability
         return {
             "decision": prediction_result["decision"],
-            "probability": prediction_result["probability"]
+            "probability": prediction_result["confidence"]  # Use confidence as probability
         }
         
     except Exception as e:
