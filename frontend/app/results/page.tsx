@@ -11,7 +11,6 @@ interface LayerStat {
   understanding: number
   communicability: number
   cognitive_load: number
-  reliance: number
   avg_time_seconds: number
 }
 
@@ -20,7 +19,6 @@ interface PersonaStat {
   understanding: number
   communicability: number
   cognitive_load: number
-  reliance: number
 }
 
 interface DashboardStats {
@@ -37,15 +35,13 @@ interface DashboardStats {
   avg_ai_familiarity: number
   preferred_explanation_styles: Record<string, number>
   
-  // Layer rating averages (4 dimensions) with standard deviations
+  // Layer rating averages (3 dimensions) with standard deviations
   avg_understanding: number
   avg_communicability: number
   avg_cognitive_load: number
-  avg_reliance: number
   std_understanding: number
   std_communicability: number
   std_cognitive_load: number
-  std_reliance: number
   
   // Per-layer breakdown
   layer_stats: Record<string, LayerStat>
@@ -377,7 +373,6 @@ function ResultsContent() {
                   {renderStatWithStd('Understanding', stats.avg_understanding, stats.std_understanding, 'bg-blue-500')}
                   {renderStatWithStd('Communicability', stats.avg_communicability, stats.std_communicability, 'bg-green-500')}
                   {renderStatWithStd('Mental Ease', stats.avg_cognitive_load, stats.std_cognitive_load, 'bg-orange-500')}
-                  {renderStatWithStd('Reliance Intention', stats.avg_reliance, stats.std_reliance, 'bg-indigo-500')}
                 </div>
               </div>
 
@@ -422,7 +417,6 @@ function ResultsContent() {
                       <th className="text-center py-3 px-2 font-semibold">Understanding</th>
                       <th className="text-center py-3 px-2 font-semibold">Communicability</th>
                       <th className="text-center py-3 px-2 font-semibold">Mental Ease</th>
-                      <th className="text-center py-3 px-2 font-semibold">Reliance</th>
                       <th className="text-center py-3 px-2 font-semibold">Avg Time (s)</th>
                     </tr>
                   </thead>
@@ -447,11 +441,6 @@ function ResultsContent() {
                           <td className="text-center py-3 px-2">
                             <span className={`px-2 py-1 rounded ${layer.cognitive_load >= 4 ? 'bg-green-100 text-green-800' : layer.cognitive_load >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
                               {layer.cognitive_load?.toFixed(2)}
-                            </span>
-                          </td>
-                          <td className="text-center py-3 px-2">
-                            <span className={`px-2 py-1 rounded ${layer.reliance >= 4 ? 'bg-green-100 text-green-800' : layer.reliance >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                              {layer.reliance?.toFixed(2)}
                             </span>
                           </td>
                           <td className="text-center py-3 px-2 text-gray-600">{layer.avg_time_seconds?.toFixed(0)}s</td>
@@ -485,7 +474,6 @@ function ResultsContent() {
                       <th className="text-center py-3 px-2 font-semibold">Understanding</th>
                       <th className="text-center py-3 px-2 font-semibold">Communicability</th>
                       <th className="text-center py-3 px-2 font-semibold">Mental Ease</th>
-                      <th className="text-center py-3 px-2 font-semibold">Reliance</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -499,7 +487,6 @@ function ResultsContent() {
                           <td className="text-center py-3 px-2">{persona.understanding?.toFixed(2)}</td>
                           <td className="text-center py-3 px-2">{persona.communicability?.toFixed(2)}</td>
                           <td className="text-center py-3 px-2">{persona.cognitive_load?.toFixed(2)}</td>
-                          <td className="text-center py-3 px-2">{persona.reliance?.toFixed(2)}</td>
                         </tr>
                       )
                     })}

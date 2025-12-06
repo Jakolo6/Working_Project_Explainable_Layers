@@ -143,7 +143,6 @@ class SupabaseService:
         - understanding_rating: int (1-5)
         - communicability_rating: int (1-5)
         - cognitive_load_rating: int (1-5)
-        - reliance_intention_rating: int (1-5)
         - comment: str (optional)
         - time_spent_seconds: int
         """
@@ -157,7 +156,6 @@ class SupabaseService:
                 'understanding_rating': int(rating_data['understanding_rating']),
                 'communicability_rating': int(rating_data['communicability_rating']),
                 'cognitive_load_rating': int(rating_data['cognitive_load_rating']),
-                'reliance_intention_rating': int(rating_data['reliance_intention_rating']),
                 'comment': rating_data.get('comment', ''),
                 'time_spent_seconds': int(rating_data.get('time_spent_seconds', 0))
             }
@@ -275,7 +273,6 @@ class SupabaseService:
                         'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
-                        'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'avg_time_seconds': round(sum(r.get('time_spent_seconds', 0) or 0 for r in layer_ratings) / len(layer_ratings), 1),
                     }
                 else:
@@ -291,7 +288,6 @@ class SupabaseService:
                         'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                         'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                         'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
-                        'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                     }
                 else:
                     persona_stats[persona] = {'count': 0}
@@ -300,28 +296,23 @@ class SupabaseService:
             avg_understanding = 0.0
             avg_communicability = 0.0
             avg_cognitive_load = 0.0
-            avg_reliance = 0.0
             std_understanding = 0.0
             std_communicability = 0.0
             std_cognitive_load = 0.0
-            std_reliance = 0.0
             
             if total_ratings > 0:
                 understanding_vals = [r.get('understanding_rating', 0) or 0 for r in ratings]
                 communicability_vals = [r.get('communicability_rating', 0) or 0 for r in ratings]
                 cognitive_vals = [r.get('cognitive_load_rating', 0) or 0 for r in ratings]
-                reliance_vals = [r.get('reliance_intention_rating', 0) or 0 for r in ratings]
                 
                 avg_understanding = sum(understanding_vals) / total_ratings
                 avg_communicability = sum(communicability_vals) / total_ratings
                 avg_cognitive_load = sum(cognitive_vals) / total_ratings
-                avg_reliance = sum(reliance_vals) / total_ratings
                 
                 if total_ratings > 1:
                     std_understanding = statistics.stdev(understanding_vals)
                     std_communicability = statistics.stdev(communicability_vals)
                     std_cognitive_load = statistics.stdev(cognitive_vals)
-                    std_reliance = statistics.stdev(reliance_vals)
             
             # Post-questionnaire data with full breakdown
             post_response = self.client.table('post_questionnaires').select('*').execute()
@@ -378,11 +369,9 @@ class SupabaseService:
                 "avg_understanding": round(avg_understanding, 2),
                 "avg_communicability": round(avg_communicability, 2),
                 "avg_cognitive_load": round(avg_cognitive_load, 2),
-                "avg_reliance": round(avg_reliance, 2),
                 "std_understanding": round(std_understanding, 2),
                 "std_communicability": round(std_communicability, 2),
                 "std_cognitive_load": round(std_cognitive_load, 2),
-                "std_reliance": round(std_reliance, 2),
                 
                 # Per-layer breakdown
                 "layer_stats": layer_stats,
@@ -439,7 +428,6 @@ class SupabaseService:
                 'understanding': [r.get('understanding_rating', 0) or 0 for r in layer_ratings],
                 'communicability': [r.get('communicability_rating', 0) or 0 for r in layer_ratings],
                 'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings],
-                'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings],
                 'time_seconds': [r.get('time_spent_seconds', 0) or 0 for r in layer_ratings],
             }
         return result
@@ -509,7 +497,6 @@ class SupabaseService:
             'understanding': [r.get('understanding_rating', 0) or 0 for r in ratings],
             'communicability': [r.get('communicability_rating', 0) or 0 for r in ratings],
             'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in ratings],
-            'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in ratings],
         }
         
         # Calculate Pearson correlation for each pair
@@ -555,6 +542,5 @@ class SupabaseService:
                             'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                             'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                             'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
-                            'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         }
         return result

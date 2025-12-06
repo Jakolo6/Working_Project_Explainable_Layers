@@ -372,7 +372,6 @@ async def rate_explanation_layer(request: dict):
             'understanding_rating': int(request.get('understanding_rating', 0)),
             'communicability_rating': int(request.get('communicability_rating', 0)),
             'cognitive_load_rating': int(request.get('cognitive_load_rating', 0)),
-            'reliance_intention_rating': int(request.get('reliance_intention_rating', 0)),
             'comment': request.get('comment', ''),
             'time_spent_seconds': int(request.get('time_spent_seconds', 0))
         }

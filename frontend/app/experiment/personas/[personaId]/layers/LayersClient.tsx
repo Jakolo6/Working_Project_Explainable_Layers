@@ -31,7 +31,6 @@ interface LayerRating {
   understanding: number
   communicability: number
   cognitive_load: number
-  reliance_intention: number
   comment: string
   time_spent_seconds: number
 }
@@ -90,7 +89,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
     understanding: 0,
     communicability: 0,
     cognitive_load: 0,
-    reliance_intention: 0,
     comment: '',
     time_spent_seconds: 0
   })
@@ -136,8 +134,8 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const handleSubmitRating = async () => {
     // Validate ratings
     if (ratings.understanding === 0 || ratings.communicability === 0 || 
-        ratings.cognitive_load === 0 || ratings.reliance_intention === 0) {
-      setError('Please rate all four dimensions before continuing.')
+        ratings.cognitive_load === 0) {
+      setError('Please rate all three dimensions before continuing.')
       return
     }
 
@@ -159,7 +157,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           understanding_rating: ratings.understanding,
           communicability_rating: ratings.communicability,
           cognitive_load_rating: ratings.cognitive_load,
-          reliance_intention_rating: ratings.reliance_intention,
           comment: ratings.comment,
           time_spent_seconds: timeSpent
         })
@@ -177,7 +174,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           understanding: 0,
           communicability: 0,
           cognitive_load: 0,
-          reliance_intention: 0,
           comment: '',
           time_spent_seconds: 0
         })
@@ -373,36 +369,10 @@ export default function LayersClient({ personaId }: LayersClientProps) {
               </div>
             </div>
 
-            {/* Reliance Intention Rating */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                4. I would rely on this explanation in a real scenario. *
-              </label>
-              <div className="flex gap-4">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleRatingChange('reliance_intention', value)}
-                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                      ratings.reliance_intention === value
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>Strongly disagree</span>
-                <span>Strongly agree</span>
-              </div>
-            </div>
-
             {/* Optional Comment */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                6. What was the most helpful or least helpful aspect of this explanation? (Optional)
+                4. What was the most helpful or least helpful aspect of this explanation? (Optional)
               </label>
               <textarea
                 value={ratings.comment}
