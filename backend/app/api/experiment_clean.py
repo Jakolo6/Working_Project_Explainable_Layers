@@ -582,8 +582,19 @@ def map_frontend_to_backend(data: Dict[str, Any]) -> Dict[str, Any]:
         
         # Map value if mapping exists
         if backend_key in value_mappings and isinstance(value, str):
-            mapped_value = value_mappings[backend_key].get(value, value)
-            mapped_data[backend_key] = mapped_value
+            # Try exact match first
+            mapped_value = value_mappings[backend_key].get(value)
+            
+            # If no exact match, try case-insensitive match
+            if mapped_value is None:
+                value_lower = value.lower()
+                for key_option, mapped_option in value_mappings[backend_key].items():
+                    if key_option.lower() == value_lower:
+                        mapped_value = mapped_option
+                        break
+            
+            # Use mapped value if found, otherwise keep original
+            mapped_data[backend_key] = mapped_value if mapped_value is not None else value
         else:
             mapped_data[backend_key] = value
     

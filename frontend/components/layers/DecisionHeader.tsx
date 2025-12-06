@@ -75,16 +75,6 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
           )}
         </div>
       </div>
-
-      {/* Interest Rate Explanation */}
-      {isApproved && (
-        <div className="mt-4 pt-4 border-t border-green-200">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold">Interest Rate Calculation:</span> Base rate 4.5% + risk premium based on your credit profile. 
-            Lower risk = lower rate.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
