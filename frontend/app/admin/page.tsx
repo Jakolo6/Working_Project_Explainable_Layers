@@ -253,14 +253,17 @@ function AdminContent() {
             <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border-2 border-indigo-300">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-indigo-900">Retrain Model with ML Fixes</h3>
+                  <h3 className="font-semibold text-indigo-900">Retrain Model with Encoding Fix</h3>
                   <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded">REQUIRED</span>
                 </div>
                 <p className="text-sm text-indigo-700 mt-1">
-                  ⚠️ Apply critical ML fixes: no double imbalance, OneHot encoding, shared engineering
+                  ⚠️ <strong>CRITICAL:</strong> Installment rate encoding was reversed (1=high ❌ → 1=low ✅)
                 </p>
                 <p className="text-xs text-indigo-600 mt-1">
-                  Fixes overfitting, SHAP errors, and ensures categorical installment_rate works correctly
+                  Old models have backwards SHAP explanations. Retrain to fix: high burden → positive SHAP ✓
+                </p>
+                <p className="text-xs text-indigo-500 mt-1 italic">
+                  Also includes: no double imbalance, OneHot encoding, shared engineering
                 </p>
               </div>
               <button

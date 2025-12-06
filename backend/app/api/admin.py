@@ -385,19 +385,26 @@ async def get_global_explanation_image(filename: str):
 @router.post("/retrain-model")
 async def retrain_model():
     """
-    Retrain XGBoost and Logistic models with ALL ML FIXES applied.
+    Retrain XGBoost and Logistic models with ALL FIXES applied.
     
     CRITICAL FIXES INCLUDED:
     - ✅ No double class imbalance handling (uses scale_pos_weight only)
-    - ✅ OneHotEncoder for XGBoost (matches production SHAP expectations)
-    - ✅ Shared feature engineering (consistent across all services)
-    - ✅ Categorical installment_commitment handling
+    - ✅ No manual upsampling (removed upsample_minority)
+    - ✅ Proper categorical encoding with risk-ordered categories
+    - ✅ Correct feature engineering (duration_risk, stability_score, etc.)
     - ✅ Proper validation and error handling
+    - ✅ CORRECTED installment_commitment encoding (1=low burden, 4=high burden)
+    
+    INSTALLMENT RATE FIX (Dec 6, 2024):
+    - Fixed reversed encoding throughout codebase
+    - Old: 1=≥35% (high), 4=<20% (low) ❌
+    - New: 1=<20% (low), 4=≥35% (high) ✅
+    - This ensures SHAP explanations are accurate (high burden → positive SHAP)
     
     This ensures SHAP values are semantically meaningful and predictions are accurate.
     After training, models are automatically uploaded to R2.
     
-    ⚠️ REQUIRED after ML fixes to prevent prediction errors!
+    ⚠️ REQUIRED after encoding fix to get correct SHAP explanations!
     """
     try:
         from app.services.model_training_service import ModelTrainingService
