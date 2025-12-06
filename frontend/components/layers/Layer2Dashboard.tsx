@@ -630,24 +630,35 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl border-2 border-red-200 p-6"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-              <TrendingUp className="text-red-600" size={18} />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                <TrendingUp className="text-red-600" size={22} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Risk Drivers</h2>
+                <p className="text-sm text-gray-500">Factors increasing default risk</p>
+              </div>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Risk Drivers</h2>
-            <span className="text-sm text-gray-500">({concernFeatures.length} factors)</span>
-            <InfoTooltip content={TOOLTIPS.riskDrivers} />
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                {concernFeatures.length} {concernFeatures.length === 1 ? 'factor' : 'factors'}
+              </span>
+              <InfoTooltip content={TOOLTIPS.riskDrivers} />
+            </div>
           </div>
           
+          {/* Show top 5 most impactful, collapse rest */}
           <div className="space-y-2">
             <AnimatePresence>
-              {concernFeatures.map((feature, idx) => (
+              {concernFeatures.slice(0, 5).map((feature, idx) => (
                 <motion.div
                   key={feature.feature}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * idx }}
+                  transition={{ delay: 0.05 * idx }}
                 >
                   <FeatureRowAccordion
                     featureName={feature.feature}
@@ -663,6 +674,31 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
                 </motion.div>
               ))}
             </AnimatePresence>
+            
+            {/* Show remaining factors if > 5 */}
+            {concernFeatures.length > 5 && (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 font-medium py-2 px-4 bg-gray-50 rounded-lg">
+                  + {concernFeatures.length - 5} more factors (minor impact)
+                </summary>
+                <div className="space-y-2 mt-2">
+                  {concernFeatures.slice(5).map((feature, idx) => (
+                    <FeatureRowAccordion
+                      key={feature.feature}
+                      featureName={feature.feature}
+                      displayName={feature.displayName}
+                      value={feature.formattedValue}
+                      numericValue={feature.numericValue}
+                      contributionPercent={feature.contributionPercent}
+                      impact={feature.impact}
+                      isExpanded={expandedFeature === feature.feature}
+                      onToggle={() => handleToggle(feature.feature)}
+                      isCreditHistory={feature.isCreditHistory}
+                    />
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         </motion.div>
       )}
@@ -673,24 +709,35 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="bg-white rounded-2xl border-2 border-green-200 p-6"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-              <TrendingDown className="text-green-600" size={18} />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                <TrendingDown className="text-green-600" size={22} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Strengths</h2>
+                <p className="text-sm text-gray-500">Factors reducing default risk</p>
+              </div>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Strengths</h2>
-            <span className="text-sm text-gray-500">({supportiveFeatures.length} factors)</span>
-            <InfoTooltip content={TOOLTIPS.strengths} />
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                {supportiveFeatures.length} {supportiveFeatures.length === 1 ? 'factor' : 'factors'}
+              </span>
+              <InfoTooltip content={TOOLTIPS.strengths} />
+            </div>
           </div>
           
+          {/* Show top 5 most impactful, collapse rest */}
           <div className="space-y-2">
             <AnimatePresence>
-              {supportiveFeatures.map((feature, idx) => (
+              {supportiveFeatures.slice(0, 5).map((feature, idx) => (
                 <motion.div
                   key={feature.feature}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * idx }}
+                  transition={{ delay: 0.05 * idx }}
                 >
                   <FeatureRowAccordion
                     featureName={feature.feature}
@@ -706,6 +753,31 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
                 </motion.div>
               ))}
             </AnimatePresence>
+            
+            {/* Show remaining factors if > 5 */}
+            {supportiveFeatures.length > 5 && (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 font-medium py-2 px-4 bg-gray-50 rounded-lg">
+                  + {supportiveFeatures.length - 5} more factors (minor impact)
+                </summary>
+                <div className="space-y-2 mt-2">
+                  {supportiveFeatures.slice(5).map((feature, idx) => (
+                    <FeatureRowAccordion
+                      key={feature.feature}
+                      featureName={feature.feature}
+                      displayName={feature.displayName}
+                      value={feature.formattedValue}
+                      numericValue={feature.numericValue}
+                      contributionPercent={feature.contributionPercent}
+                      impact={feature.impact}
+                      isExpanded={expandedFeature === feature.feature}
+                      onToggle={() => handleToggle(feature.feature)}
+                      isCreditHistory={feature.isCreditHistory}
+                    />
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         </motion.div>
       )}
