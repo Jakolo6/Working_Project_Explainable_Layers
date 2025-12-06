@@ -291,14 +291,18 @@ async def predict_persona(request: dict):
         print(f"[DEBUG] Received application_data: {application_data}")
         print(f"[DEBUG] Data types: {[(k, type(v).__name__) for k, v in application_data.items()]}")
         
+        # Map frontend format to backend format (same as counterfactual endpoint)
+        mapped_data = map_frontend_to_backend(application_data)
+        print(f"[DEBUG] Mapped application data: {mapped_data}")
+        
         # Make prediction
         print("[DEBUG] Starting prediction...")
-        prediction_result = xgb_service.predict(application_data)
+        prediction_result = xgb_service.predict(mapped_data)
         print(f"[DEBUG] Prediction successful: {prediction_result}")
         
         # Get SHAP explanation for ALL features
         print("[DEBUG] Starting SHAP explanation...")
-        shap_explanation = xgb_service.explain_prediction(application_data, num_features=50)  # Get all features
+        shap_explanation = xgb_service.explain_prediction(mapped_data, num_features=50)  # Get all features
         print(f"[DEBUG] SHAP explanation successful")
         
         # Transform ALL SHAP features to match frontend expectation
