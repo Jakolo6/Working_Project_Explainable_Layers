@@ -561,8 +561,8 @@ def map_frontend_to_backend(data: Dict[str, Any]) -> Dict[str, Any]:
         },
         'property_magnitude': {
             'real estate': 'real_estate',
-            'building society savings': 'building_society',
-            'car or other': 'car_other',
+            'building society savings': 'savings_agreement',
+            'car or other': 'car_or_other',
             'unknown/no property': 'unknown_no_property'
         },
         'other_payment_plans': {
