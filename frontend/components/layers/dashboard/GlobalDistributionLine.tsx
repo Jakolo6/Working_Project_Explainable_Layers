@@ -98,12 +98,13 @@ export default function GlobalDistributionLine({
 
         {/* Applicant's value marker - PRECISELY ALIGNED */}
         <motion.div
-          initial={{ scale: 0, y: '-50%' }}
-          animate={{ scale: 1, y: '-50%' }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
-          className="absolute top-1/2"
+          className="absolute"
           style={{ 
             left: `${valuePercent}%`,
+            top: '50%',
             transform: 'translate(-50%, -50%)'
           }}
         >
@@ -115,12 +116,25 @@ export default function GlobalDistributionLine({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+            className="absolute whitespace-nowrap"
+            style={{
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '8px'
+            }}
           >
             <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
               <span className="font-semibold">You: {formatValue(value)}</span>
             </div>
-            <div className="w-2 h-2 bg-gray-900 transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -mt-1" />
+            <div 
+              className="w-2 h-2 bg-gray-900 absolute"
+              style={{
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%) translateY(-4px) rotate(45deg)'
+              }}
+            />
           </motion.div>
         </motion.div>
       </div>
