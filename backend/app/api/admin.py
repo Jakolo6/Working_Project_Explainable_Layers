@@ -905,3 +905,51 @@ async def delete_all_experiment_data(request: DeleteConfirmRequest):
             status_code=500,
             detail=f"Failed to delete data: {str(e)}"
         )
+
+
+@router.delete("/delete-non-binary")
+async def delete_non_binary_sessions():
+    """
+    Delete all sessions where gender = 'non_binary'.
+    This removes test/spam data from non-binary respondents.
+    """
+    try:
+        config = get_settings()
+        from supabase import create_client
+        
+        supabase = create_client(config.supabase_url, config.supabase_key)
+        
+        # Get all non-binary sessions
+        non_binary_sessions = supabase.table('sessions').select('session_id').eq('gender', 'non_binary').execute()
+        
+        if not non_binary_sessions.data or len(non_binary_sessions.data) == 0:
+            return {
+                'success': True,
+                'message': 'No non-binary sessions found',
+                'deleted_count': 0
+            }
+        
+        session_ids = [s['session_id'] for s in non_binary_sessions.data]
+        deleted_count = 0
+        
+        # Delete each session (CASCADE will handle related data)
+        for session_id in session_ids:
+            try:
+                result = supabase.table('sessions').delete().eq('session_id', session_id).execute()
+                if result.data and len(result.data) > 0:
+                    deleted_count += 1
+            except Exception as e:
+                print(f"Error deleting session {session_id}: {e}")
+        
+        return {
+            'success': True,
+            'message': f'Deleted {deleted_count} non-binary sessions',
+            'deleted_count': deleted_count,
+            'deleted_at': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete non-binary sessions: {str(e)}"
+        )

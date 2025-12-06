@@ -138,6 +138,7 @@ function ResultsContent() {
   const [error, setError] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [deletingNonBinary, setDeletingNonBinary] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'layers' | 'personas' | 'demographics' | 'feedback' | 'manage'>('overview')
 
   useEffect(() => {
@@ -207,6 +208,35 @@ function ResultsContent() {
       alert('Failed to delete session. Please try again.')
     } finally {
       setDeleting(null)
+    }
+  }
+
+  const deleteNonBinarySessions = async () => {
+    if (!confirm('Are you sure you want to delete ALL non-binary sessions? This cannot be undone.')) {
+      return
+    }
+    
+    setDeletingNonBinary(true)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/v1/admin/delete-non-binary`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete non-binary sessions')
+      }
+      
+      const data = await response.json()
+      alert(`Successfully deleted ${data.deleted_count} non-binary sessions`)
+      
+      // Refresh both sessions and stats
+      await Promise.all([fetchSessions(), fetchDashboardStats()])
+    } catch (err) {
+      console.error('Failed to delete non-binary sessions:', err)
+      alert('Failed to delete non-binary sessions. Please try again.')
+    } finally {
+      setDeletingNonBinary(false)
     }
   }
 
@@ -601,17 +631,26 @@ function ResultsContent() {
 
             {/* Sessions List */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                 <h2 className="text-lg font-bold text-gray-900">
                   All Sessions ({sessions.length})
                 </h2>
-                <button
-                  onClick={fetchSessions}
-                  disabled={sessionsLoading}
-                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                >
-                  {sessionsLoading ? 'Loading...' : '🔄 Refresh'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={deleteNonBinarySessions}
+                    disabled={deletingNonBinary || sessionsLoading}
+                    className="px-3 py-1 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingNonBinary ? 'Deleting...' : '⚧️ Delete All Non-Binary'}
+                  </button>
+                  <button
+                    onClick={fetchSessions}
+                    disabled={sessionsLoading}
+                    className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                  >
+                    {sessionsLoading ? 'Loading...' : '🔄 Refresh'}
+                  </button>
+                </div>
               </div>
 
               {sessionsLoading ? (
