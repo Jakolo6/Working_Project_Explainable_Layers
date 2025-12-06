@@ -82,6 +82,14 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
       {/* Decision Header with Interest Rate */}
       <DecisionHeader decision={decision} probability={probability} />
 
+      {/* SHAP Explanation Note */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-700">
+        <p>
+          <strong>Note:</strong> SHAP (SHapley Additive exPlanations) values show how much each 
+          feature contributed to the model's prediction. Larger absolute values indicate stronger influence.
+          Hover over feature names to see descriptions.
+        </p>
+      </div>
 
       {/* Complete SHAP Values Table - with fixed height and scroll */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -152,16 +160,6 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
             </tbody>
           </table>
         </div>
-      </div>
-
-
-      {/* Technical Note */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
-        <p>
-          <strong>Note:</strong> SHAP (SHapley Additive exPlanations) values show how much each 
-          feature contributed to the model's prediction. Larger absolute values indicate stronger influence.
-          Hover over feature names to see descriptions.
-        </p>
       </div>
     </div>
   )
