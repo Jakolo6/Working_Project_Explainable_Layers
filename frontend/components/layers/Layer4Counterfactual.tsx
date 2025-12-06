@@ -343,7 +343,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                   </span>
                 </label>
                 <span className="text-sm font-bold text-gray-900">
-                  {modifiedData.duration || 0} months
+                  {modifiedData.duration || modifiedData.duration_months || 0} months
                 </span>
               </div>
               <input
@@ -351,7 +351,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 min="6"
                 max="72"
                 step="6"
-                value={modifiedData.duration || 0}
+                value={modifiedData.duration || modifiedData.duration_months || 0}
                 onChange={(e) => handleFeatureChange('Loan Duration (months)', Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
