@@ -107,7 +107,7 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
     duration_months: 48,                        // Much longer duration (negative)
     employment_status: 'less than 1 year',      // New job (negative)
     present_residence_since: 1,                 // Low stability
-    property: 'unknown / no property',          // No assets (negative)
+    property: 'unknown/no property',            // No assets (negative)
     housing: 'rent',                            // Renting (negative)
     credit_history: 'delay in paying off in the past', // Some payment issues (negative)
     purpose: 'furniture/equipment',             // Less practical purpose
