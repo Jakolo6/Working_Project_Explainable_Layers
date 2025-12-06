@@ -223,20 +223,24 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
     handleFeatureChange('savings_account', '500 to 1000 DM');
   };
 
-  // Calculate gap to approval
-  const gapToApproval = decision === 'rejected' ? ((0.5 - (1 - probability)) * 100) : 0;
+  // Calculate gap to approval (how much probability needs to increase)
+  const currentProb = livePrediction.probability * 100;
+  const gapToApproval = decision === 'rejected' ? Math.max(0, 50 - currentProb) : 0;
   const isApproved = livePrediction.decision === 'approved';
   const hasFlipped = livePrediction.decision !== decision;
 
   // Generate short counterfactual summary
   const getSummary = () => {
     if (hasFlipped && isApproved) {
-      return "Your adjustments successfully flipped the decision to APPROVED! The changes improved the risk assessment."
+      return "✓ Your adjustments successfully flipped the decision to APPROVED! The changes improved the risk assessment."
     }
     if (isApproved) {
       return "Currently approved. Adjusting Credit Amount or Loan Duration can improve your interest rate."
     }
-    return `This application needs ${gapToApproval.toFixed(0)}% improvement for approval. Try reducing Credit Amount or Loan Duration.`
+    if (gapToApproval < 5) {
+      return `Almost there! Just ${gapToApproval.toFixed(1)}% more improvement needed for approval. Try reducing Credit Amount or Loan Duration.`
+    }
+    return `This application needs ${gapToApproval.toFixed(0)}% probability improvement for approval. Try reducing Credit Amount or Loan Duration.`
   }
 
   return (
