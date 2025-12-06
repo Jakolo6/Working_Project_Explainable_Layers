@@ -45,10 +45,7 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
         
-        // Add timeout to prevent long waits
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for narrative
-        
+        // No timeout - let OpenAI take as long as it needs for quality AI text
         const response = await fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -57,11 +54,8 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
             probability,
             shap_features: top5Features,
             all_features: shapFeatures
-          }),
-          signal: controller.signal
+          })
         })
-        
-        clearTimeout(timeoutId)
         
         if (response.ok) {
           const data = await response.json()

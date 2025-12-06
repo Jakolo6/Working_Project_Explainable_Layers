@@ -284,10 +284,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
       
       setIsLoadingSummary(true)
       try {
-        // Add timeout to prevent long waits
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-        
+        // No timeout - let OpenAI take as long as it needs for quality AI text
         const response = await fetch(`${apiUrl}/api/v1/explanations/level2/dashboard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -296,11 +293,8 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
             probability,
             shap_features: shapFeatures.slice(0, 5),
             all_features: shapFeatures
-          }),
-          signal: controller.signal
+          })
         })
-        
-        clearTimeout(timeoutId)
         
         if (response.ok) {
           const data = await response.json()
