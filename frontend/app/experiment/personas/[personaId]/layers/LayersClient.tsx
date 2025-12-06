@@ -350,7 +350,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             {/* Cognitive Load Rating (Inverted: 1=Hard, 5=Easy) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                3. I found this explanation easy to process mentally. *
+                3. The explanation was easy to understand without much mental effort. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
