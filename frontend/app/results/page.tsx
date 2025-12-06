@@ -122,6 +122,7 @@ interface SessionData {
   participant_background: string
   credit_experience: string
   ai_familiarity: number
+  gender: string | null
   ratings_count: number
   predictions_count: number
   questionnaires_count: number
@@ -653,6 +654,7 @@ function ResultsContent() {
                         <th className="text-left py-3 px-2 font-semibold">Session ID</th>
                         <th className="text-left py-3 px-2 font-semibold">Created</th>
                         <th className="text-center py-3 px-2 font-semibold">Status</th>
+                        <th className="text-center py-3 px-2 font-semibold">Gender</th>
                         <th className="text-center py-3 px-2 font-semibold">Background</th>
                         <th className="text-center py-3 px-2 font-semibold">Personas Done</th>
                         <th className="text-center py-3 px-2 font-semibold">Persona Progress</th>
@@ -680,6 +682,20 @@ function ResultsContent() {
                             ) : (
                               <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">In Progress</span>
                             )}
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              session.gender === 'male' ? 'bg-blue-100 text-blue-800' :
+                              session.gender === 'female' ? 'bg-pink-100 text-pink-800' :
+                              session.gender === 'non_binary' ? 'bg-purple-100 text-purple-800' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {session.gender === 'male' ? '♂️ Male' :
+                               session.gender === 'female' ? '♀️ Female' :
+                               session.gender === 'non_binary' ? '⚧️ Non-binary' :
+                               session.gender === 'prefer_not_to_say' ? '🚫 Prefer not to say' :
+                               '-'}
+                            </span>
                           </td>
                           <td className="text-center py-3 px-2 text-gray-600 text-xs">
                             {BACKGROUND_LABELS[session.participant_background] || session.participant_background || '-'}
@@ -744,7 +760,7 @@ function ResultsContent() {
                     {/* Summary Footer */}
                     <tfoot className="bg-gray-100 border-t-2 border-gray-300">
                       <tr>
-                        <td colSpan={4} className="py-3 px-2 font-bold text-right">
+                        <td colSpan={5} className="py-3 px-2 font-bold text-right">
                           Totals ({sessions.length} sessions):
                         </td>
                         <td className="text-center py-3 px-2 font-bold">
