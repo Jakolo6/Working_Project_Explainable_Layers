@@ -52,16 +52,16 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
     occupation: 'Skilled Employee',
     loanAmount: 4800,
     loanPurpose: 'Furniture purchase',
-    description: 'Maria is a 32-year-old skilled employee who wants to borrow €4,800 for furniture. She has some positive factors but also some concerns. This represents a BORDERLINE CASE - barely approved.',
+    description: 'Maria is a 32-year-old skilled employee who wants to borrow €4,800 for furniture. She has moderate checking account balance (€0-200), modest savings (€100-500), and owns her home. However, she has a relatively high monthly payment burden and moderate credit amount. This represents a BORDERLINE APPROVED case (53% confidence) - the model barely approves her application.',
   },
   'young-entrepreneur': {
     id: 'young-entrepreneur',
     name: 'Jonas',
     age: 28,
     occupation: 'Skilled Employee',
-    loanAmount: 3500,
+    loanAmount: 6200,
     loanPurpose: 'Used car purchase',
-    description: 'Jonas is a 28-year-old skilled employee who wants to borrow €3,500 for a used car. He has some positive factors but also some red flags. This represents a BORDERLINE CASE - barely rejected.',
+    description: 'Jonas is a 28-year-old skilled employee who wants to borrow €6,200 for a used car. He has an overdrawn checking account (< €0), modest savings (€100-500), and is renting. His higher loan amount and longer duration create concerns despite his good credit history and practical loan purpose. This represents a BORDERLINE REJECTED case (47% confidence) - the model barely rejects his application.',
   },
 }
 
@@ -103,8 +103,8 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
     age: 28,                                    // Moderate age
     checking_account_status: 'less than 0 DM', // Overdrawn (negative)
     savings_account: '100 to 500 DM',          // Some savings (positive)
-    credit_amount: 3500,                        // Moderate amount
-    duration_months: 18,                        // Medium duration
+    credit_amount: 6200,                        // Higher amount (negative)
+    duration_months: 30,                        // Longer duration (negative)
     employment_status: '1 to 4 years',          // Moderate employment
     present_residence_since: 2,                 // Some stability
     property: 'car or other',                   // Some assets
