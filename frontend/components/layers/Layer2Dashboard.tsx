@@ -285,16 +285,17 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
   }, [shapFeatures, totalImpact])
 
   // Split into concerns (risk) and supportive, sorted by contribution %
+  // Filter out features with negligible impact (< 0.5%)
   const concernFeatures = useMemo(() => 
     processedFeatures
-      .filter(f => f.impact === 'positive')
+      .filter(f => f.impact === 'positive' && f.contributionPercent >= 0.5)
       .sort((a, b) => b.contributionPercent - a.contributionPercent),
     [processedFeatures]
   )
 
   const supportiveFeatures = useMemo(() => 
     processedFeatures
-      .filter(f => f.impact === 'negative')
+      .filter(f => f.impact === 'negative' && f.contributionPercent >= 0.5)
       .sort((a, b) => b.contributionPercent - a.contributionPercent),
     [processedFeatures]
   )
