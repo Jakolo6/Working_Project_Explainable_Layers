@@ -1,14 +1,14 @@
 # Database Schema for XAI Credit Experiment
 
-## 🎯 CURRENT PRODUCTION SCHEMA
+## 🎯 SINGLE SOURCE OF TRUTH
 
-**USE THIS FILE:** `PRODUCTION_SCHEMA.sql` ✅
+**USE THIS FILE:** `FINAL_CLEAN_SCHEMA.sql` ✅
 
-This is the **final, verified, production-ready** schema that matches your current working database.
+This is the **final, production-ready** schema reflecting all applied migrations.
 
-**Status:** ✅ Verified on 2025-12-06  
+**Status:** ✅ Updated 2025-12-06  
 **Database:** Supabase (PostgreSQL)  
-**Records:** 11 sessions, 16 predictions, 49 layer ratings
+**Rating Dimensions:** 3 (Understanding, Communicability, Mental Ease)
 
 ---
 
@@ -23,13 +23,11 @@ This schema supports a within-subjects experiment design for evaluating explaina
   2. Interactive Dashboard (visual charts)
   3. Narrative Explanation (natural language + chatbot)
   4. Counterfactual Analysis (what-if scenarios)
-- **5 Rating Dimensions** per layer (Likert 1-5):
+- **3 Rating Dimensions** per layer (Likert 1-5):
   1. Understanding
   2. Communicability
-  3. Perceived Fairness
-  4. Cognitive Load
-  5. Reliance Intention
-- **Total**: 2 personas × 4 layers = 8 layer ratings per participant
+  3. Mental Ease (5=easy, 1=hard - inverted cognitive load)
+- **Total**: 2 personas × 4 layers × 3 ratings = 24 ratings per participant
 
 ## Tables
 
@@ -101,19 +99,17 @@ Per-layer statistics with mean, stddev for all rating dimensions.
 
 **Your database is already set up correctly!** ✅
 
-If you need to recreate the schema, run `PRODUCTION_SCHEMA.sql` in Supabase SQL Editor to:
-1. Create all tables (sessions, predictions, layer_ratings, post_questionnaires)
-2. Set up indexes for performance
-3. Enable RLS policies for security
-4. Create analysis views
+If you need to recreate the schema from scratch, run `FINAL_CLEAN_SCHEMA.sql` in Supabase SQL Editor.
 
-## Migration Files (Archive)
+## Applied Migrations
 
-- `PRODUCTION_SCHEMA.sql` - ✅ **CURRENT PRODUCTION SCHEMA** (use this one!)
-- `FINAL_CLEAN_SCHEMA.sql` - Previous version (archived)
-- `UPDATE_QUESTIONNAIRE_SCHEMA.sql` - Questionnaire updates (archived)
-- `ADD_DELETE_POLICIES.sql` - RLS policy updates (archived)
-- `REVIEW_ALL_DATA.sql` - Data analysis queries (archived)
+The following migrations have been applied to reach the current schema:
+
+1. ✅ **Inverted Cognitive Load Scale** (5=easy instead of 5=hard)
+2. ✅ **Removed Perceived Fairness Rating** (5 → 4 dimensions)
+3. ✅ **Removed Reliance Intention Rating** (4 → 3 dimensions)
+
+All migration files have been removed. `FINAL_CLEAN_SCHEMA.sql` is the single source of truth.
 
 ## API Endpoints
 
@@ -128,11 +124,26 @@ If you need to recreate the schema, run `PRODUCTION_SCHEMA.sql` in Supabase SQL 
 
 ```
 1. Consent + Baseline → sessions table
-2. For each persona (3x):
+2. For each persona (2x):
    a. Submit application → predictions table
    b. For each layer (4x):
       - View explanation
-      - Submit rating → layer_ratings table
-3. Post-questionnaire → post_questionnaires table
-   → Session marked complete
+      - Submit 3 ratings → layer_ratings table
+   c. Post-persona questionnaire → post_questionnaires table
+3. Session marked complete
 ```
+
+## Rating Questions
+
+**Per-Layer Ratings (3 questions, Likert 1-5):**
+1. "I understood the explanation provided in this layer."
+2. "I could easily communicate this explanation to the applicant."
+3. "The explanation was easy to understand without much mental effort." (5=easy)
+
+**Post-Persona Questionnaire (6 questions):**
+1. Most helpful layer (layer_1 to layer_4)
+2. Most trusted layer (layer_1 to layer_4)
+3. Best for customer communication (layer_1 to layer_4)
+4. Overall intuitiveness (1-5)
+5. AI usefulness (1-5)
+6. Improvement suggestions (optional text)
