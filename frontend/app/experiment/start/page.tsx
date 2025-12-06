@@ -6,35 +6,53 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 interface SessionForm {
-  participant_background: string
-  credit_experience: string
-  ai_familiarity: number
+  // Section 1: Demographics
+  age: number
+  gender: string
+  
+  // Section 2: Experience & Preferences
+  financial_relationship: string
   preferred_explanation_style: string
-  background_notes: string
+  
+  // Section 3: Trust & Ethics
+  ai_trust_instinct: string
+  ai_fairness_stance: string
 }
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 
-const BACKGROUND_OPTIONS = [
-  { value: 'banking', label: 'Banking / Credit / Risk / Retail Banking' },
-  { value: 'data_analytics', label: 'Data / Analytics / BI / Machine Learning' },
-  { value: 'banking_and_analytics', label: 'Both Banking and Data Analytics' },
-  { value: 'student', label: 'Student (Business / Analytics / related fields)' },
-  { value: 'other', label: 'Other' }
+// Section 1: Demographics
+const GENDER_OPTIONS = [
+  { value: 'female', label: 'Female' },
+  { value: 'male', label: 'Male' },
+  { value: 'non_binary', label: 'Non-binary' }
 ]
 
-const CREDIT_EXPERIENCE_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'some', label: 'Some (case studies / projects / junior experience)' },
-  { value: 'regular', label: 'Regular part of my work' },
-  { value: 'expert', label: 'Expert level' }
+// Section 2: Experience & Preferences
+const FINANCIAL_RELATIONSHIP_OPTIONS = [
+  { value: 'novice', label: 'Layperson (No professional knowledge)' },
+  { value: 'consumer', label: 'Borrower (I have applied for loans myself)' },
+  { value: 'financial_literate', label: 'Financial Background (Student, Consultant, or Analyst)' }
 ]
 
 const EXPLANATION_STYLE_OPTIONS = [
-  { value: 'technical', label: 'Technical (SHAP values, feature importance)' },
-  { value: 'visual', label: 'Visual (charts, graphs, distributions)' },
+  { value: 'technical', label: 'Technical (raw numbers)' },
+  { value: 'visual', label: 'Visual (interactive charts, graphs, distributions)' },
   { value: 'narrative', label: 'Narrative (natural language, storytelling)' },
-  { value: 'action_oriented', label: 'Action-oriented (what needs to change?)' }
+  { value: 'action', label: 'Action-oriented (what needs to change?)' }
+]
+
+// Section 3: Trust & Ethics
+const AI_TRUST_INSTINCT_OPTIONS = [
+  { value: 'automation_bias', label: 'Trust the AI (I likely missed a risk factor)' },
+  { value: 'algorithm_aversion', label: 'Doubt the AI (It is likely biased or missing context)' },
+  { value: 'neutral', label: 'Neutral (I need to see the evidence first)' }
+]
+
+const AI_FAIRNESS_STANCE_OPTIONS = [
+  { value: 'skeptic', label: 'Skeptical: AI often reinforces historical discrimination' },
+  { value: 'conditional', label: 'Cautious: AI can be fair, but only with strict human oversight' },
+  { value: 'optimist', label: 'Optimistic: AI is generally more objective than humans' }
 ]
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
@@ -43,11 +61,12 @@ export default function ExperimentStartPage() {
   const [consentGiven, setConsentGiven] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<SessionForm>({
-    participant_background: '',
-    credit_experience: '',
-    ai_familiarity: 0,
+    age: 0,
+    gender: '',
+    financial_relationship: '',
     preferred_explanation_style: '',
-    background_notes: '',
+    ai_trust_instinct: '',
+    ai_fairness_stance: ''
   })
   const [status, setStatus] = useState<FormStatus>('idle')
   const [sessionId, setSessionId] = useState<string>('')
@@ -67,7 +86,7 @@ export default function ExperimentStartPage() {
   }, [])
 
   const handleChange = (field: keyof SessionForm) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const value = field === 'ai_familiarity' ? Number(event.target.value) : event.target.value
+    const value = field === 'age' ? Number(event.target.value) : event.target.value
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -78,10 +97,12 @@ export default function ExperimentStartPage() {
   }
 
   const validateForm = () => {
-    if (!form.participant_background) return 'Please select your background.'
-    if (!form.credit_experience) return 'Please select your credit experience level.'
-    if (form.ai_familiarity === 0) return 'Please rate your familiarity with AI decision systems.'
+    if (!form.age || form.age < 18 || form.age > 99) return 'Please enter a valid age (18-99).'
+    if (!form.gender) return 'Please select your gender.'
+    if (!form.financial_relationship) return 'Please select your relationship with financial decision-making.'
     if (!form.preferred_explanation_style) return 'Please select your preferred explanation style.'
+    if (!form.ai_trust_instinct) return 'Please answer the AI trust question.'
+    if (!form.ai_fairness_stance) return 'Please select your stance on AI fairness.'
     return null
   }
 
@@ -103,11 +124,12 @@ export default function ExperimentStartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           consent_given: consentGiven,
-          participant_background: form.participant_background,
-          credit_experience: form.credit_experience,
-          ai_familiarity: form.ai_familiarity,
+          age: form.age,
+          gender: form.gender,
+          financial_relationship: form.financial_relationship,
           preferred_explanation_style: form.preferred_explanation_style,
-          background_notes: form.background_notes.trim(),
+          ai_trust_instinct: form.ai_trust_instinct,
+          ai_fairness_stance: form.ai_fairness_stance
         }),
       })
 
@@ -187,114 +209,156 @@ export default function ExperimentStartPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          {/* Q1: Participant Background */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              1. What best describes your professional background? *
-            </label>
-            <div className="space-y-2">
-              {BACKGROUND_OPTIONS.map((option) => (
-                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="participant_background"
-                    value={option.value}
-                    checked={form.participant_background === option.value}
-                    onChange={handleChange('participant_background')}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-700">{option.label}</span>
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-8">
+          {/* ═══════════════════════════════════════════════════════════════ */}
+          {/* SECTION 1: DEMOGRAPHICS */}
+          {/* ═══════════════════════════════════════════════════════════════ */}
+          <div className="border-b border-gray-200 pb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Section 1: Demographics</h2>
+            
+            {/* Age and Gender - Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Age */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="age">
+                  Age *
                 </label>
-              ))}
-            </div>
-          </div>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  min="18"
+                  max="99"
+                  value={form.age || ''}
+                  onChange={handleChange('age')}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  placeholder="18-99"
+                />
+              </div>
 
-          {/* Q2: Credit Experience */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              2. What is your experience with credit-related decision-making? *
-            </label>
-            <div className="space-y-2">
-              {CREDIT_EXPERIENCE_OPTIONS.map((option) => (
-                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="credit_experience"
-                    value={option.value}
-                    checked={form.credit_experience === option.value}
-                    onChange={handleChange('credit_experience')}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-700">{option.label}</span>
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="gender">
+                  Gender *
                 </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Q3: AI Familiarity (Likert 1-5) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              3. How familiar are you with AI decision systems? *
-            </label>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setForm(prev => ({ ...prev, ai_familiarity: value }))}
-                  className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                    form.ai_familiarity === value
-                      ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
-                  }`}
+                <select
+                  id="gender"
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleChange('gender')}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
-                  {value}
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs text-gray-600 mt-1">
-              <span>Not familiar at all</span>
-              <span>Very familiar</span>
-            </div>
-          </div>
-
-          {/* Q4: Preferred Explanation Style */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              4. Before seeing any explanations, which style do you think you would prefer? *
-            </label>
-            <div className="space-y-2">
-              {EXPLANATION_STYLE_OPTIONS.map((option) => (
-                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="preferred_explanation_style"
-                    value={option.value}
-                    checked={form.preferred_explanation_style === option.value}
-                    onChange={handleChange('preferred_explanation_style')}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-700">{option.label}</span>
-                </label>
-              ))}
+                  <option value="">Select...</option>
+                  {GENDER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Optional: Background Notes */}
+          {/* ═══════════════════════════════════════════════════════════════ */}
+          {/* SECTION 2: EXPERIENCE & PREFERENCES */}
+          {/* ═══════════════════════════════════════════════════════════════ */}
+          <div className="border-b border-gray-200 pb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Section 2: Experience & Preferences</h2>
+            
+            {/* Q1: Financial Relationship */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Which best describes your relationship with financial decision-making? *
+              </label>
+              <div className="space-y-2">
+                {FINANCIAL_RELATIONSHIP_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="financial_relationship"
+                      value={option.value}
+                      checked={form.financial_relationship === option.value}
+                      onChange={handleChange('financial_relationship')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Q2: Preferred Explanation Style */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Before seeing any explanations, which style do you think you would prefer? *
+              </label>
+              <div className="space-y-2">
+                {EXPLANATION_STYLE_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="preferred_explanation_style"
+                      value={option.value}
+                      checked={form.preferred_explanation_style === option.value}
+                      onChange={handleChange('preferred_explanation_style')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════ */}
+          {/* SECTION 3: TRUST & ETHICS */}
+          {/* ═══════════════════════════════════════════════════════════════ */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="background_notes">
-              5. In one sentence: anything about your background that may influence how you interpret explanations? (Optional)
-            </label>
-            <textarea
-              id="background_notes"
-              name="background_notes"
-              rows={2}
-              value={form.background_notes}
-              onChange={handleChange('background_notes')}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              placeholder="e.g., I have worked with SHAP values before..."
-            />
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Section 3: Trust & Ethics</h2>
+            
+            {/* Q3: AI Trust Instinct */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Imagine an AI rejects a loan applicant that you personally liked. What is your immediate instinct? *
+              </label>
+              <div className="space-y-2">
+                {AI_TRUST_INSTINCT_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="ai_trust_instinct"
+                      value={option.value}
+                      checked={form.ai_trust_instinct === option.value}
+                      onChange={handleChange('ai_trust_instinct')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Q4: AI Fairness Stance */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                What is your general stance on the fairness of AI in banking? *
+              </label>
+              <div className="space-y-2">
+                {AI_FAIRNESS_STANCE_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="ai_fairness_stance"
+                      value={option.value}
+                      checked={form.ai_fairness_stance === option.value}
+                      onChange={handleChange('ai_fairness_stance')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
 
           {errorMessage && (

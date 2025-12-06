@@ -103,11 +103,24 @@ class PredictionResponse(BaseModel):
 class SessionCreate(BaseModel):
     """Create new experiment session with consent and baseline questions"""
     consent_given: bool
-    participant_background: str  # banking, data_analytics, student, other
-    credit_experience: str  # none, some, regular, expert
-    ai_familiarity: int  # Likert 1-5
-    preferred_explanation_style: str  # technical, visual, narrative, action_oriented
-    background_notes: Optional[str] = ''
+    
+    # Section 1: Demographics
+    age: int  # 18-99
+    gender: str  # female, male, non_binary
+    
+    # Section 2: Experience & Preferences
+    financial_relationship: str  # novice, consumer, financial_literate
+    preferred_explanation_style: str  # technical, visual, narrative, action
+    
+    # Section 3: Trust & Ethics
+    ai_trust_instinct: str  # automation_bias, algorithm_aversion, neutral
+    ai_fairness_stance: str  # skeptic, conditional, optimist
+    
+    # Legacy fields (for backward compatibility - optional)
+    participant_background: Optional[str] = None
+    credit_experience: Optional[str] = None
+    ai_familiarity: Optional[int] = None
+    background_notes: Optional[str] = None
 
 
 class SessionResponse(BaseModel):
@@ -150,11 +163,18 @@ async def create_session(session_data: SessionCreate):
         session_record = {
             'session_id': session_id,
             'consent_given': session_data.consent_given,
+            # New questionnaire fields
+            'age': session_data.age,
+            'gender': session_data.gender,
+            'financial_relationship': session_data.financial_relationship,
+            'preferred_explanation_style': session_data.preferred_explanation_style,
+            'ai_trust_instinct': session_data.ai_trust_instinct,
+            'ai_fairness_stance': session_data.ai_fairness_stance,
+            # Legacy fields (optional, for backward compatibility)
             'participant_background': session_data.participant_background,
             'credit_experience': session_data.credit_experience,
             'ai_familiarity': session_data.ai_familiarity,
-            'preferred_explanation_style': session_data.preferred_explanation_style,
-            'background_notes': session_data.background_notes or ''
+            'background_notes': session_data.background_notes
         }
         
         result = db.create_session(session_record)
