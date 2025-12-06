@@ -30,7 +30,6 @@ interface PredictionData {
 interface LayerRating {
   understanding: number
   communicability: number
-  perceived_fairness: number
   cognitive_load: number
   reliance_intention: number
   comment: string
@@ -90,7 +89,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const [ratings, setRatings] = useState<LayerRating>({
     understanding: 0,
     communicability: 0,
-    perceived_fairness: 0,
     cognitive_load: 0,
     reliance_intention: 0,
     comment: '',
@@ -138,9 +136,8 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const handleSubmitRating = async () => {
     // Validate ratings
     if (ratings.understanding === 0 || ratings.communicability === 0 || 
-        ratings.perceived_fairness === 0 || ratings.cognitive_load === 0 ||
-        ratings.reliance_intention === 0) {
-      setError('Please rate all five dimensions before continuing.')
+        ratings.cognitive_load === 0 || ratings.reliance_intention === 0) {
+      setError('Please rate all four dimensions before continuing.')
       return
     }
 
@@ -161,7 +158,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           layer_name: LAYER_NAMES[currentLayerIndex],
           understanding_rating: ratings.understanding,
           communicability_rating: ratings.communicability,
-          perceived_fairness_rating: ratings.perceived_fairness,
           cognitive_load_rating: ratings.cognitive_load,
           reliance_intention_rating: ratings.reliance_intention,
           comment: ratings.comment,
@@ -180,7 +176,6 @@ export default function LayersClient({ personaId }: LayersClientProps) {
         setRatings({
           understanding: 0,
           communicability: 0,
-          perceived_fairness: 0,
           cognitive_load: 0,
           reliance_intention: 0,
           comment: '',
@@ -352,36 +347,10 @@ export default function LayersClient({ personaId }: LayersClientProps) {
               </div>
             </div>
 
-            {/* Perceived Fairness Rating */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                3. This explanation feels fair and appropriate toward the applicant. *
-              </label>
-              <div className="flex gap-4">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleRatingChange('perceived_fairness', value)}
-                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition ${
-                      ratings.perceived_fairness === value
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>Strongly disagree</span>
-                <span>Strongly agree</span>
-              </div>
-            </div>
-
             {/* Cognitive Load Rating (Inverted: 1=Hard, 5=Easy) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                4. I found this explanation easy to process mentally. *
+                3. I found this explanation easy to process mentally. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (
@@ -407,7 +376,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
             {/* Reliance Intention Rating */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                5. I would rely on this explanation in a real scenario. *
+                4. I would rely on this explanation in a real scenario. *
               </label>
               <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((value) => (

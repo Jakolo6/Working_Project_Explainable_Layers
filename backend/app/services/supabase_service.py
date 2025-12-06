@@ -142,7 +142,6 @@ class SupabaseService:
         - layer_name: str
         - understanding_rating: int (1-5)
         - communicability_rating: int (1-5)
-        - perceived_fairness_rating: int (1-5)
         - cognitive_load_rating: int (1-5)
         - reliance_intention_rating: int (1-5)
         - comment: str (optional)
@@ -157,7 +156,6 @@ class SupabaseService:
                 'layer_name': rating_data.get('layer_name', f"Layer {rating_data['layer_number']}"),
                 'understanding_rating': int(rating_data['understanding_rating']),
                 'communicability_rating': int(rating_data['communicability_rating']),
-                'perceived_fairness_rating': int(rating_data['perceived_fairness_rating']),
                 'cognitive_load_rating': int(rating_data['cognitive_load_rating']),
                 'reliance_intention_rating': int(rating_data['reliance_intention_rating']),
                 'comment': rating_data.get('comment', ''),
@@ -276,7 +274,6 @@ class SupabaseService:
                         'count': len(layer_ratings),
                         'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
-                        'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         'avg_time_seconds': round(sum(r.get('time_spent_seconds', 0) or 0 for r in layer_ratings) / len(layer_ratings), 1),
@@ -293,7 +290,6 @@ class SupabaseService:
                         'count': len(persona_ratings),
                         'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                         'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
-                        'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                         'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                         'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in persona_ratings) / len(persona_ratings), 2),
                     }
@@ -303,32 +299,27 @@ class SupabaseService:
             # Calculate overall averages and standard deviations
             avg_understanding = 0.0
             avg_communicability = 0.0
-            avg_fairness = 0.0
             avg_cognitive_load = 0.0
             avg_reliance = 0.0
             std_understanding = 0.0
             std_communicability = 0.0
-            std_fairness = 0.0
             std_cognitive_load = 0.0
             std_reliance = 0.0
             
             if total_ratings > 0:
                 understanding_vals = [r.get('understanding_rating', 0) or 0 for r in ratings]
                 communicability_vals = [r.get('communicability_rating', 0) or 0 for r in ratings]
-                fairness_vals = [r.get('perceived_fairness_rating', 0) or 0 for r in ratings]
                 cognitive_vals = [r.get('cognitive_load_rating', 0) or 0 for r in ratings]
                 reliance_vals = [r.get('reliance_intention_rating', 0) or 0 for r in ratings]
                 
                 avg_understanding = sum(understanding_vals) / total_ratings
                 avg_communicability = sum(communicability_vals) / total_ratings
-                avg_fairness = sum(fairness_vals) / total_ratings
                 avg_cognitive_load = sum(cognitive_vals) / total_ratings
                 avg_reliance = sum(reliance_vals) / total_ratings
                 
                 if total_ratings > 1:
                     std_understanding = statistics.stdev(understanding_vals)
                     std_communicability = statistics.stdev(communicability_vals)
-                    std_fairness = statistics.stdev(fairness_vals)
                     std_cognitive_load = statistics.stdev(cognitive_vals)
                     std_reliance = statistics.stdev(reliance_vals)
             
@@ -386,12 +377,10 @@ class SupabaseService:
                 # Overall averages with standard deviations
                 "avg_understanding": round(avg_understanding, 2),
                 "avg_communicability": round(avg_communicability, 2),
-                "avg_fairness": round(avg_fairness, 2),
                 "avg_cognitive_load": round(avg_cognitive_load, 2),
                 "avg_reliance": round(avg_reliance, 2),
                 "std_understanding": round(std_understanding, 2),
                 "std_communicability": round(std_communicability, 2),
-                "std_fairness": round(std_fairness, 2),
                 "std_cognitive_load": round(std_cognitive_load, 2),
                 "std_reliance": round(std_reliance, 2),
                 
@@ -449,7 +438,6 @@ class SupabaseService:
             result[f'layer_{layer_num}'] = {
                 'understanding': [r.get('understanding_rating', 0) or 0 for r in layer_ratings],
                 'communicability': [r.get('communicability_rating', 0) or 0 for r in layer_ratings],
-                'fairness': [r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings],
                 'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings],
                 'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings],
                 'time_seconds': [r.get('time_spent_seconds', 0) or 0 for r in layer_ratings],
@@ -520,7 +508,6 @@ class SupabaseService:
         dims = {
             'understanding': [r.get('understanding_rating', 0) or 0 for r in ratings],
             'communicability': [r.get('communicability_rating', 0) or 0 for r in ratings],
-            'fairness': [r.get('perceived_fairness_rating', 0) or 0 for r in ratings],
             'cognitive_load': [r.get('cognitive_load_rating', 0) or 0 for r in ratings],
             'reliance': [r.get('reliance_intention_rating', 0) or 0 for r in ratings],
         }
@@ -567,7 +554,6 @@ class SupabaseService:
                             'count': len(layer_ratings),
                             'understanding': round(sum(r.get('understanding_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                             'communicability': round(sum(r.get('communicability_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
-                            'fairness': round(sum(r.get('perceived_fairness_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                             'cognitive_load': round(sum(r.get('cognitive_load_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                             'reliance': round(sum(r.get('reliance_intention_rating', 0) or 0 for r in layer_ratings) / len(layer_ratings), 2),
                         }

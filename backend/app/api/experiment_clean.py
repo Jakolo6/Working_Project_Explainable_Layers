@@ -371,7 +371,6 @@ async def rate_explanation_layer(request: dict):
             'layer_name': request.get('layer_name'),
             'understanding_rating': int(request.get('understanding_rating', 0)),
             'communicability_rating': int(request.get('communicability_rating', 0)),
-            'perceived_fairness_rating': int(request.get('perceived_fairness_rating', 0)),
             'cognitive_load_rating': int(request.get('cognitive_load_rating', 0)),
             'reliance_intention_rating': int(request.get('reliance_intention_rating', 0)),
             'comment': request.get('comment', ''),

@@ -72,8 +72,7 @@ Stores ratings for each explanation layer (12 per session).
 | layer_name | TEXT | Human-readable layer name |
 | understanding_rating | INTEGER | 1-5 |
 | communicability_rating | INTEGER | 1-5 |
-| perceived_fairness_rating | INTEGER | 1-5 |
-| cognitive_load_rating | INTEGER | 1-5 |
+| cognitive_load_rating | INTEGER | 1-5 (inverted: 5=easy) |
 | reliance_intention_rating | INTEGER | 1-5 |
 | comment | TEXT | Optional feedback |
 | time_spent_seconds | INTEGER | Time on this layer |

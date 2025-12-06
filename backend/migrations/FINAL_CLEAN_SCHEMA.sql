@@ -93,10 +93,9 @@ CREATE TABLE layer_ratings (
     layer_number INTEGER NOT NULL CHECK (layer_number >= 1 AND layer_number <= 4),
     layer_name TEXT NOT NULL,
     
-    -- 5 Likert scale ratings (1-5)
+    -- 4 Likert scale ratings (1-5)
     understanding_rating INTEGER NOT NULL CHECK (understanding_rating >= 1 AND understanding_rating <= 5),
     communicability_rating INTEGER NOT NULL CHECK (communicability_rating >= 1 AND communicability_rating <= 5),
-    perceived_fairness_rating INTEGER NOT NULL CHECK (perceived_fairness_rating >= 1 AND perceived_fairness_rating <= 5),
     cognitive_load_rating INTEGER NOT NULL CHECK (cognitive_load_rating >= 1 AND cognitive_load_rating <= 5),
     reliance_intention_rating INTEGER NOT NULL CHECK (reliance_intention_rating >= 1 AND reliance_intention_rating <= 5),
     
@@ -203,7 +202,6 @@ SELECT
     COUNT(DISTINCT lr.id) AS total_layer_ratings,
     ROUND(AVG(lr.understanding_rating)::numeric, 2) AS avg_understanding,
     ROUND(AVG(lr.communicability_rating)::numeric, 2) AS avg_communicability,
-    ROUND(AVG(lr.perceived_fairness_rating)::numeric, 2) AS avg_fairness,
     ROUND(AVG(lr.cognitive_load_rating)::numeric, 2) AS avg_cognitive_load,
     ROUND(AVG(lr.reliance_intention_rating)::numeric, 2) AS avg_reliance,
     SUM(lr.time_spent_seconds) AS total_time_spent_seconds,
@@ -243,10 +241,6 @@ SELECT
     ROUND(AVG(lr.communicability_rating)::numeric, 2) AS avg_communicability,
     ROUND(STDDEV(lr.communicability_rating)::numeric, 2) AS stddev_communicability,
     
-    -- Fairness
-    ROUND(AVG(lr.perceived_fairness_rating)::numeric, 2) AS avg_fairness,
-    ROUND(STDDEV(lr.perceived_fairness_rating)::numeric, 2) AS stddev_fairness,
-    
     -- Cognitive Load
     ROUND(AVG(lr.cognitive_load_rating)::numeric, 2) AS avg_cognitive_load,
     ROUND(STDDEV(lr.cognitive_load_rating)::numeric, 2) AS stddev_cognitive_load,
@@ -276,7 +270,6 @@ SELECT
     COUNT(*) AS n,
     ROUND(AVG(understanding_rating), 2) AS understanding,
     ROUND(AVG(communicability_rating), 2) AS communicability,
-    ROUND(AVG(perceived_fairness_rating), 2) AS fairness,
     ROUND(AVG(cognitive_load_rating), 2) AS cognitive_load,
     ROUND(AVG(reliance_intention_rating), 2) AS reliance,
     ROUND(AVG(time_spent_seconds), 1) AS avg_time_sec
