@@ -221,9 +221,9 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
       })
       setIsLocked(true)
       
-      // Automatically navigate to first layer after successful prediction
+      // Automatically navigate to layers page (starts at layer 1 by default)
       setTimeout(() => {
-        router.push(`/experiment/personas/${personaId}/layers/1`)
+        router.push(`/experiment/personas/${personaId}/layers`)
       }, 500) // Small delay to show the decision briefly
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit application')
