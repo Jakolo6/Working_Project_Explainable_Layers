@@ -36,22 +36,35 @@ class SupabaseService:
         Expected fields:
         - session_id: str (UUID)
         - consent_given: bool
-        - participant_background: str (banking, data_analytics, student, other)
-        - credit_experience: str (none, some, regular, expert)
-        - ai_familiarity: int (1-5)
-        - preferred_explanation_style: str (technical, visual, narrative, action_oriented)
+        - age: int
+        - gender: str (male, female, non_binary, prefer_not_to_say)
+        - financial_relationship: str
+        - preferred_explanation_style: str
+        - ai_trust_instinct: str
+        - ai_fairness_stance: str
+        - participant_background: str (legacy, optional)
+        - credit_experience: str (legacy, optional)
+        - ai_familiarity: int (legacy, optional)
         - background_notes: str (optional)
         """
         try:
-            # Ensure we only send fields that exist in the schema
+            # Include ALL fields from session_record (new + legacy)
             clean_record = {
                 'session_id': session_record['session_id'],
                 'consent_given': session_record.get('consent_given', False),
+                # New questionnaire fields
+                'age': session_record.get('age'),
+                'gender': session_record.get('gender'),
+                'financial_relationship': session_record.get('financial_relationship'),
+                'preferred_explanation_style': session_record.get('preferred_explanation_style'),
+                'ai_trust_instinct': session_record.get('ai_trust_instinct'),
+                'ai_fairness_stance': session_record.get('ai_fairness_stance'),
+                # Legacy fields (for backward compatibility)
                 'participant_background': session_record.get('participant_background'),
                 'credit_experience': session_record.get('credit_experience'),
                 'ai_familiarity': session_record.get('ai_familiarity'),
-                'preferred_explanation_style': session_record.get('preferred_explanation_style'),
                 'background_notes': session_record.get('background_notes', ''),
+                # Session tracking
                 'completed': False,
                 'current_step': 'background'
             }
