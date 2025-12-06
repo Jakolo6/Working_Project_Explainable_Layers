@@ -96,28 +96,31 @@ export default function GlobalDistributionLine({
           style={{ left: `${typicalEndPercent}%` }}
         />
 
-        {/* Applicant's value marker */}
+        {/* Applicant's value marker - PRECISELY ALIGNED */}
         <motion.div
           initial={{ scale: 0, y: '-50%' }}
           animate={{ scale: 1, y: '-50%' }}
           transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
-          className="absolute top-1/2 transform -translate-x-1/2"
-          style={{ left: `${Math.min(Math.max(valuePercent, 2), 98)}%` }}
+          className="absolute top-1/2"
+          style={{ 
+            left: `${valuePercent}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
         >
           {/* Value dot */}
           <div className={`w-4 h-4 rounded-full ${getValueColor()} ring-4 ring-white shadow-lg`} />
           
-          {/* Value label */}
+          {/* Value label - positioned directly above the dot */}
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="absolute top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+            className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
           >
             <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
               <span className="font-semibold">You: {formatValue(value)}</span>
             </div>
-            <div className="w-2 h-2 bg-gray-900 transform rotate-45 absolute -top-1 left-1/2 -translate-x-1/2" />
+            <div className="w-2 h-2 bg-gray-900 transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -mt-1" />
           </motion.div>
         </motion.div>
       </div>

@@ -2,7 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, Users } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, ArrowUp, ArrowDown } from 'lucide-react'
+import { CATEGORICAL_STATS } from '@/lib/categoricalMetadata'
 
 interface CategoricalComparisonProps {
   featureName: string
@@ -19,6 +20,53 @@ export default function CategoricalComparison({
   frequency,
   isRiskIncreasing
 }: CategoricalComparisonProps) {
+  
+  // Get comparison data for this feature
+  const getComparisonData = () => {
+    const featureKey = featureName.toLowerCase().replace(/[^a-z_]/g, '_').replace(/_+/g, '_')
+    const featureStats = CATEGORICAL_STATS[featureKey]
+    
+    if (!featureStats) return null
+    
+    // Find best performing alternative (excluding user's current value)
+    const valueKey = userValue.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_')
+    let bestAlternative: { label: string; rate: number; isCommon: boolean } | null = null
+    let bestRate = 0
+    
+    for (const [key, stats] of Object.entries(featureStats)) {
+      if (key !== valueKey && stats.successRate > bestRate) {
+        bestRate = stats.successRate
+        bestAlternative = {
+          label: formatCategoryLabel(key),
+          rate: stats.successRate,
+          isCommon: stats.frequency >= 20
+        }
+      }
+    }
+    
+    if (!bestAlternative) return null
+    
+    const rateDiff = bestAlternative.rate - successRate
+    const isUserBetter = successRate >= bestAlternative.rate
+    
+    return {
+      alternative: bestAlternative,
+      rateDiff: Math.abs(rateDiff),
+      isUserBetter
+    }
+  }
+  
+  const formatCategoryLabel = (key: string): string => {
+    // Convert snake_case to readable format
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .replace(/Dm/g, 'DM')
+      .replace(/Lt/g, '<')
+      .replace(/Ge/g, '≥')
+  }
+  
+  const comparisonData = getComparisonData()
   
   // Determine color based on success rate
   const getSuccessColor = (rate: number) => {
@@ -118,6 +166,83 @@ export default function CategoricalComparison({
           )}
         </p>
       </div>
+
+      {/* Compact Contrastive Comparison */}
+      {comparisonData && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className={`rounded-lg p-3 border-2 ${
+            comparisonData.isUserBetter 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-amber-50 border-amber-200'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            {/* Your Category */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Your Choice</span>
+                {comparisonData.isUserBetter && (
+                  <ArrowUp className="text-green-600" size={14} />
+                )}
+              </div>
+              <div className="text-sm font-bold text-gray-900 truncate">{userValue}</div>
+              <div className={`text-xs font-semibold mt-0.5 ${
+                color === 'green' ? 'text-green-700' :
+                color === 'blue' ? 'text-blue-700' :
+                'text-orange-700'
+              }`}>
+                {successRate}% approval
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="flex flex-col items-center px-2">
+              <div className="text-xs text-gray-400 font-medium">vs</div>
+              {!comparisonData.isUserBetter && (
+                <ArrowDown className="text-amber-600 mt-1" size={14} />
+              )}
+            </div>
+
+            {/* Alternative Category */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  {comparisonData.isUserBetter ? 'Alternative' : 'Better Option'}
+                </span>
+                {!comparisonData.isUserBetter && (
+                  <ArrowUp className="text-green-600" size={14} />
+                )}
+              </div>
+              <div className="text-sm font-bold text-gray-900 truncate">{comparisonData.alternative.label}</div>
+              <div className="text-xs font-semibold text-green-700 mt-0.5">
+                {comparisonData.alternative.rate}% approval
+                {!comparisonData.isUserBetter && (
+                  <span className="text-gray-600 ml-1">(+{comparisonData.rateDiff}%)</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Interpretation */}
+          <div className={`mt-2 pt-2 border-t text-xs ${
+            comparisonData.isUserBetter 
+              ? 'border-green-200 text-green-800' 
+              : 'border-amber-200 text-amber-800'
+          }`}>
+            {comparisonData.isUserBetter ? (
+              <span>✓ Your choice performs {comparisonData.rateDiff > 5 ? 'significantly' : 'slightly'} better than alternatives</span>
+            ) : (
+              <span>
+                ⚠ Switching to "{comparisonData.alternative.label}" could improve approval odds by {comparisonData.rateDiff}%
+                {comparisonData.alternative.isCommon && ' (common choice)'}
+              </span>
+            )}
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }
