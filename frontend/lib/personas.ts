@@ -57,11 +57,11 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
   'young-entrepreneur': {
     id: 'young-entrepreneur',
     name: 'Jonas',
-    age: 28,
-    occupation: 'Skilled Employee',
-    loanAmount: 6200,
-    loanPurpose: 'Used car purchase',
-    description: 'Jonas is a 28-year-old skilled employee who wants to borrow €6,200 for a used car. He has an overdrawn checking account (< €0), modest savings (€100-500), and is renting. His higher loan amount and longer duration create concerns despite his good credit history and practical loan purpose. This represents a BORDERLINE REJECTED case (47% confidence) - the model barely rejects his application.',
+    age: 24,
+    occupation: 'Unskilled Resident',
+    loanAmount: 7200,
+    loanPurpose: 'Furniture purchase',
+    description: 'Jonas is a 24-year-old unskilled worker who wants to borrow €7,200 for furniture. He has an overdrawn checking account (< €0), minimal savings (< €100), no property, and is renting. He recently started a new job (< 1 year), has a history of delayed payments, and is requesting a 48-month loan with high installment burden (≥35%). This represents a BORDERLINE REJECTED case (~45% confidence) - the model barely rejects his application due to accumulated risk factors.',
   },
 }
 
@@ -100,22 +100,22 @@ export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
   // Mix of positive and negative factors - barely gets rejected
   'young-entrepreneur': {
     // SHAP Features - Mixed signals, slightly more negative
-    age: 28,                                    // Moderate age
+    age: 24,                                    // Younger age (less stable)
     checking_account_status: 'less than 0 DM', // Overdrawn (negative)
-    savings_account: '100 to 500 DM',          // Some savings (positive)
-    credit_amount: 6200,                        // Higher amount (negative)
-    duration_months: 30,                        // Longer duration (negative)
-    employment_status: '1 to 4 years',          // Moderate employment
-    present_residence_since: 2,                 // Some stability
-    property: 'car or other',                   // Some assets
+    savings_account: 'less than 100 DM',       // Minimal savings (negative)
+    credit_amount: 7200,                        // Higher amount (negative)
+    duration_months: 48,                        // Much longer duration (negative)
+    employment_status: 'less than 1 year',      // New job (negative)
+    present_residence_since: 1,                 // Low stability
+    property: 'unknown / no property',          // No assets (negative)
     housing: 'rent',                            // Renting (negative)
-    credit_history: 'existing credits paid back duly', // Good payment history (positive)
-    purpose: 'car (used)',                      // Practical purpose (positive)
-    installment_rate: 3,                        // Moderate-high burden (25-35%)
-    existing_credits: 2,                        // Some existing debt
+    credit_history: 'delay in paying off in the past', // Some payment issues (negative)
+    purpose: 'furniture/equipment',             // Less practical purpose
+    installment_rate: 4,                        // High burden (>=35%)
+    existing_credits: 3,                        // More existing debt (negative)
     other_debtors: 'none',                      // No guarantor (negative)
     other_installment_plans: 'bank',            // Other obligations (negative)
-    job: 'skilled employee / official',         // Decent job (positive)
+    job: 'unskilled - resident',                // Lower skill level (negative)
     
     // Excluded Features (not in SHAP) - Set to neutral
     sex: 'male',                                // Excluded for fairness
