@@ -381,7 +381,7 @@ function ResultsContent() {
                   {renderStatWithStd('Understanding', stats.avg_understanding, stats.std_understanding, 'bg-blue-500')}
                   {renderStatWithStd('Communicability', stats.avg_communicability, stats.std_communicability, 'bg-green-500')}
                   {renderStatWithStd('Perceived Fairness', stats.avg_fairness, stats.std_fairness, 'bg-purple-500')}
-                  {renderStatWithStd('Cognitive Load', stats.avg_cognitive_load, stats.std_cognitive_load, 'bg-orange-500')}
+                  {renderStatWithStd('Mental Ease', stats.avg_cognitive_load, stats.std_cognitive_load, 'bg-orange-500')}
                   {renderStatWithStd('Reliance Intention', stats.avg_reliance, stats.std_reliance, 'bg-indigo-500')}
                 </div>
               </div>
@@ -427,7 +427,7 @@ function ResultsContent() {
                       <th className="text-center py-3 px-2 font-semibold">Understanding</th>
                       <th className="text-center py-3 px-2 font-semibold">Communicability</th>
                       <th className="text-center py-3 px-2 font-semibold">Fairness</th>
-                      <th className="text-center py-3 px-2 font-semibold">Cognitive Load</th>
+                      <th className="text-center py-3 px-2 font-semibold">Mental Ease</th>
                       <th className="text-center py-3 px-2 font-semibold">Reliance</th>
                       <th className="text-center py-3 px-2 font-semibold">Avg Time (s)</th>
                     </tr>
@@ -456,7 +456,7 @@ function ResultsContent() {
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
-                            <span className={`px-2 py-1 rounded ${layer.cognitive_load <= 2 ? 'bg-green-100 text-green-800' : layer.cognitive_load <= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                            <span className={`px-2 py-1 rounded ${layer.cognitive_load >= 4 ? 'bg-green-100 text-green-800' : layer.cognitive_load >= 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
                               {layer.cognitive_load?.toFixed(2)}
                             </span>
                           </td>
@@ -476,7 +476,7 @@ function ResultsContent() {
                 Color coding: <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">≥4.0 (Good)</span>{' '}
                 <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">3.0-3.9 (Moderate)</span>{' '}
                 <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded">&lt;3.0 (Low)</span>
-                {' '}| Cognitive Load: lower is better
+                {' '}| Note: All scales aligned (5 = positive/good)
               </p>
             </div>
           </div>
@@ -496,7 +496,7 @@ function ResultsContent() {
                       <th className="text-center py-3 px-2 font-semibold">Understanding</th>
                       <th className="text-center py-3 px-2 font-semibold">Communicability</th>
                       <th className="text-center py-3 px-2 font-semibold">Fairness</th>
-                      <th className="text-center py-3 px-2 font-semibold">Cognitive Load</th>
+                      <th className="text-center py-3 px-2 font-semibold">Mental Ease</th>
                       <th className="text-center py-3 px-2 font-semibold">Reliance</th>
                     </tr>
                   </thead>
