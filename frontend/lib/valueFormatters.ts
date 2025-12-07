@@ -11,7 +11,9 @@ export const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> =
   // Checking Account Status
   'checking_status': {
     'lt_0_dm': 'Less than €0 (Overdrawn)',
+    'negative_balance': 'Negative Balance (< €0)',
     '0_to_200_dm': '€0 to €200',
+    'lt_200_dm': '€0–200',
     'ge_200_dm': '€200 or more',
     'no_checking': 'No Checking Account'
   },
@@ -20,7 +22,9 @@ export const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> =
   'savings_status': {
     'lt_100_dm': 'Less than €100',
     '100_to_500_dm': '€100 to €500',
+    'lt_500_dm': '€100–500',
     '500_to_1000_dm': '€500 to €1,000',
+    'lt_1000_dm': '€500–1,000',
     'ge_1000_dm': '€1,000 or more',
     'no_savings': 'No Savings Account'
   },
@@ -135,7 +139,31 @@ export function formatFeatureValue(feature: string, value: string): string {
   // Clean the value
   const cleanValue = value.trim()
   
-  // Try to parse as number first
+  // IMPORTANT: Check for categorical values FIRST before parsing as number
+  // This prevents "0–200 DM" from being parsed as just "0"
+  const featureKey = feature.toLowerCase().replace(/[\s()]/g, '_').replace(/_+/g, '_')
+  const valueKey = cleanValue.toLowerCase().replace(/\s+/g, '_')
+  
+  // Check all categorical mappings first
+  for (const [catKey, catValues] of Object.entries(CATEGORICAL_VALUE_DISPLAY)) {
+    if (featureKey.includes(catKey) || catKey.includes(featureKey.split('_')[0])) {
+      if (catValues[valueKey]) {
+        return catValues[valueKey]
+      }
+    }
+  }
+  
+  // If value contains non-numeric characters (like "0–200 DM"), return as-is
+  // This catches categorical values that aren't in our mapping
+  if (cleanValue.match(/[–—-]/) || cleanValue.includes(' to ') || cleanValue.includes('DM')) {
+    // Convert DM to € and clean up
+    return cleanValue
+      .replace(/DM/g, '€')
+      .replace(/dm/g, '€')
+      .replace(/\b(\d+)\s*€/g, '€$1')  // Move € before number
+  }
+  
+  // Try to parse as number
   const num = parseFloat(cleanValue)
   
   // If it's a valid number, format it appropriately based on feature type
@@ -201,31 +229,7 @@ export function formatFeatureValue(feature: string, value: string): string {
     return num.toLocaleString('de-DE')
   }
   
-  // For categorical values, check mappings
-  const featureKey = feature.toLowerCase().replace(/[\s()]/g, '_').replace(/_+/g, '_')
-  const valueKey = cleanValue.toLowerCase().replace(/\s+/g, '_')
-  
-  // Check all categorical mappings
-  for (const [catKey, catValues] of Object.entries(CATEGORICAL_VALUE_DISPLAY)) {
-    if (featureKey.includes(catKey) || catKey.includes(featureKey.split('_')[0])) {
-      if (catValues[valueKey]) {
-        return catValues[valueKey]
-      }
-    }
-  }
-  
-  // Special handling for common patterns
-  
-  // Convert DM to € in text
-  if (cleanValue.includes('DM') || cleanValue.includes('dm')) {
-    return cleanValue
-      .replace(/DM/g, '€')
-      .replace(/dm/g, '€')
-      .replace(/< /g, '< ')
-      .replace(/> /g, '> ')
-      .replace(/\b(\d+)\s*€/g, '€$1')  // Move € before number
-  }
-  
+  // If we get here, it's not a number and not in categorical mappings
   // Clean up snake_case and underscores
   if (cleanValue.includes('_')) {
     return cleanValue
