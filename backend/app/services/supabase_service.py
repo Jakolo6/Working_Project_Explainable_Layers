@@ -42,28 +42,20 @@ class SupabaseService:
         - preferred_explanation_style: str
         - ai_trust_instinct: str
         - ai_fairness_stance: str
-        - participant_background: str (legacy, optional)
-        - credit_experience: str (legacy, optional)
-        - ai_familiarity: int (legacy, optional)
-        - background_notes: str (optional)
         """
         try:
-            # Include ALL fields from session_record (new + legacy)
+            # Clean record with only current schema fields
             clean_record = {
                 'session_id': session_record['session_id'],
                 'consent_given': session_record.get('consent_given', False),
-                # New questionnaire fields
+                # Demographic fields
                 'age': session_record.get('age'),
                 'gender': session_record.get('gender'),
                 'financial_relationship': session_record.get('financial_relationship'),
+                # Preference fields
                 'preferred_explanation_style': session_record.get('preferred_explanation_style'),
                 'ai_trust_instinct': session_record.get('ai_trust_instinct'),
                 'ai_fairness_stance': session_record.get('ai_fairness_stance'),
-                # Legacy fields (for backward compatibility)
-                'participant_background': session_record.get('participant_background'),
-                'credit_experience': session_record.get('credit_experience'),
-                'ai_familiarity': session_record.get('ai_familiarity'),
-                'background_notes': session_record.get('background_notes', ''),
                 # Session tracking
                 'completed': False,
                 'current_step': 'background'
