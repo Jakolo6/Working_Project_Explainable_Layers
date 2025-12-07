@@ -11,6 +11,8 @@ import RiskTugOfWar from './dashboard/RiskTugOfWar'
 import FeatureRowAccordion from './dashboard/FeatureRowAccordion'
 import InfoTooltip, { TOOLTIPS } from './dashboard/InfoTooltip'
 import DecisionHeader from './DecisionHeader'
+import GlobalDistributionLine from './dashboard/GlobalDistributionLine'
+import { formatFeatureValue, extractNumericValue } from '@/lib/valueFormatters'
 
 interface SHAPFeature {
   feature: string
@@ -138,40 +140,8 @@ const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> = {
   }
 }
 
-function formatValue(feature: string, value: string): string {
-  // Try to parse as number first
-  const num = parseFloat(value)
-  
-  // If it's a valid number, format it appropriately
-  if (!isNaN(num)) {
-    if (feature.toLowerCase().includes('duration') && feature.toLowerCase().includes('month')) return `${num} months`
-    if (feature.toLowerCase().includes('amount')) return `€${num.toLocaleString()}`
-    if (feature.toLowerCase().includes('age')) return `${num} years`
-    if (feature.toLowerCase().includes('burden')) return `€${num.toLocaleString()}/mo`
-    if (feature.toLowerCase().includes('residence')) return `${num} years`
-    if (feature.toLowerCase().includes('rate')) return `${num.toFixed(1)}%`
-    return num.toFixed(1)
-  }
-  
-  // For categorical values, try to find a display mapping
-  const featureKey = feature.toLowerCase().replace(/[\s()]/g, '_').replace(/_+/g, '_')
-  const valueKey = value.toLowerCase().trim()
-  
-  // Check all categorical mappings
-  for (const [catKey, catValues] of Object.entries(CATEGORICAL_VALUE_DISPLAY)) {
-    if (featureKey.includes(catKey) || catKey.includes(featureKey.split('_')[0])) {
-      if (catValues[valueKey]) return catValues[valueKey]
-    }
-  }
-  
-  // Fallback: Clean up underscores and capitalize
-  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-}
-
-function extractNumericValue(value: string): number | undefined {
-  const match = value.match(/[\d.]+/)
-  return match ? parseFloat(match[0]) : undefined
-}
+// Use centralized formatting from lib/formatters.ts
+// (formatFeatureValue and extractNumericValue are imported)
 
 function isCreditHistoryFeature(featureName: string): boolean {
   return featureName.toLowerCase().includes('credit history') || 
@@ -210,7 +180,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
     return shapFeatures.map(f => ({
       ...f,
       displayName: getDisplayName(f.feature),
-      formattedValue: formatValue(f.feature, f.value),
+      formattedValue: formatFeatureValue(f.feature, f.value),
       numericValue: extractNumericValue(f.value),
       contributionPercent: totalImpact > 0 ? (Math.abs(f.shap_value) / totalImpact) * 100 : 0,
       isCreditHistory: isCreditHistoryFeature(f.feature)

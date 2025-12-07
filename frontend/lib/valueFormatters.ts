@@ -142,35 +142,59 @@ export function formatFeatureValue(feature: string, value: string): string {
   if (!isNaN(num)) {
     const featureLower = feature.toLowerCase()
     
-    // Duration/Time
-    if (featureLower.includes('duration') && featureLower.includes('month')) {
-      return `${num} months`
-    }
-    if (featureLower.includes('years') || featureLower.includes('residence')) {
-      return `${num} years`
-    }
-    
-    // Currency amounts
+    // Monetary values - use € symbol and comma for thousands (German format)
     if (featureLower.includes('amount') || featureLower.includes('credit')) {
-      return `€${num.toLocaleString('de-DE')}`
+      return `€${num.toLocaleString('de-DE')}`  // e.g., €3.600
     }
+    
+    // Savings/Checking Account Status - add € symbol
+    if (featureLower.includes('savings') || featureLower.includes('checking')) {
+      return `€${num.toLocaleString('de-DE')}`  // e.g., €100, €0
+    }
+    
+    // Monthly Payment Burden - simplified format (no formula)
     if (featureLower.includes('burden') || featureLower.includes('payment')) {
-      return `€${num.toLocaleString('de-DE')}/month`
+      return `€${Math.round(num)}/month`  // e.g., €200/month (not €200.00 (€3600 ÷ 18 months))
     }
     
-    // Age
+    // Credit Risk Ratio - use dot for decimal (consistency)
+    if (featureLower.includes('ratio')) {
+      return `€${num.toFixed(2)}`  // e.g., €1.03 (not €1,03)
+    }
+    
+    // Credit to Income Ratio - simplified (no formula)
+    if (featureLower.includes('income')) {
+      return `€${num.toFixed(2)}`  // e.g., €102.86 (not €102.86 (€3600 ÷ Age 35))
+    }
+    
+    // Employment Duration - use "years" not "%"
+    if (featureLower.includes('employment')) {
+      return `${Math.round(num)} years`  // e.g., 4 years (not 4.0%)
+    }
+    
+    // Duration in months
+    if (featureLower.includes('duration') && featureLower.includes('month')) {
+      return `${Math.round(num)} months`  // e.g., 18 months
+    }
+    
+    // Age - keep as years
     if (featureLower.includes('age')) {
-      return `${num} years`
+      return `${Math.round(num)} years`  // e.g., 35 years
     }
     
-    // Percentages/Rates
-    if (featureLower.includes('rate') || featureLower.includes('ratio') || featureLower.includes('%')) {
-      return `${num.toFixed(1)}%`
+    // Residence - years
+    if (featureLower.includes('residence') || featureLower.includes('years')) {
+      return `${Math.round(num)} years`
     }
     
-    // Scores
-    if (featureLower.includes('score')) {
-      return num.toFixed(0)
+    // Installment Rate - remove unnecessary decimals
+    if (featureLower.includes('rate') || featureLower.includes('installment')) {
+      return `${Math.round(num)}%`  // e.g., 25% (not 25.0%)
+    }
+    
+    // Duration Risk Score - remove misleading % symbol
+    if (featureLower.includes('score') || featureLower.includes('risk')) {
+      return `${Math.round(num)}`  // e.g., 64800 (not 64800.0%)
     }
     
     // Default number formatting
