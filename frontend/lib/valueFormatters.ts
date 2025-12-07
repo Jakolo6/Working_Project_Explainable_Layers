@@ -170,6 +170,29 @@ export function formatFeatureValue(feature: string, value: string): string {
   if (!isNaN(num)) {
     const featureLower = feature.toLowerCase()
     
+    // IMPORTANT: Check more specific patterns BEFORE general ones
+    // "Employment Duration" must be checked before "ratio" (because "duration" contains "ratio")
+    
+    // Employment Duration - use "years" not "%"
+    if (featureLower.includes('employment')) {
+      return `${Math.round(num)} years`  // e.g., 4 years (not 4.0%)
+    }
+    
+    // Duration in months
+    if (featureLower.includes('duration') && featureLower.includes('month')) {
+      return `${Math.round(num)} months`  // e.g., 18 months
+    }
+    
+    // Age - keep as years
+    if (featureLower.includes('age')) {
+      return `${Math.round(num)} years`  // e.g., 35 years
+    }
+    
+    // Residence - years
+    if (featureLower.includes('residence') || featureLower.includes('years')) {
+      return `${Math.round(num)} years`
+    }
+    
     // Monetary values - use € symbol and comma for thousands (German format)
     if (featureLower.includes('amount') || featureLower.includes('credit')) {
       return `€${num.toLocaleString('de-DE')}`  // e.g., €3.600
@@ -193,26 +216,6 @@ export function formatFeatureValue(feature: string, value: string): string {
     // Credit to Income Ratio - simplified (no formula)
     if (featureLower.includes('income')) {
       return `€${num.toFixed(2)}`  // e.g., €102.86 (not €102.86 (€3600 ÷ Age 35))
-    }
-    
-    // Employment Duration - use "years" not "%"
-    if (featureLower.includes('employment')) {
-      return `${Math.round(num)} years`  // e.g., 4 years (not 4.0%)
-    }
-    
-    // Duration in months
-    if (featureLower.includes('duration') && featureLower.includes('month')) {
-      return `${Math.round(num)} months`  // e.g., 18 months
-    }
-    
-    // Age - keep as years
-    if (featureLower.includes('age')) {
-      return `${Math.round(num)} years`  // e.g., 35 years
-    }
-    
-    // Residence - years
-    if (featureLower.includes('residence') || featureLower.includes('years')) {
-      return `${Math.round(num)} years`
     }
     
     // Installment Rate - remove unnecessary decimals
