@@ -240,7 +240,7 @@ export default function PersonaSelectionPage() {
                   ))}
                 </ul>
                 <Link
-                  href={`/experiment/personas/${persona.id}/layers`}
+                  href={`/experiment/personas/${persona.id}`}
                   className={`mt-6 inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition ${
                     isCompleted
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'

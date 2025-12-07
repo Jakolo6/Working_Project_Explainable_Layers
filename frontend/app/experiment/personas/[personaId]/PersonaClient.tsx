@@ -304,41 +304,100 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Application Review</h2>
               <p className="text-gray-700">
-                This form is pre-filled with <strong>{persona.name}'s</strong> financial data. 
-                <strong className="text-blue-700"> Click "Generate AI Decision with ML Model" below to proceed</strong> — 
-                no adjustments needed. Feel free to review the form details, but submitting as-is is perfectly fine.
+                Review <strong>{persona.name}'s</strong> key application details below. 
+                <strong className="text-blue-700"> Click "Generate AI Decision" to see the model's decision and explanations.</strong>
               </p>
             </div>
           </div>
         </div>
 
-        {/* Quick Submit Button - Above Form */}
-        {!decision && (
-          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="font-semibold text-green-800">Ready to proceed?</h3>
-                <p className="text-sm text-green-700">The form is pre-filled. Click to run the ML model.</p>
-              </div>
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting || isLocked}
-                className="flex-shrink-0 rounded-lg bg-green-600 px-6 py-3 text-white font-bold hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Running Model...' : '🚀 Generate AI Decision with ML Model'}
-              </button>
+
+        {/* Application Summary - Read-Only */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+          <div className="border-b border-gray-200 pb-4 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Credit Application Details</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Key information from {persona.name}'s application
+            </p>
+          </div>
+
+          {/* Key Features - Read-Only Display */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Loan Amount */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Loan Amount
+              </label>
+              <p className="text-lg font-semibold text-gray-900">
+                €{application.credit_amount.toLocaleString()}
+              </p>
             </div>
+
+            {/* Duration */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Duration
+              </label>
+              <p className="text-lg font-semibold text-gray-900">
+                {application.duration_months} months
+              </p>
+            </div>
+
+            {/* Checking Account */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Checking Account Status
+              </label>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {application.checking_account_status}
+              </p>
+            </div>
+
+            {/* Employment */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Employment Duration
+              </label>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {application.employment_status}
+              </p>
+            </div>
+
+            {/* Purpose */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Loan Purpose
+              </label>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {application.purpose}
+              </p>
+            </div>
+          </div>
+
+          {/* More Features Indicator */}
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> This application includes {Object.keys(application).length} total data points. 
+              The AI model considers all factors when making its decision.
+            </p>
+          </div>
+        </div>
+
+        {/* Generate AI Decision Button */}
+        {!decision && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting || isLocked}
+              className="w-full rounded-lg bg-blue-600 px-6 py-4 text-white text-lg font-bold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Generating AI Decision...' : 'Generate AI Decision →'}
+            </button>
           </div>
         )}
 
-        {/* Application Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          <div className="border-b border-gray-200 pb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Credit Application</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              All fields below are editable. Review and adjust as needed.
-            </p>
-          </div>
+        {/* Hidden form for remaining fields (not displayed) */}
+        <form onSubmit={handleSubmit} className="hidden">
 
           {/* Duration */}
           <div>
