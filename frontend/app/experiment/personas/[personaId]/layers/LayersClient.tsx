@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPersona, type PersonaInfo } from '@/lib/personas'
+import { getPersona, getPersonaApplication, type PersonaInfo } from '@/lib/personas'
 import Layer1Baseline from '@/components/layers/Layer1Baseline'
 import Layer2Dashboard from '@/components/layers/Layer2Dashboard'
 import Layer3Narrative from '@/components/layers/Layer3Narrative'
@@ -93,6 +93,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
     time_spent_seconds: 0
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingPrediction, setIsLoadingPrediction] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -116,16 +117,58 @@ export default function LayersClient({ personaId }: LayersClientProps) {
       }
       setSessionId(storedSessionId)
 
-      // Load prediction from localStorage (saved from persona detail page)
+      // Load or generate prediction
       const predictionKey = `prediction_${personaId}`
       const storedPrediction = window.localStorage.getItem(predictionKey)
+      
       if (storedPrediction) {
         setPrediction(JSON.parse(storedPrediction))
       } else {
-        setError('No prediction found. Please submit the application first.')
+        // Generate prediction automatically if not found
+        generatePrediction(storedSessionId, personaId)
       }
     }
   }, [personaId, router])
+
+  const generatePrediction = async (sessionId: string, personaId: string) => {
+    setIsLoadingPrediction(true)
+    setError('')
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const applicationData = getPersonaApplication(personaId)
+      
+      if (!applicationData) {
+        throw new Error('Application data not found for persona')
+      }
+
+      const response = await fetch(`${apiUrl}/api/v1/experiment/predict_persona`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          persona_id: personaId,
+          application_data: applicationData
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate prediction')
+      }
+
+      const result = await response.json()
+      
+      // Store prediction in localStorage
+      const predictionKey = `prediction_${personaId}`
+      localStorage.setItem(predictionKey, JSON.stringify(result))
+      
+      setPrediction(result)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate prediction')
+    } finally {
+      setIsLoadingPrediction(false)
+    }
+  }
 
   // Scroll to top whenever layer changes
   useEffect(() => {
@@ -204,6 +247,17 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           <Link href={`/experiment/personas/${personaId}`} className="text-blue-600 hover:underline">
             ← Back to Application
           </Link>
+        </div>
+      </main>
+    )
+  }
+
+  if (isLoadingPrediction) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Generating AI prediction...</p>
         </div>
       </main>
     )
