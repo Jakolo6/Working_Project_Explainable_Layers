@@ -9,7 +9,7 @@ interface GlobalDistributionLineProps {
   value: number
   typicalRange: [number, number]
   unit?: string
-  higherIsBetter?: boolean // For features like age, savings where higher is good
+  higherIsBetter?: boolean
 }
 
 export default function GlobalDistributionLine({
@@ -71,14 +71,14 @@ export default function GlobalDistributionLine({
       {/* Distribution line container */}
       <div className="relative h-10">
         {/* Base line */}
-        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full transform -translate-y-1/2" />
+        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full -translate-y-1/2" />
 
         {/* Typical approved range (safe zone) */}
         <motion.div
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="absolute top-1/2 h-3 bg-green-100 border border-green-300 rounded transform -translate-y-1/2"
+          className="absolute top-1/2 h-3 bg-green-100 border border-green-300 rounded -translate-y-1/2"
           style={{
             left: `${typicalStartPercent}%`,
             width: `${typicalWidth}%`,
@@ -88,48 +88,49 @@ export default function GlobalDistributionLine({
 
         {/* Range markers */}
         <div
-          className="absolute top-1/2 w-0.5 h-5 bg-green-400 transform -translate-y-1/2"
+          className="absolute top-1/2 w-0.5 h-5 bg-green-400 -translate-y-1/2"
           style={{ left: `${typicalStartPercent}%` }}
         />
         <div
-          className="absolute top-1/2 w-0.5 h-5 bg-green-400 transform -translate-y-1/2"
+          className="absolute top-1/2 w-0.5 h-5 bg-green-400 -translate-y-1/2"
           style={{ left: `${typicalEndPercent}%` }}
         />
 
-        {/* Applicant's value marker - CENTERED ABOVE DOT */}
-        <div
-          className="absolute"
-          style={{ 
-            left: `${valuePercent}%`,
-            top: '50%'
-          }}
-        >
-          {/* Container centered on the position */}
-          <div className="absolute" style={{ transform: 'translate(-50%, -50%)' }}>
-            {/* Value label - ABOVE the dot */}
+        {/* ═══════════════════════════════════════════════════════════════════
+             APPLICANT'S VALUE MARKER - CANONICAL STRUCTURE
+             ═══════════════════════════════════════════════════════════════════
+             
+             Structure:
+             <div left={X%}>                    ← Position on line
+               <div -translate-x-1/2>           ← Center everything
+                 <label -top-8>                 ← Label above
+                   Text + Arrow
+                 </label>
+                 <dot>                          ← Dot centered
+               </div>
+             </div>
+             
+             This guarantees perfect centering at ANY position (0-100%)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <div className="absolute" style={{ left: `${valuePercent}%`, top: '50%' }}>
+          <div className="relative -translate-x-1/2 -translate-y-1/2">
+            
+            {/* Label - Always centered above dot */}
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
-              style={{
-                bottom: 'calc(100% + 12px)'
-              }}
+              className="absolute left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap pointer-events-none"
             >
-              <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
-                <span className="font-semibold">You: {formatValue(value)}</span>
+              <div className="bg-gray-900 text-white text-xs font-semibold px-2 py-1 rounded shadow-lg">
+                You: {formatValue(value)}
               </div>
-              {/* Arrow pointing down */}
-              <div 
-                className="w-2 h-2 bg-gray-900 absolute left-1/2 -translate-x-1/2"
-                style={{
-                  top: '100%',
-                  transform: 'translateX(-50%) translateY(-4px) rotate(45deg)'
-                }}
-              />
+              {/* Arrow pointing down to dot */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" 
+                   style={{ marginTop: '-4px' }} />
             </motion.div>
-            
-            {/* Value dot */}
+
+            {/* Dot - Centered on position */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
