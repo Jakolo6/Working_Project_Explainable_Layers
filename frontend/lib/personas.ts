@@ -50,9 +50,9 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
     name: 'Maria',
     age: 35,
     occupation: 'Skilled Employee',
-    loanAmount: 3600,
-    loanPurpose: 'Furniture purchase',
-    description: 'Maria is a 35-year-old skilled employee who wants to borrow €3,600 for furniture over 18 months. She has a modest checking account (€0-200), some savings (€100-500), and owns her home. With stable employment (4-7 years) and minimal existing debt, she represents a BORDERLINE APPROVED case (~53% confidence) - the model barely approves her application.',
+    loanAmount: 2500,
+    loanPurpose: 'Used car purchase',
+    description: 'Maria is a 35-year-old skilled employee who wants to borrow €2,500 for a reliable used car over 12 months. She has a healthy checking account (€200+), excellent savings (€1000+), owns real estate, and has perfect credit history with a guarantor. With stable employment (7+ years) and no existing debt, she represents a CLEAR APPROVED case (~94% confidence) - a low-risk, reliable borrower.',
   },
   'young-entrepreneur': {
     id: 'young-entrepreneur',
@@ -68,26 +68,26 @@ export const PERSONAS: Record<PersonaId, PersonaInfo> = {
 // Prefilled application data for each persona
 // Based on German Credit Dataset attributes
 export const PERSONA_APPLICATIONS: Record<PersonaId, ApplicationData> = {
-  // BORDERLINE APPROVED - Maria
-  // Mix of positive and negative factors - barely gets approved
+  // CLEAR APPROVED - Maria (~94% confidence)
+  // Strong positive factors - low-risk borrower
   'elderly-woman': {
-    // SHAP Features - Mixed signals, slightly more positive
-    age: 35,                                    // More mature age (positive)
-    checking_account_status: '0 to 200 DM',    // Some savings, not great
-    savings_account: '100 to 500 DM',          // Modest savings
-    credit_amount: 3600,                        // Lower amount (positive)
-    duration_months: 18,                        // Shorter duration (positive)
-    employment_status: '4 to 7 years',          // Better employment history (positive)
-    present_residence_since: 3,                 // More stability (positive)
-    property: 'car or other',                   // Some assets, not property
+    // SHAP Features - Strong positive signals
+    age: 35,                                    // Mature age (positive)
+    checking_account_status: '200 DM or more', // Healthy checking account (strong positive)
+    savings_account: '1000 DM or more',        // Excellent savings (strong positive)
+    credit_amount: 2500,                        // Small amount (positive)
+    duration_months: 12,                        // Short duration (positive)
+    employment_status: '7 years or more',       // Excellent employment history (strong positive)
+    present_residence_since: 4,                 // High stability (positive)
+    property: 'real estate',                    // Owns property (strong positive)
     housing: 'own',                             // Homeowner (positive)
-    credit_history: 'existing credits paid back duly', // Good but not perfect
-    purpose: 'furniture/equipment',             // Moderate risk purpose
-    installment_rate: 2,                        // Moderate burden (20-25%)
-    existing_credits: 1,                        // Less existing debt (positive)
-    other_debtors: 'none',                      // No guarantor (negative)
+    credit_history: 'existing credits paid back duly', // Perfect credit history (strong positive)
+    purpose: 'car (used)',                      // Practical purpose (positive)
+    installment_rate: 4,                        // Low burden (<20%) (positive)
+    existing_credits: 1,                        // Minimal existing debt (positive)
+    other_debtors: 'guarantor',                 // Has guarantor (positive)
     other_installment_plans: 'none',            // No other obligations (positive)
-    job: 'skilled employee / official',         // Decent job
+    job: 'skilled employee / official',         // Skilled job (positive)
     
     // Excluded Features (not in SHAP) - Set to neutral
     sex: 'female',                              // Excluded for fairness
