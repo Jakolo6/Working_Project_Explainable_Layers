@@ -116,12 +116,11 @@ export default function GlobalDistributionLine({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="absolute whitespace-nowrap"
+            className="absolute whitespace-nowrap pointer-events-none"
             style={{
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '8px'
+              bottom: 'calc(100% + 8px)',
+              left: '0',
+              transform: 'translateX(-50%)'
             }}
           >
             <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
