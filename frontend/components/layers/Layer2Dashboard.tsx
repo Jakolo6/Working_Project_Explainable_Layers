@@ -356,16 +356,11 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
                 className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
               />
             </div>
-            <div className="flex justify-between mt-2 text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-gray-600 mt-2">
               <span>Low Risk</span>
               <span>High Risk</span>
             </div>
           </div>
-
-          <p className="mt-4 text-sm text-red-700">
-            <strong>No credit offer available.</strong> The risk factors identified exceed our lending threshold. 
-            Review the concerns below to understand what drove this assessment.
-          </p>
         </motion.div>
       )}
 

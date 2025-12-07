@@ -40,7 +40,7 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
         ? 'bg-green-50 border-green-200' 
         : 'bg-red-50 border-red-200'
     }`}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         {/* Left: Decision */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -74,6 +74,27 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
             </p>
           )}
         </div>
+      </div>
+
+      {/* Contextual Message */}
+      <div className={`pt-4 border-t ${
+        isApproved ? 'border-green-200' : 'border-red-200'
+      }`}>
+        <p className={`text-sm ${
+          isApproved ? 'text-green-800' : 'text-red-800'
+        }`}>
+          {isApproved ? (
+            <>
+              <strong>Credit offer available.</strong> The applicant meets our lending criteria. 
+              Review the supportive factors below to understand what drove this positive assessment.
+            </>
+          ) : (
+            <>
+              <strong>No credit offer available.</strong> The risk factors identified exceed our lending threshold. 
+              Review the concerns below to understand what drove this assessment.
+            </>
+          )}
+        </p>
       </div>
     </div>
   )
