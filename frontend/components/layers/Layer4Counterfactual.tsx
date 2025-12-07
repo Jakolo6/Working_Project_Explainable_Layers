@@ -159,8 +159,6 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
       // Transform frontend field names to backend field names
       const backendData = transformToBackendFormat(frontendData);
       
-      console.log('[Layer4] Sending to backend:', backendData);
-      
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/api/v1/experiment/predict-counterfactual`, {
         method: 'POST',
@@ -169,13 +167,10 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[Layer4] API error:', errorText);
         throw new Error('Prediction failed');
       }
       
       const result = await response.json();
-      console.log('[Layer4] Prediction result:', result);
       
       setLivePrediction({
         decision: result.decision,
@@ -183,7 +178,6 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
         isLoading: false
       });
     } catch (error) {
-      console.error('[Layer4] Prediction error:', error);
       setLivePrediction(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
@@ -193,9 +187,6 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
     // Update the modified data with the new value (keep frontend field names in state)
     const newData = { ...modifiedData, [frontendField]: value };
     setModifiedData(newData);
-    
-    console.log('[Layer4] Feature changed:', frontendField, '=', value);
-    console.log('[Layer4] Complete data:', newData);
     
     // Debounce API call
     if (debounceTimer) clearTimeout(debounceTimer);

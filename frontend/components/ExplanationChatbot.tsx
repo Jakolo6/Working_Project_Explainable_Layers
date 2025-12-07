@@ -46,7 +46,7 @@ export default function ExplanationChatbot({ decision, probability, shapFeatures
           setGlobalContext(data.report_content)
         }
       } catch (err) {
-        console.error('Failed to fetch global context:', err)
+        // Silently fail - global context is optional
       }
     }
     fetchGlobalContext()
@@ -154,7 +154,6 @@ Summary:
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to get response'
       setError(errorMsg)
-      console.error('Chat error:', err)
     } finally {
       setIsLoading(false)
     }

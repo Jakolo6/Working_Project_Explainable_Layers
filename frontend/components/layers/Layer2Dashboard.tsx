@@ -266,11 +266,9 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
           const data = await response.json()
           setAiSummary(data.narrative)
         } else {
-          console.warn('[Dashboard] API returned error, using fallback summary')
           setAiSummary(generateLocalSummary())
         }
       } catch (error) {
-        console.warn('[Dashboard] API call failed, using fallback summary:', error)
         setAiSummary(generateLocalSummary())
       } finally {
         setIsLoadingSummary(false)

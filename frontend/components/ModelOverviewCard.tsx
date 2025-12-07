@@ -71,8 +71,8 @@ export default function ModelOverviewCard() {
           setTopFeatures(features)
         }
       } catch (err) {
-        console.log('Using fallback feature data')
-      } finally {
+        // Use fallback feature data
+      } finally{
         setIsLoading(false)
       }
     }

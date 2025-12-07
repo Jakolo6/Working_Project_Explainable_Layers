@@ -64,7 +64,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
       // 1. CHECK CACHE FIRST
       const cached = narrativeCache.get(cacheKey)
       if (cached) {
-        console.log('[Layer3] Using cached narrative')
         setNarrative(cached.narrative)
         setIsLLMGenerated(cached.is_llm_generated)
         setIsLoading(false)
@@ -74,7 +73,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
       // 2. CHECK IF REQUEST ALREADY IN-FLIGHT (DEDUPLICATION)
       const existingRequest = inflightRequests.get(cacheKey)
       if (existingRequest) {
-        console.log('[Layer3] Reusing in-flight request')
         try {
           const data = await existingRequest
           setNarrative(data.narrative)
@@ -83,15 +81,12 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
           return
         } catch (err) {
           // If the in-flight request failed, we'll make a new one below
-          console.warn('[Layer3] In-flight request failed, retrying')
         }
       }
       
       // 3. MAKE NEW REQUEST
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        
-        console.log('[Layer3] Fetching new narrative from API')
         
         // Create the fetch promise WITHOUT abort signal (let it complete naturally)
         const fetchPromise = fetch(`${apiUrl}/api/v1/explanations/level2/narrative`, {
@@ -131,7 +126,6 @@ export default function Layer3Narrative({ decision, probability, shapFeatures }:
         
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate narrative'
-        console.error('[ERROR] Narrative API error:', errorMessage)
         setError(errorMessage)
         setNarrative('')
         setIsLLMGenerated(false)

@@ -134,10 +134,6 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
   const mapValue = (value: string): string => {
     const normalized = value.toLowerCase().trim()
     const mapped = VALUE_MAPPING[normalized] || normalized
-    // Debug logging for troubleshooting
-    if (mapped === normalized && VALUE_MAPPING[normalized] === undefined) {
-      console.log(`[MAPPING] No mapping found for: "${value}" (normalized: "${normalized}")`)
-    }
     return mapped
   }
 
@@ -185,17 +181,11 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
         own_telephone: mapValue(application.telephone)
       }
       
-      console.log('=== MAPPING DEBUG ===')
-      console.log('Original application:', application)
-      console.log('Mapped application:', mappedApplication)
-      console.log('Data types:', Object.entries(mappedApplication).map(([k, v]) => `${k}: ${typeof v} = ${v}`))
-      
       const payload = {
         session_id: sessionId,
         persona_id: personaId,
         application_data: mappedApplication
       }
-      console.log('Sending prediction request:', payload)
       
       const response = await fetch(`${apiUrl}/api/v1/experiment/predict_persona`, {
         method: 'POST',
@@ -205,7 +195,6 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('Prediction error:', JSON.stringify(errorData, null, 2))
         throw new Error(JSON.stringify(errorData.detail) || 'Failed to get prediction')
       }
 
