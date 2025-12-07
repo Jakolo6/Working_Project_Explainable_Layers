@@ -119,7 +119,7 @@ export default function GlobalDistributionLine({
             className="absolute whitespace-nowrap pointer-events-none"
             style={{
               bottom: 'calc(100% + 8px)',
-              left: '0',
+              left: '50%',
               transform: 'translateX(-50%)'
             }}
           >
