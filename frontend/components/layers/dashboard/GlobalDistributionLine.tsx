@@ -96,46 +96,48 @@ export default function GlobalDistributionLine({
           style={{ left: `${typicalEndPercent}%` }}
         />
 
-        {/* Applicant's value marker - PRECISELY ALIGNED */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+        {/* Applicant's value marker - CENTERED ABOVE DOT */}
+        <div
           className="absolute"
           style={{ 
             left: `${valuePercent}%`,
-            top: '50%',
-            transform: 'translate(-50%, -50%)'
+            top: '50%'
           }}
         >
-          {/* Value dot */}
-          <div className={`w-4 h-4 rounded-full ${getValueColor()} ring-4 ring-white shadow-lg`} />
-          
-          {/* Value label - positioned directly above the dot */}
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="absolute whitespace-nowrap pointer-events-none"
-            style={{
-              bottom: 'calc(100% + 8px)',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}
-          >
-            <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
-              <span className="font-semibold">You: {formatValue(value)}</span>
-            </div>
-            <div 
-              className="w-2 h-2 bg-gray-900 absolute"
+          {/* Container centered on the position */}
+          <div className="absolute" style={{ transform: 'translate(-50%, -50%)' }}>
+            {/* Value label - ABOVE the dot */}
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
               style={{
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%) translateY(-4px) rotate(45deg)'
+                bottom: 'calc(100% + 12px)'
               }}
+            >
+              <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
+                <span className="font-semibold">You: {formatValue(value)}</span>
+              </div>
+              {/* Arrow pointing down */}
+              <div 
+                className="w-2 h-2 bg-gray-900 absolute left-1/2 -translate-x-1/2"
+                style={{
+                  top: '100%',
+                  transform: 'translateX(-50%) translateY(-4px) rotate(45deg)'
+                }}
+              />
+            </motion.div>
+            
+            {/* Value dot */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+              className={`w-4 h-4 rounded-full ${getValueColor()} ring-4 ring-white shadow-lg`}
             />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* Status indicator */}
