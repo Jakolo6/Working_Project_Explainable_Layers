@@ -255,24 +255,20 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
       const generateLocalSummary = () => {
-        const topConcern = concernFeatures[0]?.displayName
-        const topStrength = supportiveFeatures[0]?.displayName
+        // Get top 3 factors (mix of concerns and strengths by impact)
+        const allFeatures = [...concernFeatures, ...supportiveFeatures]
+          .sort((a, b) => b.contributionPercent - a.contributionPercent)
+          .slice(0, 3)
         
-        let summary = `**Decision: ${decision.toUpperCase()}** (${confidencePercent}% confidence)\n\n`
+        let summary = '**Top 3 Factors:**\n\n'
         
-        if (topConcern) {
-          summary += `**Key Risk:**\n• ${topConcern}\n\n`
-        }
+        allFeatures.forEach((feature, idx) => {
+          const impact = feature.impact === 'positive' ? 'increases risk' : 'reduces risk'
+          const contribution = `${feature.contributionPercent.toFixed(0)}%`
+          summary += `${idx + 1}. **${feature.displayName}** (${contribution}) — ${impact}\n`
+        })
         
-        if (topStrength) {
-          summary += `**Main Strength:**\n• ${topStrength}\n\n`
-        }
-        
-        if (decision === 'approved') {
-          summary += `**Net:** Strengths outweigh risks.`
-        } else {
-          summary += `**Net:** Risks exceed threshold.`
-        }
+        summary += `\n**Global Context:** These factors show ${decision === 'approved' ? 'favorable' : 'unfavorable'} patterns compared to typical ${decision === 'approved' ? 'approved' : 'rejected'} applications.`
         
         return summary
       }
