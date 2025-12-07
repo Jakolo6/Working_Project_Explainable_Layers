@@ -198,6 +198,7 @@ class SupabaseService:
         try:
             clean_data = {
                 'session_id': questionnaire_data['session_id'],
+                'persona_id': questionnaire_data['persona_id'],
                 'most_helpful_layer': questionnaire_data['most_helpful_layer'],
                 'most_trusted_layer': questionnaire_data['most_trusted_layer'],
                 'best_for_customer': questionnaire_data['best_for_customer'],
