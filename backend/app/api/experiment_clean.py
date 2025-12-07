@@ -679,3 +679,171 @@ async def health_check():
             "status": "unhealthy",
             "error": str(e)
         }
+
+
+@router.get("/research-results")
+async def get_research_results():
+    """
+    Get comprehensive research results for analysis.
+    Aggregates data from experiment_complete_data and layer_performance_analysis views.
+    """
+    try:
+        _, _, db = get_services()
+        
+        # Fetch layer performance data
+        layer_performance_response = db.supabase.table('layer_performance_analysis').select('*').execute()
+        layer_performance = layer_performance_response.data if layer_performance_response.data else []
+        
+        # Fetch complete session data
+        session_data_response = db.supabase.table('experiment_complete_data').select('*').execute()
+        session_data = session_data_response.data if session_data_response.data else []
+        
+        # Calculate summary statistics
+        total_participants = len(session_data)
+        completed_participants = sum(1 for s in session_data if s.get('completed', False))
+        total_layer_ratings = sum(s.get('total_layer_ratings', 0) for s in session_data)
+        
+        # Demographics breakdown
+        demographics = {
+            'age_distribution': {},
+            'gender_distribution': {},
+            'financial_relationship_distribution': {},
+            'ai_trust_distribution': {},
+            'ai_fairness_distribution': {},
+            'explanation_style_distribution': {}
+        }
+        
+        for session in session_data:
+            # Age groups
+            age = session.get('age')
+            if age:
+                age_group = f"{(age // 10) * 10}-{(age // 10) * 10 + 9}"
+                demographics['age_distribution'][age_group] = demographics['age_distribution'].get(age_group, 0) + 1
+            
+            # Gender
+            gender = session.get('gender')
+            if gender:
+                demographics['gender_distribution'][gender] = demographics['gender_distribution'].get(gender, 0) + 1
+            
+            # Financial relationship
+            fin_rel = session.get('financial_relationship')
+            if fin_rel:
+                demographics['financial_relationship_distribution'][fin_rel] = demographics['financial_relationship_distribution'].get(fin_rel, 0) + 1
+            
+            # AI trust
+            ai_trust = session.get('ai_trust_instinct')
+            if ai_trust:
+                demographics['ai_trust_distribution'][ai_trust] = demographics['ai_trust_distribution'].get(ai_trust, 0) + 1
+            
+            # AI fairness
+            ai_fairness = session.get('ai_fairness_stance')
+            if ai_fairness:
+                demographics['ai_fairness_distribution'][ai_fairness] = demographics['ai_fairness_distribution'].get(ai_fairness, 0) + 1
+            
+            # Explanation style
+            exp_style = session.get('preferred_explanation_style')
+            if exp_style:
+                demographics['explanation_style_distribution'][exp_style] = demographics['explanation_style_distribution'].get(exp_style, 0) + 1
+        
+        # Layer rankings
+        layer_metrics = {}
+        for perf in layer_performance:
+            layer_name = perf.get('layer_name', f"Layer {perf.get('layer_number')}")
+            if layer_name not in layer_metrics:
+                layer_metrics[layer_name] = {
+                    'understanding': [],
+                    'communicability': [],
+                    'cognitive_load': []
+                }
+            
+            layer_metrics[layer_name]['understanding'].append(perf.get('avg_understanding', 0))
+            layer_metrics[layer_name]['communicability'].append(perf.get('avg_communicability', 0))
+            layer_metrics[layer_name]['cognitive_load'].append(perf.get('avg_cognitive_load', 0))
+        
+        # Calculate averages per layer
+        layer_rankings = {
+            'by_understanding': [],
+            'by_communicability': [],
+            'by_cognitive_load': [],
+            'by_preference': []
+        }
+        
+        for layer_name, metrics in layer_metrics.items():
+            if metrics['understanding']:
+                avg_understanding = sum(metrics['understanding']) / len(metrics['understanding'])
+                layer_rankings['by_understanding'].append({'layer': layer_name, 'score': avg_understanding})
+            
+            if metrics['communicability']:
+                avg_communicability = sum(metrics['communicability']) / len(metrics['communicability'])
+                layer_rankings['by_communicability'].append({'layer': layer_name, 'score': avg_communicability})
+            
+            if metrics['cognitive_load']:
+                avg_cognitive_load = sum(metrics['cognitive_load']) / len(metrics['cognitive_load'])
+                layer_rankings['by_cognitive_load'].append({'layer': layer_name, 'score': avg_cognitive_load})
+        
+        # Sort rankings
+        layer_rankings['by_understanding'].sort(key=lambda x: x['score'], reverse=True)
+        layer_rankings['by_communicability'].sort(key=lambda x: x['score'], reverse=True)
+        layer_rankings['by_cognitive_load'].sort(key=lambda x: x['score'])  # Lower is better
+        
+        # Preference counts
+        preference_counts = {}
+        for session in session_data:
+            for field in ['most_helpful_layer', 'most_trusted_layer', 'best_for_customer']:
+                layer = session.get(field)
+                if layer:
+                    preference_counts[layer] = preference_counts.get(layer, 0) + 1
+        
+        layer_rankings['by_preference'] = [
+            {'layer': layer, 'count': count}
+            for layer, count in preference_counts.items()
+        ]
+        layer_rankings['by_preference'].sort(key=lambda x: x['count'], reverse=True)
+        
+        # Persona comparison
+        persona_metrics = {
+            'maria': {'understanding': [], 'communicability': [], 'cognitive_load': []},
+            'jonas': {'understanding': [], 'communicability': [], 'cognitive_load': []}
+        }
+        
+        for perf in layer_performance:
+            persona_id = perf.get('persona_id', '')
+            if 'elderly-woman' in persona_id:
+                persona_metrics['maria']['understanding'].append(perf.get('avg_understanding', 0))
+                persona_metrics['maria']['communicability'].append(perf.get('avg_communicability', 0))
+                persona_metrics['maria']['cognitive_load'].append(perf.get('avg_cognitive_load', 0))
+            elif 'young-entrepreneur' in persona_id:
+                persona_metrics['jonas']['understanding'].append(perf.get('avg_understanding', 0))
+                persona_metrics['jonas']['communicability'].append(perf.get('avg_communicability', 0))
+                persona_metrics['jonas']['cognitive_load'].append(perf.get('avg_cognitive_load', 0))
+        
+        persona_comparison = {
+            'maria': {
+                'avg_understanding': sum(persona_metrics['maria']['understanding']) / len(persona_metrics['maria']['understanding']) if persona_metrics['maria']['understanding'] else 0,
+                'avg_communicability': sum(persona_metrics['maria']['communicability']) / len(persona_metrics['maria']['communicability']) if persona_metrics['maria']['communicability'] else 0,
+                'avg_cognitive_load': sum(persona_metrics['maria']['cognitive_load']) / len(persona_metrics['maria']['cognitive_load']) if persona_metrics['maria']['cognitive_load'] else 0
+            },
+            'jonas': {
+                'avg_understanding': sum(persona_metrics['jonas']['understanding']) / len(persona_metrics['jonas']['understanding']) if persona_metrics['jonas']['understanding'] else 0,
+                'avg_communicability': sum(persona_metrics['jonas']['communicability']) / len(persona_metrics['jonas']['communicability']) if persona_metrics['jonas']['communicability'] else 0,
+                'avg_cognitive_load': sum(persona_metrics['jonas']['cognitive_load']) / len(persona_metrics['jonas']['cognitive_load']) if persona_metrics['jonas']['cognitive_load'] else 0
+            }
+        }
+        
+        return {
+            'layer_performance': layer_performance,
+            'session_data': session_data,
+            'total_participants': total_participants,
+            'completed_participants': completed_participants,
+            'total_layer_ratings': total_layer_ratings,
+            'demographics': demographics,
+            'layer_rankings': layer_rankings,
+            'persona_comparison': persona_comparison
+        }
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] Research results failed: {str(e)}")
+        print(f"[ERROR] Traceback: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch research results: {str(e)}")
