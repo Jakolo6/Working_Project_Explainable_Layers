@@ -96,40 +96,7 @@ export default function LayersClient({ personaId }: LayersClientProps) {
   const [isLoadingPrediction, setIsLoadingPrediction] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    // Scroll to top when component loads
-    window.scrollTo({ top: 0, behavior: 'instant' })
-    
-    // Load persona
-    const personaData = getPersona(personaId)
-    if (!personaData) {
-      setError('Invalid persona')
-      return
-    }
-    setPersona(personaData)
-
-    // Load session ID
-    if (typeof window !== 'undefined') {
-      const storedSessionId = window.localStorage.getItem(SESSION_STORAGE_KEY)
-      if (!storedSessionId) {
-        router.push('/experiment/start')
-        return
-      }
-      setSessionId(storedSessionId)
-
-      // Load or generate prediction
-      const predictionKey = `prediction_${personaId}`
-      const storedPrediction = window.localStorage.getItem(predictionKey)
-      
-      if (storedPrediction) {
-        setPrediction(JSON.parse(storedPrediction))
-      } else {
-        // Generate prediction automatically if not found
-        generatePrediction(storedSessionId, personaId)
-      }
-    }
-  }, [personaId, router])
-
+  // Generate prediction function
   const generatePrediction = async (sessionId: string, personaId: string) => {
     setIsLoadingPrediction(true)
     setError('')
@@ -169,6 +136,40 @@ export default function LayersClient({ personaId }: LayersClientProps) {
       setIsLoadingPrediction(false)
     }
   }
+
+  useEffect(() => {
+    // Scroll to top when component loads
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
+    // Load persona
+    const personaData = getPersona(personaId)
+    if (!personaData) {
+      setError('Invalid persona')
+      return
+    }
+    setPersona(personaData)
+
+    // Load session ID
+    if (typeof window !== 'undefined') {
+      const storedSessionId = window.localStorage.getItem(SESSION_STORAGE_KEY)
+      if (!storedSessionId) {
+        router.push('/experiment/start')
+        return
+      }
+      setSessionId(storedSessionId)
+
+      // Load or generate prediction
+      const predictionKey = `prediction_${personaId}`
+      const storedPrediction = window.localStorage.getItem(predictionKey)
+      
+      if (storedPrediction) {
+        setPrediction(JSON.parse(storedPrediction))
+      } else {
+        // Generate prediction automatically if not found
+        generatePrediction(storedSessionId, personaId)
+      }
+    }
+  }, [personaId, router])
 
   // Scroll to top whenever layer changes
   useEffect(() => {
