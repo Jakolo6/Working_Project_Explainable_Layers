@@ -61,17 +61,17 @@ function getDisplayName(rawName: string): string {
 // Enhanced categorical value display mapping
 const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> = {
   'checking_status': {
-    'lt_0_dm': 'Less than 0 DM (overdrawn)',
-    '0_to_200_dm': '0 to 200 DM',
-    'ge_200_dm': '200 DM or more',
-    'no_checking': 'No checking account'
+    'lt_0_dm': 'Less than €0 (Overdrawn)',
+    '0_to_200_dm': '€0 to €200',
+    'ge_200_dm': '€200 or more',
+    'no_checking': 'No Checking Account'
   },
   'savings_status': {
-    'lt_100_dm': 'Less than 100 DM',
-    '100_to_500_dm': '100 to 500 DM',
-    '500_to_1000_dm': '500 to 1000 DM',
-    'ge_1000_dm': '1000 DM or more',
-    'unknown': 'Unknown/No savings'
+    'lt_100_dm': 'Less than €100',
+    '100_to_500_dm': '€100 to €500',
+    '500_to_1000_dm': '€500 to €1,000',
+    'ge_1000_dm': '€1,000 or more',
+    'no_savings': 'No Savings Account'
   },
   'credit_history': {
     'no_credits': 'No credits taken',
@@ -106,10 +106,10 @@ const CATEGORICAL_VALUE_DISPLAY: Record<string, Record<string, string>> = {
     'others': 'Other purpose'
   },
   'property_magnitude': {
-    'real_estate': 'Real estate',
-    'savings_agreement': 'Building society savings',
-    'car_or_other': 'Car or other',
-    'unknown_no_property': 'Unknown/No property'
+    'real_estate': 'Real Estate',
+    'savings_agreement': 'Building Society Savings',
+    'car_or_other': 'Car or Other',
+    'unknown_no_property': 'No Property'
   },
   'housing': {
     'rent': 'Rent',

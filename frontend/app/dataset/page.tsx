@@ -303,10 +303,10 @@ export default function DatasetPage() {
               <div className="border-l-4 border-green-600 pl-4">
                 <h3 className="font-semibold text-lg mb-3">Average Credit Amount</h3>
                 <p className="text-gray-700 text-sm mb-1">
-                  <strong>Good Credit:</strong> {stats.key_insights?.avg_amount_good?.toLocaleString() || 'N/A'} DM
+                  <strong>Good Credit:</strong> €{stats.key_insights?.avg_amount_good?.toLocaleString() || 'N/A'}
                 </p>
                 <p className="text-gray-700 text-sm">
-                  <strong>Bad Credit:</strong> {stats.key_insights?.avg_amount_bad?.toLocaleString() || 'N/A'} DM
+                  <strong>Bad Credit:</strong> €{stats.key_insights?.avg_amount_bad?.toLocaleString() || 'N/A'}
                 </p>
               </div>
               

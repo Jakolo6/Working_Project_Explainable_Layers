@@ -139,7 +139,7 @@ export const FEATURE_BENCHMARKS: Record<string, FeatureBenchmark> = {
 const CATEGORICAL_VALUE_NARRATIVES: Record<string, Record<string, { risk: string; support: string }>> = {
   'checking_status': {
     'lt_0_dm': {
-      risk: 'An overdrawn checking account (negative balance) indicates current financial stress and cash flow challenges, which raises concerns about repayment capacity.',
+      risk: 'An overdrawn checking account (negative balance less than €0) indicates current financial stress and cash flow challenges, which raises concerns about repayment capacity.',
       support: 'While the account is overdrawn, having an active checking account shows engagement with the banking system.'
     },
     '0_to_200_dm': {
@@ -148,7 +148,7 @@ const CATEGORICAL_VALUE_NARRATIVES: Record<string, Record<string, { risk: string
     },
     'ge_200_dm': {
       risk: 'Even with a healthy balance, other factors may indicate risk.',
-      support: 'A checking balance of 200 DM or more provides a solid financial cushion and indicates good cash flow management.'
+      support: 'A checking balance of €200 or more provides a solid financial cushion and indicates good cash flow management.'
     },
     'no_checking': {
       risk: 'Without a checking account, there\'s no visible track record of managing regular cash flows and bill payments.',
@@ -157,20 +157,20 @@ const CATEGORICAL_VALUE_NARRATIVES: Record<string, Record<string, { risk: string
   },
   'savings_status': {
     'lt_100_dm': {
-      risk: 'Minimal savings (under 100 DM) provide little safety net for emergencies, making loan repayment vulnerable to unexpected events.',
+      risk: 'Minimal savings (under €100) provide little safety net for emergencies, making loan repayment vulnerable to unexpected events.',
       support: 'Having some savings, even if modest, shows an effort toward financial planning.'
     },
     '100_to_500_dm': {
       risk: 'While better than no savings, this amount may not cover major unexpected expenses during the loan period.',
-      support: 'Savings of 100-500 DM demonstrate financial discipline and provide a basic emergency buffer.'
+      support: 'Savings of €100-€500 demonstrate financial discipline and provide a basic emergency buffer.'
     },
     '500_to_1000_dm': {
       risk: 'Moderate savings may be insufficient for larger emergencies.',
-      support: 'Savings of 500-1000 DM show strong financial planning and provide a meaningful safety net for loan repayment.'
+      support: 'Savings of €500-€1,000 show strong financial planning and provide a meaningful safety net for loan repayment.'
     },
     'ge_1000_dm': {
       risk: 'Even with substantial savings, other risk factors may be present.',
-      support: 'Savings of 1000 DM or more indicate excellent financial discipline and provide a robust buffer against payment disruptions.'
+      support: 'Savings of €1,000 or more indicate excellent financial discipline and provide a robust buffer against payment disruptions.'
     },
     'unknown': {
       risk: 'Unknown savings status creates uncertainty about the applicant\'s financial resilience and emergency preparedness.',

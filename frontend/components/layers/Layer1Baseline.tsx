@@ -7,6 +7,7 @@ import React from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import { getFeatureDescription } from '@/lib/featureDescriptions'
 import { isCreditHistoryFeature, CREDIT_HISTORY_WARNING_TEXT } from '@/components/CreditHistoryWarning'
+import { formatFeatureValue } from '@/lib/valueFormatters'
 import DecisionHeader from './DecisionHeader'
 
 // Simple display name mapping (same as in Layer2Dashboard)
@@ -138,7 +139,7 @@ export default function Layer1Baseline({ decision, probability, shapFeatures }: 
                       </Tooltip>
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      {feature.value}
+                      {formatFeatureValue(feature.feature, feature.value)}
                     </td>
                     <td className={`px-4 py-3 text-right font-mono font-medium ${
                       feature.impact === 'positive' ? 'text-red-600' : 'text-green-600'
