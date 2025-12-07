@@ -127,6 +127,11 @@ export default function LayersClient({ personaId }: LayersClientProps) {
     }
   }, [personaId, router])
 
+  // Scroll to top whenever layer changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [currentLayerIndex])
+
   const handleRatingChange = (field: keyof LayerRating, value: number | string) => {
     setRatings({ ...ratings, [field]: value })
   }
@@ -177,8 +182,8 @@ export default function LayersClient({ personaId }: LayersClientProps) {
           comment: '',
           time_spent_seconds: 0
         })
-        // Scroll to top of page when moving to next layer
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        // Scroll to top of page when moving to next layer (useEffect will handle this)
+        // Removed manual scroll here as useEffect on currentLayerIndex handles it
       } else {
         // All layers completed for this persona
         // Navigate to per-persona questionnaire (which will mark as completed after submission)

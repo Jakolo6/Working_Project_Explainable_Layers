@@ -320,48 +320,8 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
       {/* Decision Header with Interest Rate */}
       <DecisionHeader decision={decision} probability={probability} />
 
-      {/* Rejection Risk Gauge (Rejected Only) */}
-      {!isApproved && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl p-6 bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center">
-              <ShieldAlert className="text-red-600" size={28} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Estimated Risk Level</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-red-700">
-                  {Math.round(probability * 100)}%
-                </span>
-                <span className="text-gray-500 text-lg">Default Risk</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Risk Bar */}
-          <div className="mt-4">
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${probability * 100}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-600 mt-2">
-              <span>Low Risk</span>
-              <span>High Risk</span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
       {/* ═══════════════════════════════════════════════════════════════════════
-          DECISION EXPLANATION - After Rate/Risk Card
+          DECISION EXPLANATION
           ═══════════════════════════════════════════════════════════════════════ */}
       
       {/* Decision Header with Tug of War */}
