@@ -4,7 +4,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { PERSONAS } from '@/lib/personas'
+import { AlertCircle, Info } from 'lucide-react'
+import { getAssessmentDisplay } from '@/lib/riskAssessment'
 import { getPersona, getPersonaApplication, type PersonaInfo, type ApplicationData } from '@/lib/personas'
 
 const SESSION_STORAGE_KEY = 'experiment_session_id'
@@ -267,12 +269,30 @@ export default function PersonaClient({ personaId }: PersonaClientProps) {
           <div className="mb-6 bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">AI Decision</h2>
             <div className={`p-6 rounded-lg ${decision.result === 'approved' ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
-              <p className="text-2xl font-bold mb-2">
-                {decision.result === 'approved' ? '✓ APPROVED' : '✗ REJECTED'}
-              </p>
-              <p className="text-lg">
-                Confidence: {(decision.probability * 100).toFixed(1)}%
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold mb-2">
+                    {decision.result === 'approved' ? '✓ APPROVED' : '✗ REJECTED'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  {(() => {
+                    const assessment = getAssessmentDisplay(decision.result, decision.probability)
+                    return (
+                      <>
+                        <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">
+                          {assessment.label}
+                        </p>
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-lg border-2 ${assessment.bgColor}`}>
+                          <span className={`text-xl font-bold ${assessment.color}`}>
+                            {assessment.value}
+                          </span>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
             </div>
             
             <button

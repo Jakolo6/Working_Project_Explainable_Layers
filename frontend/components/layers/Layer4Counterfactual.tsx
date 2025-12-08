@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, AlertTriangle, TrendingUp, RotateCcw, Loader2 } from 'lucide-react'
+import { getAssessmentDisplay } from '@/lib/riskAssessment'
 import { getPersonaApplication } from '@/lib/personas'
 import { useParams } from 'next/navigation'
 import DecisionHeader from './DecisionHeader'
@@ -364,11 +365,20 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             >
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="text-green-600" size={24} />
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold text-green-900">Decision Flipped to APPROVED!</p>
-                  <p className="text-sm text-green-700">
-                    Confidence: {(livePrediction.probability * 100).toFixed(1)}%
-                  </p>
+                </div>
+                <div className="text-right">
+                  {(() => {
+                    const assessment = getAssessmentDisplay('approved', livePrediction.probability)
+                    return (
+                      <div className={`inline-flex items-center px-2 py-1 rounded border ${assessment.bgColor}`}>
+                        <span className={`text-sm font-bold ${assessment.color}`}>
+                          {assessment.value}
+                        </span>
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             </motion.div>

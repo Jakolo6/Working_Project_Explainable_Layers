@@ -6,13 +6,14 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, XCircle, TrendingUp, TrendingDown, Sparkles, FileText, ShieldAlert } from 'lucide-react'
+import { CheckCircle, XCircle, TrendingUp, TrendingDown, AlertTriangle, ChevronDown, ChevronUp, Info, FileText } from 'lucide-react'
 import RiskTugOfWar from './dashboard/RiskTugOfWar'
 import FeatureRowAccordion from './dashboard/FeatureRowAccordion'
 import InfoTooltip, { TOOLTIPS } from './dashboard/InfoTooltip'
 import DecisionHeader from './DecisionHeader'
 import GlobalDistributionLine from './dashboard/GlobalDistributionLine'
 import { formatFeatureValue, extractNumericValue } from '@/lib/valueFormatters'
+import { getAssessmentDisplay } from '@/lib/riskAssessment'
 
 interface SHAPFeature {
   feature: string
@@ -306,22 +307,30 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
             isApproved ? 'bg-green-100' : 'bg-red-100'
           }`}>
             {isApproved 
-              ? <CheckCircle2 className="text-green-600" size={32} /> 
+              ? <CheckCircle className="text-green-600" size={32} /> 
               : <XCircle className="text-red-600" size={32} />
             }
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">
               Credit Decision: <span className={isApproved ? 'text-green-700' : 'text-red-700'}>
                 {decision.toUpperCase()}
               </span>
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-gray-600">Model Confidence:</span>
-              <span className={`font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`}>
-                {confidencePercent}%
+          </div>
+          
+          {/* Assessment Badge */}
+          <div className="text-right">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm text-gray-600 uppercase tracking-wide">
+                {getAssessmentDisplay(decision, probability).label}
               </span>
-              <InfoTooltip content={TOOLTIPS.modelConfidence} />
+              <InfoTooltip content={getAssessmentDisplay(decision, probability).tooltip} size={14} />
+            </div>
+            <div className={`inline-flex items-center px-3 py-1.5 rounded-lg border-2 ${getAssessmentDisplay(decision, probability).bgColor}`}>
+              <span className={`text-xl font-bold ${getAssessmentDisplay(decision, probability).color}`}>
+                {getAssessmentDisplay(decision, probability).value}
+              </span>
             </div>
           </div>
         </div>

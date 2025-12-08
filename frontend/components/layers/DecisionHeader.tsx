@@ -1,38 +1,21 @@
-// Reusable Decision Header with Interest Rate
-// Displayed consistently at the top of every layer
+// Reusable Decision Header with Risk Assessment
+// Shows Interest Rate for approved, Risk Band for rejected
 
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
+import { Info } from 'lucide-react'
+import { getAssessmentDisplay } from '@/lib/riskAssessment'
 
 interface DecisionHeaderProps {
   decision: 'approved' | 'rejected'
   probability: number
 }
 
-// Interest rate calculation based on risk
-function calculateInterestRate(decision: 'approved' | 'rejected', probability: number): string {
-  if (decision === 'rejected') {
-    return 'N/A'
-  }
-  
-  // Convert probability to risk score (lower probability = higher risk)
-  // Approved loans: probability is confidence in approval
-  const riskScore = 1 - probability
-  
-  // Base rate: 4.5%
-  // Risk premium: 0% to 8% based on risk score
-  const baseRate = 4.5
-  const riskPremium = riskScore * 8
-  const totalRate = baseRate + riskPremium
-  
-  return totalRate.toFixed(2) + '%'
-}
-
 export default function DecisionHeader({ decision, probability }: DecisionHeaderProps) {
+  const [showTooltip, setShowTooltip] = useState(false)
   const isApproved = decision === 'approved'
-  const confidencePercent = Math.round(probability * 100)
-  const interestRate = calculateInterestRate(decision, probability)
+  const assessment = getAssessmentDisplay(decision, probability)
 
   return (
     <div className={`p-6 rounded-lg border-2 ${
@@ -48,31 +31,43 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
               {decision.toUpperCase()}
             </span>
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Model Confidence: {confidencePercent}%
-          </p>
         </div>
 
-        {/* Right: Interest Rate */}
-        <div className="text-right">
-          <div className="text-sm text-gray-600 uppercase tracking-wide mb-1">
-            {isApproved ? 'Loan Interest Rate' : 'Interest Rate'}
+        {/* Right: Assessment (Interest Rate or Risk Band) */}
+        <div className="text-right relative">
+          <div className="flex items-center justify-end gap-2 mb-1">
+            <div className="text-sm text-gray-600 uppercase tracking-wide">
+              {assessment.label}
+            </div>
+            <button
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="More information"
+            >
+              <Info size={16} />
+            </button>
           </div>
-          <div className={`text-4xl font-bold ${
-            isApproved ? 'text-green-700' : 'text-red-700'
-          }`}>
-            {interestRate}
+          
+          {/* Tooltip */}
+          {showTooltip && (
+            <div className="absolute right-0 top-full mt-2 z-50 w-64">
+              <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg">
+                {assessment.tooltip}
+                <div className="absolute bottom-full right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900" />
+              </div>
+            </div>
+          )}
+          
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 ${assessment.bgColor}`}>
+            <span className={`text-2xl font-bold ${assessment.color}`}>
+              {assessment.value}
+            </span>
           </div>
-          {!isApproved && (
-            <p className="text-xs text-gray-500 mt-1">
-              Loan not approved
-            </p>
-          )}
-          {isApproved && (
-            <p className="text-xs text-gray-500 mt-1">
-              Based on risk assessment
-            </p>
-          )}
+          
+          <p className="text-xs text-gray-500 mt-1">
+            {isApproved ? 'Based on risk assessment' : 'Credit risk level'}
+          </p>
         </div>
       </div>
 
