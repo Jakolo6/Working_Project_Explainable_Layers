@@ -19,7 +19,7 @@ export default function InfoTooltip({ content, size = 14 }: InfoTooltipProps) {
         onMouseLeave={() => setIsVisible(false)}
         onFocus={() => setIsVisible(true)}
         onBlur={() => setIsVisible(false)}
-        className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+        className="text-gray-600 hover:text-gray-600 transition-colors focus:outline-none"
         aria-label="More information"
       >
         <Info size={size} />

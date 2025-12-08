@@ -422,7 +422,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Risk Drivers</h2>
-                <p className="text-sm text-gray-500">Factors increasing default risk</p>
+                <p className="text-sm text-gray-700">Factors increasing default risk</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -501,7 +501,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Strengths</h2>
-                <p className="text-sm text-gray-500">Factors reducing default risk</p>
+                <p className="text-sm text-gray-700">Factors reducing default risk</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -572,7 +572,7 @@ export default function Layer2Dashboard({ decision, probability, shapFeatures }:
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="text-center text-sm text-gray-500 pt-4 border-t border-gray-100"
+        className="text-center text-sm text-gray-700 pt-4 border-t border-gray-100"
       >
         Analysis based on {shapFeatures.length} factors • 
         {concernFeatures.length} risk drivers ({riskPercent.toFixed(0)}% influence) • 

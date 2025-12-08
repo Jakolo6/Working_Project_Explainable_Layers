@@ -42,7 +42,7 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
             <button
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-600 hover:text-gray-600 transition-colors"
               aria-label="More information"
             >
               <Info size={16} />
@@ -65,7 +65,7 @@ export default function DecisionHeader({ decision, probability }: DecisionHeader
             </span>
           </div>
           
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-700 mt-1">
             {isApproved ? 'Based on risk assessment' : 'Credit risk level'}
           </p>
         </div>

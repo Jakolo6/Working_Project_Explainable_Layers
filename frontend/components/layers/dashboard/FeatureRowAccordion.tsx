@@ -448,7 +448,7 @@ export default function FeatureRowAccordion({
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown size={18} className="text-gray-400" />
+            <ChevronDown size={18} className="text-gray-600" />
           </motion.div>
         </div>
       </button>
@@ -493,7 +493,7 @@ export default function FeatureRowAccordion({
               {/* Global Distribution Visual - only for numeric features with benchmarks */}
               {benchmark && numericValue !== undefined && (
                 <div className="bg-white rounded-lg border border-gray-200 p-3.5 overflow-hidden">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
                     How You Compare
                   </h4>
                   <div className="overflow-x-auto">
@@ -519,7 +519,7 @@ export default function FeatureRowAccordion({
                 
                 return (
                   <div className="bg-white rounded-lg border border-gray-200 p-3.5">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                    <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
                       How You Compare
                     </h4>
                     

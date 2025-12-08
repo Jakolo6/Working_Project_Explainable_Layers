@@ -217,7 +217,7 @@ Summary:
             <p className="text-gray-700 font-medium mb-2">
               Ask me anything about this credit decision
             </p>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               I can compare this applicant to typical patterns, suggest improvements, and explain any factor in detail.
             </p>
             <div className="space-y-2">

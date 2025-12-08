@@ -53,7 +53,7 @@ export default function RiskTugOfWar({
               className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Factors increasing default risk</p>
+          <p className="text-xs text-gray-700 mt-1">Factors increasing default risk</p>
         </div>
 
         {/* Strengths Bar */}
@@ -73,7 +73,7 @@ export default function RiskTugOfWar({
               className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full"
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Factors reducing default risk</p>
+          <p className="text-xs text-gray-700 mt-1">Factors reducing default risk</p>
         </div>
       </div>
     </div>

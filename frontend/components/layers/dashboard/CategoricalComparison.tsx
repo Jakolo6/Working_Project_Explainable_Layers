@@ -200,7 +200,7 @@ export default function CategoricalComparison({
 
             {/* Divider */}
             <div className="flex flex-col items-center px-2">
-              <div className="text-xs text-gray-400 font-medium">vs</div>
+              <div className="text-xs text-gray-600 font-medium">vs</div>
               {!comparisonData.isUserBetter && (
                 <ArrowDown className="text-amber-600 mt-1" size={14} />
               )}

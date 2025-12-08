@@ -62,7 +62,7 @@ export default function GlobalDistributionLine({
   return (
     <div className="w-full py-3">
       {/* Labels row */}
-      <div className="flex justify-between text-xs text-gray-500 mb-2">
+      <div className="flex justify-between text-xs text-gray-700 mb-2">
         <span>Low ({formatValue(min)})</span>
         <span className="text-gray-600 font-medium">Typical Approved Range</span>
         <span>High ({formatValue(max)})</span>
@@ -152,7 +152,7 @@ export default function GlobalDistributionLine({
       >
         {getPositionLabel()}
         {!isInSafeZone && (
-          <span className="text-gray-500 ml-1">
+          <span className="text-gray-700 ml-1">
             (Typical: {formatValue(typicalRange[0])} – {formatValue(typicalRange[1])})
           </span>
         )}

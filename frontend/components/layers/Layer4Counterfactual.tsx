@@ -327,7 +327,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                     }`}>
                       {isRiskReducing ? '↓' : '↑'} Risk
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-700">
                       {impactPercent}%
                     </div>
                   </div>
@@ -403,11 +403,11 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             <div className="relative group">
               <button
                 disabled
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-400 bg-gray-100 border-2 border-gray-200 rounded-lg cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 border-2 border-gray-200 rounded-lg cursor-not-allowed"
               >
                 <Lightbulb size={18} />
                 What's the max loan amount for approval?
-                <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-500 rounded">
+                <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded">
                   Work in Progress
                 </span>
               </button>
@@ -447,7 +447,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 onChange={(e) => handleFeatureChange('credit_amount', Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
-              <div className="flex justify-between text-xs text-gray-500">
+              <div className="flex justify-between text-xs text-gray-700">
                 <span>€500</span>
                 <span>€20,000</span>
               </div>
@@ -479,7 +479,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 onChange={(e) => handleFeatureChange('duration_months', Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
-              <div className="flex justify-between text-xs text-gray-500">
+              <div className="flex justify-between text-xs text-gray-700">
                 <span>6 months</span>
                 <span>72 months</span>
               </div>
@@ -554,7 +554,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             <p className="text-sm text-gray-700 mb-2">
               Decrease Credit Amount by <strong>20%</strong>
             </p>
-            <p className="text-xs text-gray-500 italic">
+            <p className="text-xs text-gray-700 italic">
               Reduces risk by lowering total debt exposure
             </p>
           </button>
@@ -576,7 +576,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             <p className="text-sm text-gray-700 mb-2">
               Decrease Duration by <strong>12 months</strong>
             </p>
-            <p className="text-xs text-gray-500 italic">
+            <p className="text-xs text-gray-700 italic">
               Shortens repayment period and reduces default risk
             </p>
           </button>
@@ -598,7 +598,7 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             <p className="text-sm text-gray-700 mb-2">
               Increase Savings to <strong>€500-1000</strong>
             </p>
-            <p className="text-xs text-gray-500 italic">
+            <p className="text-xs text-gray-700 italic">
               Demonstrates financial buffer and planning ability
             </p>
           </button>
