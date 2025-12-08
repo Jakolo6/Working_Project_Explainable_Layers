@@ -487,36 +487,97 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
           )}
         </div>
 
-        {/* Success Animation */}
-        <AnimatePresence>
-          {isApproved && hasFlipped && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="mt-6 p-4 rounded-xl bg-green-50 border-2 border-green-300"
-            >
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="text-green-600" size={24} />
-                <div className="flex-1">
-                  <p className="font-semibold text-green-900">Decision Flipped to APPROVED!</p>
+        {/* Live Prediction Card - Always Visible */}
+        <motion.div
+          key={`${livePrediction.decision}-${livePrediction.probability}`}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`mt-6 p-5 rounded-xl border-2 ${
+            isApproved
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300'
+              : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            {/* Left: Decision Status */}
+            <div className="flex items-center gap-3">
+              {isApproved ? (
+                <CheckCircle2 className="text-green-600" size={28} />
+              ) : (
+                <XCircle className="text-red-600" size={28} />
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    {hasFlipped ? '🎉 New Prediction:' : 'Current Prediction:'}
+                  </p>
+                  {hasFlipped && (
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full animate-pulse">
+                      Changed!
+                    </span>
+                  )}
                 </div>
-                <div className="text-right">
-                  {(() => {
-                    const assessment = getAssessmentDisplay('approved', livePrediction.probability)
-                    return (
-                      <div className={`inline-flex items-center px-2 py-1 rounded border ${assessment.bgColor}`}>
-                        <span className={`text-sm font-bold ${assessment.color}`}>
-                          {assessment.value}
-                        </span>
-                      </div>
-                    )
-                  })()}
-                </div>
+                <p className={`text-2xl font-bold ${
+                  isApproved ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {livePrediction.decision.toUpperCase()}
+                </p>
               </div>
+            </div>
+
+            {/* Right: Assessment Display */}
+            <div className="text-right">
+              {(() => {
+                const assessment = getAssessmentDisplay(livePrediction.decision, livePrediction.probability)
+                return (
+                  <div>
+                    <p className="text-xs text-gray-700 font-medium mb-1 uppercase tracking-wide">
+                      {assessment.label}
+                    </p>
+                    <div className={`inline-flex items-center px-4 py-2 rounded-lg border-2 ${assessment.bgColor}`}>
+                      <span className={`text-xl font-bold ${assessment.color}`}>
+                        {assessment.value}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* Flip Celebration Message */}
+          {hasFlipped && isApproved && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-4 pt-4 border-t border-green-200"
+            >
+              <p className="text-sm text-green-800 font-medium">
+                ✨ Great! Your adjustments successfully flipped the decision to <strong>APPROVED</strong>. 
+                The changes improved the risk assessment.
+              </p>
             </motion.div>
           )}
-        </AnimatePresence>
+
+          {/* Progress to Approval (for rejected) */}
+          {!isApproved && gapToApproval > 0 && (
+            <div className="mt-4 pt-4 border-t border-red-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-gray-700 font-medium">Progress to Approval</p>
+                <p className="text-xs text-gray-700 font-bold">
+                  {gapToApproval.toFixed(1)}% more needed
+                </p>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-amber-400 to-green-500 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, ((50 - gapToApproval) / 50) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </motion.div>
       </motion.div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
