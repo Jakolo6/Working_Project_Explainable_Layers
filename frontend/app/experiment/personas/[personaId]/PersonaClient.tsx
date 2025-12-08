@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { PERSONAS } from '@/lib/personas'
 import { AlertCircle, Info } from 'lucide-react'
 import { getAssessmentDisplay } from '@/lib/riskAssessment'
