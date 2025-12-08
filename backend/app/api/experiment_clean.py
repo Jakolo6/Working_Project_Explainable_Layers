@@ -690,13 +690,21 @@ async def get_research_results():
     try:
         _, _, db = get_services()
         
-        # Fetch layer performance data
-        layer_performance_response = db.supabase.table('layer_performance_analysis').select('*').execute()
-        layer_performance = layer_performance_response.data if layer_performance_response.data else []
+        # Fetch layer performance data with error handling
+        try:
+            layer_performance_response = db.supabase.table('layer_performance_analysis').select('*').execute()
+            layer_performance = layer_performance_response.data if layer_performance_response.data else []
+        except Exception as view_error:
+            print(f"[WARNING] layer_performance_analysis view error: {str(view_error)}")
+            layer_performance = []
         
-        # Fetch complete session data
-        session_data_response = db.supabase.table('experiment_complete_data').select('*').execute()
-        session_data = session_data_response.data if session_data_response.data else []
+        # Fetch complete session data with error handling
+        try:
+            session_data_response = db.supabase.table('experiment_complete_data').select('*').execute()
+            session_data = session_data_response.data if session_data_response.data else []
+        except Exception as view_error:
+            print(f"[WARNING] experiment_complete_data view error: {str(view_error)}")
+            session_data = []
         
         # Calculate summary statistics
         total_participants = len(session_data)
@@ -846,4 +854,32 @@ async def get_research_results():
         error_details = traceback.format_exc()
         print(f"[ERROR] Research results failed: {str(e)}")
         print(f"[ERROR] Traceback: {error_details}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch research results: {str(e)}")
+        
+        # Return empty but valid structure instead of 500 error
+        return {
+            'layer_performance': [],
+            'session_data': [],
+            'total_participants': 0,
+            'completed_participants': 0,
+            'total_layer_ratings': 0,
+            'demographics': {
+                'age_distribution': {},
+                'gender_distribution': {},
+                'financial_relationship_distribution': {},
+                'ai_trust_distribution': {},
+                'ai_fairness_distribution': {},
+                'explanation_style_distribution': {}
+            },
+            'layer_rankings': {
+                'by_understanding': [],
+                'by_communicability': [],
+                'by_cognitive_load': [],
+                'by_preference': []
+            },
+            'persona_comparison': {
+                'maria': {'avg_understanding': 0, 'avg_communicability': 0, 'avg_cognitive_load': 0},
+                'jonas': {'avg_understanding': 0, 'avg_communicability': 0, 'avg_cognitive_load': 0}
+            },
+            'error': str(e),
+            'message': 'No data available yet or database views not created'
+        }
