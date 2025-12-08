@@ -5,11 +5,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, AlertTriangle, TrendingUp, RotateCcw, Loader2 } from 'lucide-react'
+import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, AlertTriangle, TrendingUp, RotateCcw, Loader2, Info, ArrowDown, ArrowUp } from 'lucide-react'
 import { getAssessmentDisplay } from '@/lib/riskAssessment'
 import { getPersonaApplication } from '@/lib/personas'
 import { useParams } from 'next/navigation'
 import DecisionHeader from './DecisionHeader'
+import { formatFeatureValue } from '@/lib/valueFormatters'
 
 interface SHAPFeature {
   feature: string
@@ -240,10 +241,87 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
       {/* Decision Header with Interest Rate */}
       <DecisionHeader decision={livePrediction.decision} probability={livePrediction.probability} />
       
+      {/* ═══════════════════════════════════════════════════════════════════════
+          WHAT DROVE THIS DECISION - Top SHAP Features
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="rounded-xl border-2 border-blue-200 bg-blue-50 p-5"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="text-lg font-bold text-blue-900">
+            What Drove This Decision
+          </h3>
+          <div className="relative group">
+            <Info size={16} className="text-blue-600 cursor-help" />
+            <div className="absolute left-0 top-full mt-2 w-64 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              These are the most influential factors behind the AI decision, based on SHAP impact scores.
+              <div className="absolute bottom-full left-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          {shapFeatures
+            .sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value))
+            .slice(0, 5)
+            .map((feature, index) => {
+              const impactPercent = Math.abs(feature.shap_value * 100).toFixed(0)
+              const isRiskReducing = feature.impact === 'negative' // negative SHAP = reduces risk
+              const formattedValue = formatFeatureValue(feature.feature, feature.value)
+              
+              return (
+                <div
+                  key={feature.feature}
+                  className="flex items-center gap-3 bg-white rounded-lg p-3 border border-blue-100"
+                >
+                  {/* Icon */}
+                  <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                    isRiskReducing ? 'bg-green-100' : 'bg-red-100'
+                  }`}>
+                    {isRiskReducing ? (
+                      <ArrowDown size={14} className="text-green-600" />
+                    ) : (
+                      <ArrowUp size={14} className="text-red-600" />
+                    )}
+                  </div>
+                  
+                  {/* Feature Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {feature.feature}
+                      </span>
+                      <span className="text-gray-600 text-sm">
+                        ({formattedValue})
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Impact */}
+                  <div className="flex-shrink-0 text-right">
+                    <div className={`text-xs font-medium ${
+                      isRiskReducing ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {isRiskReducing ? '↓' : '↑'} Risk
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {impactPercent}%
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+        </div>
+      </motion.div>
+      
       {/* Short Counterfactual Summary */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
         className={`rounded-lg p-4 border ${
           isApproved
             ? 'bg-green-50 border-green-200'
