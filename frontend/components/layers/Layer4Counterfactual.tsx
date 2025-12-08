@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, AlertTriangle, TrendingUp, RotateCcw, Loader2, Info, ArrowDown, ArrowUp } from 'lucide-react'
+import { Zap, Target, Sparkles, DollarSign, Clock, PiggyBank, TrendingDown, CheckCircle2, XCircle, AlertTriangle, TrendingUp, RotateCcw, Loader2, Info, ArrowDown, ArrowUp, Lightbulb } from 'lucide-react'
 import { getAssessmentDisplay } from '@/lib/riskAssessment'
 import { getPersonaApplication } from '@/lib/personas'
 import { useParams } from 'next/navigation'
@@ -216,6 +216,26 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
     handleFeatureChange('savings_account', '500 to 1000 DM');
   };
 
+  // Reset to original values
+  const resetToOriginal = () => {
+    if (!originalApplication) return;
+    setModifiedData({
+      credit_amount: originalApplication.credit_amount,
+      duration_months: originalApplication.duration_months,
+      checking_account_status: originalApplication.checking_account_status,
+      savings_account: originalApplication.savings_account,
+      installment_rate: originalApplication.installment_rate,
+    });
+    // Trigger prediction with original data
+    fetchPrediction({
+      credit_amount: originalApplication.credit_amount,
+      duration_months: originalApplication.duration_months,
+      checking_account_status: originalApplication.checking_account_status,
+      savings_account: originalApplication.savings_account,
+      installment_rate: originalApplication.installment_rate,
+    });
+  };
+
   // Calculate gap to approval (how much probability needs to increase)
   const currentProb = livePrediction.probability * 100;
   const gapToApproval = decision === 'rejected' ? Math.max(0, 50 - currentProb) : 0;
@@ -357,13 +377,48 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
             </div>
           </div>
           
-          {livePrediction.isLoading && (
-            <div className="flex items-center gap-2 text-indigo-600">
-              <Loader2 className="animate-spin" size={16} />
-              <span className="text-sm font-medium">Calculating...</span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {livePrediction.isLoading && (
+              <div className="flex items-center gap-2 text-indigo-600">
+                <Loader2 className="animate-spin" size={16} />
+                <span className="text-sm font-medium">Calculating...</span>
+              </div>
+            )}
+            
+            {/* Reset Button */}
+            <button
+              onClick={resetToOriginal}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              title="Reset all values to original"
+            >
+              <RotateCcw size={16} />
+              Reset
+            </button>
+          </div>
         </div>
+        
+        {/* Max Loan Button - Only for Rejected */}
+        {decision === 'rejected' && (
+          <div className="mb-6">
+            <div className="relative group">
+              <button
+                disabled
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-400 bg-gray-100 border-2 border-gray-200 rounded-lg cursor-not-allowed"
+              >
+                <Lightbulb size={18} />
+                What's the max loan amount for approval?
+                <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-500 rounded">
+                  Work in Progress
+                </span>
+              </button>
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                This will help simulate your maximum affordable credit amount. Coming soon.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Feature Sliders */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -496,8 +551,11 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 <p className="text-xs text-gray-600">Fastest path</p>
               </div>
             </div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 mb-2">
               Decrease Credit Amount by <strong>20%</strong>
+            </p>
+            <p className="text-xs text-gray-500 italic">
+              Reduces risk by lowering total debt exposure
             </p>
           </button>
 
@@ -515,8 +573,11 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 <p className="text-xs text-gray-600">Lower risk</p>
               </div>
             </div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 mb-2">
               Decrease Duration by <strong>12 months</strong>
+            </p>
+            <p className="text-xs text-gray-500 italic">
+              Shortens repayment period and reduces default risk
             </p>
           </button>
 
@@ -534,8 +595,11 @@ export default function Layer4Counterfactual({ decision, probability, shapFeatur
                 <p className="text-xs text-gray-600">Build trust</p>
               </div>
             </div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 mb-2">
               Increase Savings to <strong>€500-1000</strong>
+            </p>
+            <p className="text-xs text-gray-500 italic">
+              Demonstrates financial buffer and planning ability
             </p>
           </button>
         </div>
