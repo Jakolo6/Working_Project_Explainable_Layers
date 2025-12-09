@@ -894,26 +894,37 @@ async def get_raw_debug_data():
     try:
         _, _, db = get_services()
         
-        # Get raw sessions
-        sessions_response = db.client.table('sessions').select('*').limit(10).execute()
+        # Get ALL sessions (not just 10)
+        sessions_response = db.client.table('sessions').select('session_id, consent_given, completed').execute()
         sessions = sessions_response.data if sessions_response.data else []
         
-        # Get raw layer_ratings
-        ratings_response = db.client.table('layer_ratings').select('*').limit(10).execute()
+        # Get ALL layer_ratings (not just 10)
+        ratings_response = db.client.table('layer_ratings').select('session_id').execute()
         ratings = ratings_response.data if ratings_response.data else []
         
-        # Get raw post_questionnaires
-        post_q_response = db.client.table('post_questionnaires').select('*').limit(10).execute()
-        post_q = post_q_response.data if post_q_response.data else []
+        # Get unique session_ids from each table
+        session_ids_in_sessions = set(s['session_id'] for s in sessions)
+        session_ids_in_ratings = set(r['session_id'] for r in ratings)
+        
+        # Find matching and non-matching IDs
+        matching_ids = session_ids_in_sessions & session_ids_in_ratings
+        only_in_sessions = session_ids_in_sessions - session_ids_in_ratings
+        only_in_ratings = session_ids_in_ratings - session_ids_in_sessions
+        
+        # Get sample of matching sessions
+        matching_sessions = [s for s in sessions if s['session_id'] in matching_ids][:5]
         
         return {
-            'sessions_count': len(sessions),
-            'sessions_sample': sessions,
-            'layer_ratings_count': len(ratings),
-            'layer_ratings_sample': ratings,
-            'post_questionnaires_count': len(post_q),
-            'post_questionnaires_sample': post_q,
-            'message': 'Raw table data (limited to 10 records each)'
+            'total_sessions': len(sessions),
+            'total_ratings': len(ratings),
+            'unique_session_ids_in_sessions': len(session_ids_in_sessions),
+            'unique_session_ids_in_ratings': len(session_ids_in_ratings),
+            'matching_session_ids': len(matching_ids),
+            'only_in_sessions_table': len(only_in_sessions),
+            'only_in_ratings_table': len(only_in_ratings),
+            'matching_sessions_sample': matching_sessions,
+            'orphaned_rating_sessions': list(only_in_ratings)[:5],
+            'message': 'Session ID matching analysis'
         }
         
     except Exception as e:
