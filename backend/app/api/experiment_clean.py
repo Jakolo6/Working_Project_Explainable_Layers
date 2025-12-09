@@ -883,3 +883,42 @@ async def get_research_results():
             'error': str(e),
             'message': 'No data available yet or database views not created'
         }
+
+
+@router.get("/debug/raw-data")
+async def get_raw_debug_data():
+    """
+    Debug endpoint to check raw table data (not views).
+    Helps diagnose why views might be empty.
+    """
+    try:
+        _, _, db = get_services()
+        
+        # Get raw sessions
+        sessions_response = db.client.table('sessions').select('*').limit(10).execute()
+        sessions = sessions_response.data if sessions_response.data else []
+        
+        # Get raw layer_ratings
+        ratings_response = db.client.table('layer_ratings').select('*').limit(10).execute()
+        ratings = ratings_response.data if ratings_response.data else []
+        
+        # Get raw post_questionnaires
+        post_q_response = db.client.table('post_questionnaires').select('*').limit(10).execute()
+        post_q = post_q_response.data if post_q_response.data else []
+        
+        return {
+            'sessions_count': len(sessions),
+            'sessions_sample': sessions,
+            'layer_ratings_count': len(ratings),
+            'layer_ratings_sample': ratings,
+            'post_questionnaires_count': len(post_q),
+            'post_questionnaires_sample': post_q,
+            'message': 'Raw table data (limited to 10 records each)'
+        }
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] Debug endpoint failed: {str(e)}")
+        print(f"[ERROR] Traceback: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Debug failed: {str(e)}")
