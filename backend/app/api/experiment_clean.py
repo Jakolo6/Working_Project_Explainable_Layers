@@ -933,3 +933,55 @@ async def get_raw_debug_data():
         print(f"[ERROR] Debug endpoint failed: {str(e)}")
         print(f"[ERROR] Traceback: {error_details}")
         raise HTTPException(status_code=500, detail=f"Debug failed: {str(e)}")
+
+
+@router.get("/debug/views")
+async def get_view_debug_data():
+    """
+    Debug endpoint to check what the views actually return.
+    """
+    try:
+        _, _, db = get_services()
+        
+        # Try to get data from views
+        try:
+            layer_perf_response = db.client.table('layer_performance_analysis').select('*').limit(5).execute()
+            layer_perf = layer_perf_response.data if layer_perf_response.data else []
+        except Exception as e:
+            layer_perf = []
+            layer_perf_error = str(e)
+        
+        try:
+            complete_data_response = db.client.table('experiment_complete_data').select('*').limit(5).execute()
+            complete_data = complete_data_response.data if complete_data_response.data else []
+        except Exception as e:
+            complete_data = []
+            complete_data_error = str(e)
+        
+        # Also try a direct query to see what's in sessions with ratings
+        try:
+            direct_query = db.client.table('sessions').select('session_id, consent_given, completed').eq('consent_given', True).execute()
+            sessions_with_consent = direct_query.data if direct_query.data else []
+        except Exception as e:
+            sessions_with_consent = []
+            sessions_error = str(e)
+        
+        return {
+            'layer_performance_count': len(layer_perf),
+            'layer_performance_sample': layer_perf,
+            'layer_performance_error': layer_perf_error if 'layer_perf_error' in locals() else None,
+            'experiment_complete_data_count': len(complete_data),
+            'experiment_complete_data_sample': complete_data,
+            'complete_data_error': complete_data_error if 'complete_data_error' in locals() else None,
+            'sessions_with_consent_count': len(sessions_with_consent),
+            'sessions_with_consent_sample': sessions_with_consent[:5],
+            'sessions_error': sessions_error if 'sessions_error' in locals() else None,
+            'message': 'View data analysis'
+        }
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] View debug failed: {str(e)}")
+        print(f"[ERROR] Traceback: {error_details}")
+        raise HTTPException(status_code=500, detail=f"View debug failed: {str(e)}")
