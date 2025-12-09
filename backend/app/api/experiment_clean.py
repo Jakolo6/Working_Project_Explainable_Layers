@@ -694,6 +694,7 @@ async def get_research_results():
         try:
             layer_performance_response = db.client.table('layer_performance_analysis').select('*').execute()
             layer_performance = layer_performance_response.data if layer_performance_response.data else []
+            print(f"[INFO] Fetched {len(layer_performance)} layer performance records")
         except Exception as view_error:
             print(f"[WARNING] layer_performance_analysis view error: {str(view_error)}")
             layer_performance = []
@@ -702,6 +703,7 @@ async def get_research_results():
         try:
             session_data_response = db.client.table('experiment_complete_data').select('*').execute()
             session_data = session_data_response.data if session_data_response.data else []
+            print(f"[INFO] Fetched {len(session_data)} session data records")
         except Exception as view_error:
             print(f"[WARNING] experiment_complete_data view error: {str(view_error)}")
             session_data = []
