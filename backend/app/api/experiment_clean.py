@@ -692,7 +692,7 @@ async def get_research_results():
         
         # Fetch layer performance data with error handling
         try:
-            layer_performance_response = db.supabase.table('layer_performance_analysis').select('*').execute()
+            layer_performance_response = db.client.table('layer_performance_analysis').select('*').execute()
             layer_performance = layer_performance_response.data if layer_performance_response.data else []
         except Exception as view_error:
             print(f"[WARNING] layer_performance_analysis view error: {str(view_error)}")
@@ -700,7 +700,7 @@ async def get_research_results():
         
         # Fetch complete session data with error handling
         try:
-            session_data_response = db.supabase.table('experiment_complete_data').select('*').execute()
+            session_data_response = db.client.table('experiment_complete_data').select('*').execute()
             session_data = session_data_response.data if session_data_response.data else []
         except Exception as view_error:
             print(f"[WARNING] experiment_complete_data view error: {str(view_error)}")
