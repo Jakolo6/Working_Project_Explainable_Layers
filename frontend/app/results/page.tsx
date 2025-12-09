@@ -71,6 +71,8 @@ interface ResearchData {
     maria: {avg_understanding: number, avg_communicability: number, avg_cognitive_load: number}
     jonas: {avg_understanding: number, avg_communicability: number, avg_cognitive_load: number}
   }
+  error?: string
+  message?: string
 }
 
 // ============================================================================
@@ -158,10 +160,27 @@ function ResultsDashboard() {
     )
   }
 
-  if (!data) {
+  if (!data || data.total_participants === 0) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">No data available</p>
+        <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">📊</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Data Yet</h2>
+          <p className="text-gray-600 mb-4">
+            No participants have completed the experiment yet.
+          </p>
+          {data?.message && (
+            <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 mb-4">
+              {data.message}
+            </p>
+          )}
+          <button
+            onClick={fetchResearchData}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          >
+            Refresh
+          </button>
+        </div>
       </main>
     )
   }
