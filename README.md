@@ -2,7 +2,7 @@
 
 **Master Thesis Project**  
 **Author:** Jakob Lindner  
-**Institution:** [Your University]  
+**Institution:** Nova SBE
 **Year:** 2025
 
 ---
