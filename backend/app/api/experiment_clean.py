@@ -463,6 +463,91 @@ async def mark_session_complete(session_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to mark session complete: {str(e)}")
 
 
+@router.get("/participant/{session_id}")
+async def get_participant_details(session_id: str):
+    """
+    Get comprehensive participant data including demographics, all ratings, and responses.
+    For researcher use on the results page.
+    """
+    try:
+        _, _, db = get_services()
+        
+        # Get session data
+        session_data = db.get_session(session_id)
+        if not session_data:
+            raise HTTPException(status_code=404, detail=f"Participant {session_id} not found")
+        
+        # Get all layer ratings for this session
+        ratings_query = """
+            SELECT 
+                lr.layer_number,
+                lr.persona_id,
+                lr.understanding_rating,
+                lr.communicability_rating,
+                lr.cognitive_load_rating,
+                lr.time_spent_seconds,
+                lr.created_at,
+                p.decision as prediction_decision,
+                p.probability as prediction_probability
+            FROM layer_ratings lr
+            LEFT JOIN predictions p ON lr.prediction_id = p.id
+            WHERE lr.session_id = %s
+            ORDER BY lr.created_at ASC
+        """
+        ratings_result = db.supabase.rpc('execute_sql', {'query': ratings_query, 'params': [session_id]}).execute()
+        layer_ratings = ratings_result.data if ratings_result.data else []
+        
+        # Get post-questionnaire data
+        questionnaire_query = """
+            SELECT 
+                most_helpful_layer,
+                most_trusted_layer,
+                best_for_customer,
+                overall_intuitiveness,
+                ai_usefulness,
+                improvement_suggestions,
+                created_at
+            FROM post_questionnaires
+            WHERE session_id = %s
+            LIMIT 1
+        """
+        questionnaire_result = db.supabase.rpc('execute_sql', {'query': questionnaire_query, 'params': [session_id]}).execute()
+        questionnaire = questionnaire_result.data[0] if questionnaire_result.data else None
+        
+        # Format response
+        return {
+            "session_id": session_id,
+            "demographics": {
+                "age": session_data.get('age'),
+                "gender": session_data.get('gender'),
+                "financial_relationship": session_data.get('financial_relationship'),
+                "ai_trust_instinct": session_data.get('ai_trust_instinct'),
+                "ai_fairness_stance": session_data.get('ai_fairness_stance'),
+                "preferred_explanation_style": session_data.get('preferred_explanation_style'),
+            },
+            "session_info": {
+                "created_at": session_data.get('created_at'),
+                "completed": session_data.get('completed', False),
+                "completed_at": session_data.get('completed_at'),
+            },
+            "layer_ratings": layer_ratings,
+            "post_questionnaire": questionnaire,
+            "summary": {
+                "total_ratings": len(layer_ratings),
+                "personas_completed": len(set(r['persona_id'] for r in layer_ratings if r.get('persona_id'))),
+                "avg_understanding": sum(r['understanding_rating'] for r in layer_ratings) / len(layer_ratings) if layer_ratings else 0,
+                "avg_communicability": sum(r['communicability_rating'] for r in layer_ratings) / len(layer_ratings) if layer_ratings else 0,
+                "avg_cognitive_load": sum(r['cognitive_load_rating'] for r in layer_ratings) / len(layer_ratings) if layer_ratings else 0,
+                "total_time_seconds": sum(r['time_spent_seconds'] or 0 for r in layer_ratings),
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve participant details: {str(e)}")
+
+
 @router.post("/generate_explanation")
 async def generate_natural_language_explanation(request: dict):
     """Generate natural language explanation (template-based, no GPT)"""

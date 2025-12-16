@@ -292,11 +292,19 @@ function ResultsDashboard() {
         </section>
 
         {/* Qualitative Insights */}
-        <section className="bg-white rounded-lg shadow-lg p-6">
+        <section className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Qualitative Feedback
           </h2>
           <ImprovementSuggestions sessions={data.session_data} />
+        </section>
+
+        {/* Participant Lookup */}
+        <section className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Individual Participant Lookup
+          </h2>
+          <ParticipantLookup />
         </section>
       </div>
     </main>
@@ -541,6 +549,260 @@ function ImprovementSuggestions({ sessions }: { sessions: SessionData[] }) {
             <p className="text-sm text-gray-700">{suggestion}</p>
           </div>
         ))
+      )}
+    </div>
+  )
+}
+
+function ParticipantLookup() {
+  const [sessionId, setSessionId] = useState('')
+  const [participantData, setParticipantData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSearch = async () => {
+    if (!sessionId.trim()) {
+      setError('Please enter a participant ID')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setParticipantData(null)
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/v1/experiment/participant/${sessionId.trim()}`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Participant not found')
+        }
+        throw new Error('Failed to fetch participant data')
+      }
+      
+      const data = await response.json()
+      setParticipantData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Search Input */}
+      <div className="flex gap-3">
+        <input
+          type="text"
+          value={sessionId}
+          onChange={(e) => setSessionId(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Enter Participant ID (e.g., exp_abc123...)"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          onClick={handleSearch}
+          disabled={loading}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Participant Data Display */}
+      {participantData && (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-blue-900 mb-2">
+              Participant: {participantData.session_id}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">Status:</span>{' '}
+                <span className={`font-semibold ${participantData.session_info.completed ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {participantData.session_info.completed ? 'Completed' : 'In Progress'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Total Ratings:</span>{' '}
+                <span className="font-semibold">{participantData.summary.total_ratings}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Personas:</span>{' '}
+                <span className="font-semibold">{participantData.summary.personas_completed}/2</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Total Time:</span>{' '}
+                <span className="font-semibold">{Math.round(participantData.summary.total_time_seconds)}s</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Demographics */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Demographics</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(participantData.demographics).map(([key, value]) => (
+                <div key={key} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="text-xs text-gray-600 mb-1 capitalize">
+                    {key.replace(/_/g, ' ')}
+                  </div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {String(value || 'N/A')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary Statistics */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Average Ratings</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-xs text-green-700 mb-1">Understanding</div>
+                <div className="text-2xl font-bold text-green-900">
+                  {participantData.summary.avg_understanding.toFixed(2)}
+                </div>
+                <div className="text-xs text-green-600">out of 5.0</div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-xs text-blue-700 mb-1">Communicability</div>
+                <div className="text-2xl font-bold text-blue-900">
+                  {participantData.summary.avg_communicability.toFixed(2)}
+                </div>
+                <div className="text-xs text-blue-600">out of 5.0</div>
+              </div>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="text-xs text-purple-700 mb-1">Cognitive Load</div>
+                <div className="text-2xl font-bold text-purple-900">
+                  {participantData.summary.avg_cognitive_load.toFixed(2)}
+                </div>
+                <div className="text-xs text-purple-600">out of 5.0 (lower is better)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Layer Ratings Table */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">All Layer Ratings</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Layer</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persona</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Understanding</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Communicability</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cognitive Load</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Decision</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {participantData.layer_ratings.map((rating: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Layer {rating.layer_number}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {rating.persona_id === 'elderly-woman' ? 'Maria' : 'Jonas'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {rating.understanding_rating}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {rating.communicability_rating}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {rating.cognitive_load_rating}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {Math.round(rating.time_spent_seconds)}s
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          rating.prediction_decision === 'APPROVED' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {rating.prediction_decision || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Post-Questionnaire */}
+          {participantData.post_questionnaire && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Post-Study Questionnaire</h4>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Most Helpful Layer</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {participantData.post_questionnaire.most_helpful_layer || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Most Trusted Layer</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {participantData.post_questionnaire.most_trusted_layer || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Best for Customer</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {participantData.post_questionnaire.best_for_customer || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Overall Intuitiveness</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {participantData.post_questionnaire.overall_intuitiveness || 'N/A'} / 5
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">AI Usefulness</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {participantData.post_questionnaire.ai_usefulness || 'N/A'} / 5
+                    </div>
+                  </div>
+                </div>
+                {participantData.post_questionnaire.improvement_suggestions && (
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Improvement Suggestions</div>
+                    <div className="text-sm text-gray-700 bg-white border border-gray-200 rounded p-3">
+                      {participantData.post_questionnaire.improvement_suggestions}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
