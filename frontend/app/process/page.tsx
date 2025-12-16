@@ -240,11 +240,12 @@ export default function ProcessPage() {
                 <div className="space-y-3">
                   {/* Step 9 */}
                   <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
-                    <div className="font-semibold text-green-900 mb-1">9. User Registration</div>
+                    <div className="font-semibold text-green-900 mb-1">9. Consent & Baseline</div>
                     <ul className="text-xs text-gray-700 space-y-0.5">
-                      <li>• Pre-questionnaire</li>
-                      <li>• Demographics</li>
-                      <li>• AI experience</li>
+                      <li>• Informed consent</li>
+                      <li>• Demographics (age, gender)</li>
+                      <li>• Financial literacy & AI trust</li>
+                      <li>• Create session ID</li>
                     </ul>
                   </div>
 
@@ -255,9 +256,9 @@ export default function ProcessPage() {
                   <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
                     <div className="font-semibold text-green-900 mb-1">10. Persona Selection</div>
                     <ul className="text-xs text-gray-700 space-y-0.5">
-                      <li>• Maria, Jonas, or Sofia</li>
-                      <li>• Preset loan scenarios</li>
-                      <li>• Submit application</li>
+                      <li>• Maria (LOW RISK) or Jonas (HIGH RISK)</li>
+                      <li>• 2 personas total</li>
+                      <li>• Review & submit application</li>
                     </ul>
                   </div>
 
@@ -285,9 +286,9 @@ export default function ProcessPage() {
                   <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
                     <div className="font-semibold text-green-900 mb-1">12. Explanation Layers</div>
                     <ul className="text-xs text-gray-700 space-y-0.5">
-                      <li>• Layer 0-5 (6 layers)</li>
-                      <li>• Progressive detail</li>
-                      <li>• Rate each layer</li>
+                      <li>• 4 layers (SHAP, Dashboard, Narrative, Counterfactual)</li>
+                      <li>• Rate each: Understanding, Communicability, Cognitive Load</li>
+                      <li>• Time-on-task tracked</li>
                     </ul>
                   </div>
 
@@ -296,11 +297,11 @@ export default function ProcessPage() {
 
                   {/* Step 13 */}
                   <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
-                    <div className="font-semibold text-green-900 mb-1">13. Post-Questionnaire</div>
+                    <div className="font-semibold text-green-900 mb-1">13. Repeat for Persona 2</div>
                     <ul className="text-xs text-gray-700 space-y-0.5">
-                      <li>• Satisfaction ratings</li>
-                      <li>• Trust assessment</li>
-                      <li>• Preferred layer</li>
+                      <li>• Return to persona hub</li>
+                      <li>• Select second persona</li>
+                      <li>• Complete steps 10-12 again</li>
                     </ul>
                   </div>
 
@@ -309,11 +310,11 @@ export default function ProcessPage() {
 
                   {/* Step 14 */}
                   <div className="bg-white border-2 border-green-400 rounded-lg p-3 shadow-sm">
-                    <div className="font-semibold text-green-900 mb-1">14. Complete</div>
+                    <div className="font-semibold text-green-900 mb-1">14. Study Complete</div>
                     <ul className="text-xs text-gray-700 space-y-0.5">
-                      <li>• Save to Supabase</li>
-                      <li>• Session complete</li>
-                      <li>• Thank you page</li>
+                      <li>• 8 layer ratings collected (4×2)</li>
+                      <li>• Data saved to Supabase</li>
+                      <li>• Thank you & debriefing</li>
                     </ul>
                   </div>
                 </div>
@@ -687,8 +688,8 @@ export default function ProcessPage() {
             <div>
               <h3 className="font-bold mb-2">Experiment Scale</h3>
               <p className="opacity-90">
-                3 personas × 6 layers × 4 metrics = 72 data points per participant + 
-                demographics + questionnaires
+                2 personas × 4 layers × 3 metrics = 24 ratings per participant + 
+                time-on-task + demographics + baseline questionnaire
               </p>
             </div>
           </div>
