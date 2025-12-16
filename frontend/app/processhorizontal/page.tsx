@@ -44,13 +44,13 @@ export default function ProcessHorizontalPage() {
             </div>
             
             {/* Horizontal flow of steps */}
-            <div className="flex items-start gap-4 overflow-x-auto pb-4">
+            <div className="grid grid-cols-6 gap-3">
               {/* Step 1 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('data')}
               >
-                <div className="font-semibold text-blue-900 mb-2">1. Data Acquisition</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">1. Data Acquisition</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• UCI German Credit dataset</li>
                   <li>• 1000 samples, 20 features</li>
@@ -66,16 +66,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-blue-500" />
-              </div>
-
               {/* Step 2 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('cleaning')}
               >
-                <div className="font-semibold text-blue-900 mb-2">2. Data Cleaning</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">2. Data Cleaning</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Map categorical values</li>
                   <li>• Human-readable labels</li>
@@ -90,16 +86,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-blue-500" />
-              </div>
-
               {/* Step 3 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('eda')}
               >
-                <div className="font-semibold text-blue-900 mb-2">3. EDA Analysis</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">3. EDA Analysis</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• 8 visualizations</li>
                   <li>• Statistics JSON</li>
@@ -114,16 +106,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-blue-500" />
-              </div>
-
               {/* Step 4 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('feature')}
               >
-                <div className="font-semibold text-blue-900 mb-2">4. Feature Engineering</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">4. Feature Engineering</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• 5 derived features</li>
                   <li>• Encoding pipeline</li>
@@ -138,16 +126,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-blue-500" />
-              </div>
-
               {/* Step 5 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('training')}
               >
-                <div className="font-semibold text-blue-900 mb-2">5. Model Training</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">5. Model Training</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• XGBoost classifier</li>
                   <li>• SHAP TreeExplainer init</li>
@@ -162,16 +146,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-blue-500" />
-              </div>
-
               {/* Step 6 */}
               <div 
-                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-blue-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('upload')}
               >
-                <div className="font-semibold text-blue-900 mb-2">6. Upload to R2</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm">6. Upload to R2</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Manual upload</li>
                   <li>• Models + EDA files</li>
@@ -202,13 +182,13 @@ export default function ProcessHorizontalPage() {
             </div>
             
             {/* Horizontal flow of steps */}
-            <div className="flex items-start gap-4 justify-center">
+            <div className="grid grid-cols-2 gap-3">
               {/* Step 7 */}
               <div 
-                className="bg-white border-2 border-purple-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[280px]"
+                className="bg-white border-2 border-purple-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('backend')}
               >
-                <div className="font-semibold text-purple-900 mb-2">7. Backend Deploy</div>
+                <div className="font-semibold text-purple-900 mb-2 text-sm">7. Backend Deploy</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• FastAPI on Railway</li>
                   <li>• Load models from R2</li>
@@ -224,16 +204,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-purple-500" />
-              </div>
-
               {/* Step 8 */}
               <div 
-                className="bg-white border-2 border-purple-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[280px]"
+                className="bg-white border-2 border-purple-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('frontend')}
               >
-                <div className="font-semibold text-purple-900 mb-2">8. Frontend Deploy</div>
+                <div className="font-semibold text-purple-900 mb-2 text-sm">8. Frontend Deploy</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Next.js on Netlify</li>
                   <li>• Connect to backend API</li>
@@ -266,13 +242,13 @@ export default function ProcessHorizontalPage() {
             </div>
             
             {/* Horizontal flow of steps */}
-            <div className="flex items-start gap-4 overflow-x-auto pb-4">
+            <div className="grid grid-cols-6 gap-3">
               {/* Step 9 */}
               <div 
-                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('registration')}
               >
-                <div className="font-semibold text-green-900 mb-2">9. User Registration</div>
+                <div className="font-semibold text-green-900 mb-2 text-sm">9. User Registration</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Pre-questionnaire</li>
                   <li>• Demographics</li>
@@ -287,16 +263,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-green-500" />
-              </div>
-
               {/* Step 10 */}
               <div 
-                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('persona')}
               >
-                <div className="font-semibold text-green-900 mb-2">10. Persona Selection</div>
+                <div className="font-semibold text-green-900 mb-2 text-sm">10. Persona Selection</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Maria, Jonas, or Sofia</li>
                   <li>• Preset loan scenarios</li>
@@ -311,16 +283,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-green-500" />
-              </div>
-
               {/* Step 11 - HIGHLIGHTED */}
               <div 
-                className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-4 shadow-lg cursor-pointer hover:shadow-xl transition-shadow min-w-[200px]"
+                className="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-4 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                 onClick={() => toggleStep('prediction')}
               >
-                <div className="font-semibold text-yellow-900 mb-2 flex items-center gap-1">
+                <div className="font-semibold text-yellow-900 mb-2 text-sm flex items-center gap-1">
                   <Zap className="w-4 h-4" />
                   11. Real-time Prediction
                 </div>
@@ -342,16 +310,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-green-500" />
-              </div>
-
               {/* Step 12 */}
               <div 
-                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('layers')}
               >
-                <div className="font-semibold text-green-900 mb-2">12. Explanation Layers</div>
+                <div className="font-semibold text-green-900 mb-2 text-sm">12. Explanation Layers</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Layer 1-4 (4 layers)</li>
                   <li>• Progressive detail</li>
@@ -367,16 +331,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-green-500" />
-              </div>
-
               {/* Step 13 */}
               <div 
-                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('questionnaire')}
               >
-                <div className="font-semibold text-green-900 mb-2">13. Post-Questionnaire</div>
+                <div className="font-semibold text-green-900 mb-2 text-sm">13. Post-Questionnaire</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Satisfaction ratings</li>
                   <li>• Trust assessment</li>
@@ -391,16 +351,12 @@ export default function ProcessHorizontalPage() {
                 )}
               </div>
 
-              <div className="flex items-center pt-8">
-                <ArrowRight className="w-8 h-8 text-green-500" />
-              </div>
-
               {/* Step 14 */}
               <div 
-                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow min-w-[200px]"
+                className="bg-white border-2 border-green-400 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => toggleStep('complete')}
               >
-                <div className="font-semibold text-green-900 mb-2">14. Complete</div>
+                <div className="font-semibold text-green-900 mb-2 text-sm">14. Complete</div>
                 <ul className="text-xs text-gray-700 space-y-1">
                   <li>• Save to Supabase</li>
                   <li>• Session complete</li>
