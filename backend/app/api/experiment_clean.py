@@ -477,42 +477,43 @@ async def get_participant_details(session_id: str):
         if not session_data:
             raise HTTPException(status_code=404, detail=f"Participant {session_id} not found")
         
-        # Get all layer ratings for this session
-        ratings_query = """
-            SELECT 
-                lr.layer_number,
-                lr.persona_id,
-                lr.understanding_rating,
-                lr.communicability_rating,
-                lr.cognitive_load_rating,
-                lr.time_spent_seconds,
-                lr.created_at,
-                p.decision as prediction_decision,
-                p.probability as prediction_probability
-            FROM layer_ratings lr
-            LEFT JOIN predictions p ON lr.prediction_id = p.id
-            WHERE lr.session_id = %s
-            ORDER BY lr.created_at ASC
-        """
-        ratings_result = db.supabase.rpc('execute_sql', {'query': ratings_query, 'params': [session_id]}).execute()
-        layer_ratings = ratings_result.data if ratings_result.data else []
+        # Get all layer ratings for this session with prediction data
+        try:
+            ratings_response = db.client.table('layer_ratings')\
+                .select('*, predictions(decision, probability)')\
+                .eq('session_id', session_id)\
+                .order('created_at', desc=False)\
+                .execute()
+            
+            layer_ratings = []
+            for rating in ratings_response.data:
+                layer_ratings.append({
+                    'layer_number': rating.get('layer_number'),
+                    'persona_id': rating.get('persona_id'),
+                    'understanding_rating': rating.get('understanding_rating'),
+                    'communicability_rating': rating.get('communicability_rating'),
+                    'cognitive_load_rating': rating.get('cognitive_load_rating'),
+                    'time_spent_seconds': rating.get('time_spent_seconds'),
+                    'created_at': rating.get('created_at'),
+                    'prediction_decision': rating.get('predictions', {}).get('decision') if rating.get('predictions') else None,
+                    'prediction_probability': rating.get('predictions', {}).get('probability') if rating.get('predictions') else None,
+                })
+        except Exception as e:
+            print(f"[ERROR] Error fetching layer ratings: {e}")
+            layer_ratings = []
         
         # Get post-questionnaire data
-        questionnaire_query = """
-            SELECT 
-                most_helpful_layer,
-                most_trusted_layer,
-                best_for_customer,
-                overall_intuitiveness,
-                ai_usefulness,
-                improvement_suggestions,
-                created_at
-            FROM post_questionnaires
-            WHERE session_id = %s
-            LIMIT 1
-        """
-        questionnaire_result = db.supabase.rpc('execute_sql', {'query': questionnaire_query, 'params': [session_id]}).execute()
-        questionnaire = questionnaire_result.data[0] if questionnaire_result.data else None
+        try:
+            questionnaire_response = db.client.table('post_questionnaires')\
+                .select('*')\
+                .eq('session_id', session_id)\
+                .limit(1)\
+                .execute()
+            
+            questionnaire = questionnaire_response.data[0] if questionnaire_response.data else None
+        except Exception as e:
+            print(f"[ERROR] Error fetching questionnaire: {e}")
+            questionnaire = None
         
         # Format response
         return {
@@ -545,6 +546,9 @@ async def get_participant_details(session_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        print(f"[ERROR] Failed to retrieve participant details: {str(e)}")
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve participant details: {str(e)}")
 
 
