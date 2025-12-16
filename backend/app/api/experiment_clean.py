@@ -477,26 +477,39 @@ async def get_participant_details(session_id: str):
         if not session_data:
             raise HTTPException(status_code=404, detail=f"Participant {session_id} not found")
         
-        # Get all layer ratings for this session with prediction data
+        # Get all layer ratings for this session
         try:
             ratings_response = db.client.table('layer_ratings')\
-                .select('*, predictions(decision, probability)')\
+                .select('*')\
                 .eq('session_id', session_id)\
                 .order('created_at', desc=False)\
                 .execute()
             
+            # Get predictions for this session
+            predictions_response = db.client.table('predictions')\
+                .select('*')\
+                .eq('session_id', session_id)\
+                .execute()
+            
+            # Create a lookup map for predictions by persona_id
+            predictions_map = {p['persona_id']: p for p in predictions_response.data}
+            
+            # Combine ratings with prediction data
             layer_ratings = []
             for rating in ratings_response.data:
+                persona_id = rating.get('persona_id')
+                prediction = predictions_map.get(persona_id, {})
+                
                 layer_ratings.append({
                     'layer_number': rating.get('layer_number'),
-                    'persona_id': rating.get('persona_id'),
+                    'persona_id': persona_id,
                     'understanding_rating': rating.get('understanding_rating'),
                     'communicability_rating': rating.get('communicability_rating'),
                     'cognitive_load_rating': rating.get('cognitive_load_rating'),
                     'time_spent_seconds': rating.get('time_spent_seconds'),
                     'created_at': rating.get('created_at'),
-                    'prediction_decision': rating.get('predictions', {}).get('decision') if rating.get('predictions') else None,
-                    'prediction_probability': rating.get('predictions', {}).get('probability') if rating.get('predictions') else None,
+                    'prediction_decision': prediction.get('decision'),
+                    'prediction_probability': prediction.get('probability'),
                 })
         except Exception as e:
             print(f"[ERROR] Error fetching layer ratings: {e}")
