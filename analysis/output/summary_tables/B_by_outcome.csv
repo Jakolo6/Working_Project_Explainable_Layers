@@ -1,0 +1,9 @@
+interface_id,decision_outcome,understanding_rating_count,understanding_rating_mean,understanding_rating_std,communicability_rating_mean,communicability_rating_std,cognitive_load_rating_mean,cognitive_load_rating_std,time_spent_seconds_mean,time_spent_seconds_std
+Layer1,approved,20,3.65,1.23,3.55,1.19,3.2,1.47,119.95,111.44
+Layer1,rejected,20,3.4,0.99,3.1,1.25,3.2,1.2,61.7,43.02
+Layer2,approved,20,4.15,1.27,4.05,1.23,4.15,1.04,104.3,111.87
+Layer2,rejected,20,4.3,1.03,4.2,1.06,4.25,1.07,40.95,39.68
+Layer3,approved,20,3.75,1.25,3.45,1.19,3.6,1.19,108.85,117.92
+Layer3,rejected,20,3.85,1.27,3.95,1.23,3.8,1.11,44.1,31.79
+Layer4,approved,20,3.65,1.04,3.7,1.03,3.85,0.99,112.65,138.55
+Layer4,rejected,20,3.35,1.14,3.5,1.15,3.6,1.27,34.8,23.15

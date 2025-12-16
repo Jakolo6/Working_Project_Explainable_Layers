@@ -1,0 +1,81 @@
+================================================================================
+XAI LAYERS MASTER THESIS - RESULTS SUMMARY
+================================================================================
+
+Dataset: 160 observations from 21 participants
+Interfaces: 4 (Layers 1-4)
+Personas: 2
+
+## Overall by Interface
+              understanding_rating_count  understanding_rating_mean  understanding_rating_std  understanding_rating_median  communicability_rating_mean  communicability_rating_std  communicability_rating_median  cognitive_load_rating_mean  cognitive_load_rating_std  cognitive_load_rating_median  time_spent_seconds_mean  time_spent_seconds_std  time_spent_seconds_median  time_spent_seconds_min  time_spent_seconds_max
+interface_id                                                                                                                                                                                                                                                                                                                                                                                                                       
+Layer1                                40                       3.52                      1.11                          4.0                         3.32                        1.23                            3.0                        3.20                       1.32                           4.0                    90.82                   88.44                       71.0                       3                     389
+Layer2                                40                       4.22                      1.14                          5.0                         4.12                        1.14                            4.0                        4.20                       1.04                           5.0                    72.62                   88.84                       38.0                       5                     388
+Layer3                                40                       3.80                      1.24                          4.0                         3.70                        1.22                            4.0                        3.70                       1.14                           4.0                    76.47                   91.33                       49.0                       4                     468
+Layer4                                40                       3.50                      1.09                          4.0                         3.60                        1.08                            4.0                        3.72                       1.13                           4.0                    73.72                  105.68                       41.5                       4                     505
+## By Decision Outcome
+                               understanding_rating_count  understanding_rating_mean  understanding_rating_std  communicability_rating_mean  communicability_rating_std  cognitive_load_rating_mean  cognitive_load_rating_std  time_spent_seconds_mean  time_spent_seconds_std
+interface_id decision_outcome                                                                                                                                                                                                                                                  
+Layer1       approved                                  20                       3.65                      1.23                         3.55                        1.19                        3.20                       1.47                   119.95                  111.44
+             rejected                                  20                       3.40                      0.99                         3.10                        1.25                        3.20                       1.20                    61.70                   43.02
+Layer2       approved                                  20                       4.15                      1.27                         4.05                        1.23                        4.15                       1.04                   104.30                  111.87
+             rejected                                  20                       4.30                      1.03                         4.20                        1.06                        4.25                       1.07                    40.95                   39.68
+Layer3       approved                                  20                       3.75                      1.25                         3.45                        1.19                        3.60                       1.19                   108.85                  117.92
+             rejected                                  20                       3.85                      1.27                         3.95                        1.23                        3.80                       1.11                    44.10                   31.79
+Layer4       approved                                  20                       3.65                      1.04                         3.70                        1.03                        3.85                       0.99                   112.65                  138.55
+             rejected                                  20                       3.35                      1.14                         3.50                        1.15                        3.60                       1.27                    34.80                   23.15
+## By Role Group
+                         understanding_rating_count  understanding_rating_mean  understanding_rating_std  communicability_rating_mean  communicability_rating_std  cognitive_load_rating_mean  cognitive_load_rating_std  time_spent_seconds_mean  time_spent_seconds_std
+interface_id role_group                                                                                                                                                                                                                                                  
+Layer1       non_clerk                           40                       3.52                      1.11                         3.32                        1.23                        3.20                       1.32                    90.82                   88.44
+Layer2       non_clerk                           40                       4.22                      1.14                         4.12                        1.14                        4.20                       1.04                    72.62                   88.84
+Layer3       non_clerk                           40                       3.80                      1.24                         3.70                        1.22                        3.70                       1.14                    76.47                   91.33
+Layer4       non_clerk                           40                       3.50                      1.09                         3.60                        1.08                        3.72                       1.13                    73.72                  105.68
+## Layer Preferences
+         most_helpful  most_trusted  best_for_customer
+layer_1             1             4                  1
+layer_2            12            13                  9
+layer_3             4             2                  3
+layer_4             3             1                  7
+## Statistical Tests
+                metric              test  statistic  p_value  effect_size_r significant
+  understanding_rating          Friedman     12.050   0.0072            NaN          **
+  understanding_rating Wilcoxon L1 vs L2      9.500   0.0022          0.668          **
+  understanding_rating Wilcoxon L1 vs L3     55.000   0.4964          0.148          ns
+  understanding_rating Wilcoxon L1 vs L4     75.500   0.6572          0.097          ns
+  understanding_rating Wilcoxon L2 vs L3     24.000   0.0378          0.453           *
+  understanding_rating Wilcoxon L2 vs L4     21.000   0.0082          0.577          **
+  understanding_rating Wilcoxon L3 vs L4     72.500   0.5652          0.126          ns
+communicability_rating          Friedman      4.724   0.1932            NaN          ns
+ cognitive_load_rating          Friedman     14.006   0.0029            NaN          **
+ cognitive_load_rating Wilcoxon L1 vs L2      0.000   0.0004          0.773         ***
+ cognitive_load_rating Wilcoxon L1 vs L3     47.000   0.1599          0.307          ns
+ cognitive_load_rating Wilcoxon L1 vs L4     43.000   0.0608          0.409          ns
+ cognitive_load_rating Wilcoxon L2 vs L3     43.500   0.0650          0.403          ns
+ cognitive_load_rating Wilcoxon L2 vs L4     31.500   0.0317          0.469           *
+ cognitive_load_rating Wilcoxon L3 vs L4     57.000   0.8634          0.038          ns
+    time_spent_seconds          Friedman     14.415   0.0024            NaN          **
+    time_spent_seconds Wilcoxon L1 vs L2     40.000   0.0087          0.573          **
+    time_spent_seconds Wilcoxon L1 vs L3     46.000   0.0276          0.481           *
+    time_spent_seconds Wilcoxon L1 vs L4     42.500   0.0196          0.509           *
+    time_spent_seconds Wilcoxon L2 vs L3     86.500   0.3134          0.220          ns
+    time_spent_seconds Wilcoxon L2 vs L4     87.500   0.3304          0.212          ns
+    time_spent_seconds Wilcoxon L3 vs L4     53.500   0.0949          0.364          ns
+
+================================================================================
+QUALITY CHECKS
+================================================================================
+
+## Missing Values
+                       count  percentage
+most_helpful_layer         4         2.5
+most_trusted_layer         4         2.5
+best_for_customer          4         2.5
+overall_intuitiveness      4         2.5
+ai_usefulness              4         2.5
+## Time Outliers
+12 outliers detected
+## Incomplete Sessions
+2 sessions incomplete
+## Completion
+20/21 completed (95.2%)

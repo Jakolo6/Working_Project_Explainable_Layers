@@ -1,0 +1,5 @@
+interface_id,role_group,understanding_rating_count,understanding_rating_mean,understanding_rating_std,communicability_rating_mean,communicability_rating_std,cognitive_load_rating_mean,cognitive_load_rating_std,time_spent_seconds_mean,time_spent_seconds_std
+Layer1,non_clerk,40,3.52,1.11,3.32,1.23,3.2,1.32,90.82,88.44
+Layer2,non_clerk,40,4.22,1.14,4.12,1.14,4.2,1.04,72.62,88.84
+Layer3,non_clerk,40,3.8,1.24,3.7,1.22,3.7,1.14,76.47,91.33
+Layer4,non_clerk,40,3.5,1.09,3.6,1.08,3.72,1.13,73.72,105.68

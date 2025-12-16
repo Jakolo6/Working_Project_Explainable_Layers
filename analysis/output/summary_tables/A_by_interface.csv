@@ -1,0 +1,5 @@
+interface_id,understanding_rating_count,understanding_rating_mean,understanding_rating_std,understanding_rating_median,communicability_rating_mean,communicability_rating_std,communicability_rating_median,cognitive_load_rating_mean,cognitive_load_rating_std,cognitive_load_rating_median,time_spent_seconds_mean,time_spent_seconds_std,time_spent_seconds_median,time_spent_seconds_min,time_spent_seconds_max
+Layer1,40,3.52,1.11,4.0,3.32,1.23,3.0,3.2,1.32,4.0,90.82,88.44,71.0,3,389
+Layer2,40,4.22,1.14,5.0,4.12,1.14,4.0,4.2,1.04,5.0,72.62,88.84,38.0,5,388
+Layer3,40,3.8,1.24,4.0,3.7,1.22,4.0,3.7,1.14,4.0,76.47,91.33,49.0,4,468
+Layer4,40,3.5,1.09,4.0,3.6,1.08,4.0,3.72,1.13,4.0,73.72,105.68,41.5,4,505

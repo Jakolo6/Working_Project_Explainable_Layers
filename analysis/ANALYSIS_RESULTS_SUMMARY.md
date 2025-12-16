@@ -1,17 +1,22 @@
 # 🎓 XAI Layers Master Thesis - Analysis Results Summary
 
 **Date:** December 16, 2025  
-**Status:** ✅ Analysis Complete  
+**Status:** ✅ Analysis Complete (CORRECTED)  
 **Dataset:** 160 observations from 21 participants
+
+> ⚠️ **Note:** This document has been audited and corrected. See `SCIENTIFIC_AUDIT.md` for details.
+> One error was found (layer preference counts) and corrected.
 
 ---
 
 ## 📊 Key Findings
 
 ### **Dataset Overview**
-- **Participants:** 21 (20 completed, 1 incomplete)
-- **Completion Rate:** 95.2%
+- **Participants:** 21 total
+  - 19 completed BOTH personas (8 ratings each)
+  - 2 completed ONE persona only (4 ratings each)
 - **Total Observations:** 160 layer ratings
+- **Post-questionnaire responses:** 39 (1 missing)
 - **Interfaces Tested:** 4 (Layer 1-4)
 - **Personas:** 2 (Maria - elderly woman, Jonas - young entrepreneur)
 - **Expected Ratings per Participant:** 8 (2 personas × 4 layers)
@@ -92,27 +97,30 @@
 
 ---
 
-## 🎯 **Participant Preferences**
+## 🎯 **Participant Preferences** (CORRECTED)
+
+> **Note:** Each participant gave preferences once per persona (up to 2 responses each).
+> Total responses: 39 (1 missing post-questionnaire)
 
 ### **Most Helpful Layer**
-1. **Layer 2 (Visual Dashboard):** 12 votes (60%)
-2. Layer 3 (Narrative): 4 votes (20%)
-3. Layer 4 (Counterfactual): 3 votes (15%)
-4. Layer 1 (SHAP Table): 1 vote (5%)
+1. **Layer 2 (Visual Dashboard):** 23/39 (59.0%) ⭐
+2. Layer 3 (Narrative): 8/39 (20.5%)
+3. Layer 4 (Counterfactual): 6/39 (15.4%)
+4. Layer 1 (SHAP Table): 2/39 (5.1%)
 
 ### **Most Trusted Layer**
-1. **Layer 2 (Visual Dashboard):** 13 votes (65%)
-2. Layer 1 (SHAP Table): 4 votes (20%)
-3. Layer 3 (Narrative): 2 votes (10%)
-4. Layer 4 (Counterfactual): 1 vote (5%)
+1. **Layer 2 (Visual Dashboard):** 25/39 (64.1%) ⭐
+2. Layer 1 (SHAP Table): 8/39 (20.5%)
+3. Layer 3 (Narrative): 4/39 (10.3%)
+4. Layer 4 (Counterfactual): 2/39 (5.1%)
 
 ### **Best for Customer Communication**
-1. **Layer 2 (Visual Dashboard):** 9 votes (45%)
-2. Layer 4 (Counterfactual): 7 votes (35%)
-3. Layer 3 (Narrative): 3 votes (15%)
-4. Layer 1 (SHAP Table): 1 vote (5%)
+1. **Layer 2 (Visual Dashboard):** 17/39 (43.6%) ⭐
+2. Layer 4 (Counterfactual): 14/39 (35.9%)
+3. Layer 3 (Narrative): 6/39 (15.4%)
+4. Layer 1 (SHAP Table): 2/39 (5.1%)
 
-**Interpretation:** Layer 2 (Visual Dashboard) is overwhelmingly preferred across all categories.
+**Interpretation:** Layer 2 (Visual Dashboard) is clearly preferred across all categories.
 
 ---
 

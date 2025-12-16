@@ -1,0 +1,23 @@
+metric,test,statistic,p_value,effect_size_r,significant
+understanding_rating,Friedman,12.05,0.0072,,**
+understanding_rating,Wilcoxon L1 vs L2,9.5,0.0022,0.668,**
+understanding_rating,Wilcoxon L1 vs L3,55.0,0.4964,0.148,ns
+understanding_rating,Wilcoxon L1 vs L4,75.5,0.6572,0.097,ns
+understanding_rating,Wilcoxon L2 vs L3,24.0,0.0378,0.453,*
+understanding_rating,Wilcoxon L2 vs L4,21.0,0.0082,0.577,**
+understanding_rating,Wilcoxon L3 vs L4,72.5,0.5652,0.126,ns
+communicability_rating,Friedman,4.724,0.1932,,ns
+cognitive_load_rating,Friedman,14.006,0.0029,,**
+cognitive_load_rating,Wilcoxon L1 vs L2,0.0,0.0004,0.773,***
+cognitive_load_rating,Wilcoxon L1 vs L3,47.0,0.1599,0.307,ns
+cognitive_load_rating,Wilcoxon L1 vs L4,43.0,0.0608,0.409,ns
+cognitive_load_rating,Wilcoxon L2 vs L3,43.5,0.065,0.403,ns
+cognitive_load_rating,Wilcoxon L2 vs L4,31.5,0.0317,0.469,*
+cognitive_load_rating,Wilcoxon L3 vs L4,57.0,0.8634,0.038,ns
+time_spent_seconds,Friedman,14.415,0.0024,,**
+time_spent_seconds,Wilcoxon L1 vs L2,40.0,0.0087,0.573,**
+time_spent_seconds,Wilcoxon L1 vs L3,46.0,0.0276,0.481,*
+time_spent_seconds,Wilcoxon L1 vs L4,42.5,0.0196,0.509,*
+time_spent_seconds,Wilcoxon L2 vs L3,86.5,0.3134,0.22,ns
+time_spent_seconds,Wilcoxon L2 vs L4,87.5,0.3304,0.212,ns
+time_spent_seconds,Wilcoxon L3 vs L4,53.5,0.0949,0.364,ns

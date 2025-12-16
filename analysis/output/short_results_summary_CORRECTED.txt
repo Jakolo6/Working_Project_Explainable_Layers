@@ -1,0 +1,95 @@
+================================================================================
+XAI LAYERS MASTER THESIS - CORRECTED RESULTS SUMMARY
+================================================================================
+
+## DATASET OVERVIEW
+Total observations (layer ratings): 160
+Unique participants: 21
+  - Completed BOTH personas: 19
+  - Completed ONE persona only: 2
+Total post-questionnaire responses: 39 (1 missing)
+Interfaces: 4 layers
+Personas: 2 (elderly-woman, young-entrepreneur)
+
+## DESCRIPTIVE STATISTICS BY LAYER
+
+Layer 1 (n=40 ratings):
+  Understanding:    M=3.52, SD=1.11
+  Communicability:  M=3.33, SD=1.23
+  Cognitive Load:   M=3.20, SD=1.32
+  Time (seconds):   M=90.83, SD=88.44
+
+Layer 2 (n=40 ratings):
+  Understanding:    M=4.22, SD=1.14
+  Communicability:  M=4.12, SD=1.14
+  Cognitive Load:   M=4.20, SD=1.04
+  Time (seconds):   M=72.62, SD=88.84
+
+Layer 3 (n=40 ratings):
+  Understanding:    M=3.80, SD=1.24
+  Communicability:  M=3.70, SD=1.22
+  Cognitive Load:   M=3.70, SD=1.14
+  Time (seconds):   M=76.47, SD=91.33
+
+Layer 4 (n=40 ratings):
+  Understanding:    M=3.50, SD=1.09
+  Communicability:  M=3.60, SD=1.08
+  Cognitive Load:   M=3.73, SD=1.13
+  Time (seconds):   M=73.72, SD=105.68
+
+## LAYER PREFERENCES (CORRECTED)
+Note: Each participant responded once per persona (up to 2 responses each)
+Total responses: 39 (1 participant missing post-questionnaire for 1 persona)
+
+most_helpful_layer:
+  layer_1: 2/39 (5.1%)
+  layer_2: 23/39 (59.0%)
+  layer_3: 8/39 (20.5%)
+  layer_4: 6/39 (15.4%)
+
+most_trusted_layer:
+  layer_1: 8/39 (20.5%)
+  layer_2: 25/39 (64.1%)
+  layer_3: 4/39 (10.3%)
+  layer_4: 2/39 (5.1%)
+
+best_for_customer:
+  layer_1: 2/39 (5.1%)
+  layer_2: 17/39 (43.6%)
+  layer_3: 6/39 (15.4%)
+  layer_4: 14/39 (35.9%)
+
+
+## STATISTICAL TESTS (Friedman + Wilcoxon)
+N = 21 participants (each with averaged scores across personas)
+
+understanding_rating:
+  Friedman χ²(3) = 12.050, p = 0.0072 **
+    L1 vs L2: W=9.5, p=0.0022 **, r=0.67
+    L1 vs L3: W=55.0, p=0.4964 ns, r=0.15
+    L1 vs L4: W=75.5, p=0.6572 ns, r=0.10
+    L2 vs L3: W=24.0, p=0.0378 *, r=0.45
+    L2 vs L4: W=21.0, p=0.0082 **, r=0.58
+    L3 vs L4: W=72.5, p=0.5652 ns, r=0.13
+
+communicability_rating:
+  Friedman χ²(3) = 4.724, p = 0.1932 ns
+
+cognitive_load_rating:
+  Friedman χ²(3) = 14.006, p = 0.0029 **
+    L1 vs L2: W=0.0, p=0.0004 ***, r=0.77
+    L1 vs L3: W=47.0, p=0.1599 ns, r=0.31
+    L1 vs L4: W=43.0, p=0.0608 ns, r=0.41
+    L2 vs L3: W=43.5, p=0.0650 ns, r=0.40
+    L2 vs L4: W=31.5, p=0.0317 *, r=0.47
+    L3 vs L4: W=57.0, p=0.8634 ns, r=0.04
+
+time_spent_seconds:
+  Friedman χ²(3) = 14.415, p = 0.0024 **
+    L1 vs L2: W=40.0, p=0.0087 **, r=0.57
+    L1 vs L3: W=46.0, p=0.0276 *, r=0.48
+    L1 vs L4: W=42.5, p=0.0196 *, r=0.51
+    L2 vs L3: W=86.5, p=0.3134 ns, r=0.22
+    L2 vs L4: W=87.5, p=0.3304 ns, r=0.21
+    L3 vs L4: W=53.5, p=0.0949 ns, r=0.36
+
