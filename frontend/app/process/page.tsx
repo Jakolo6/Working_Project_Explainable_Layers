@@ -708,6 +708,261 @@ export default function ProcessPage() {
             </a>
           </div>
         </div>
+
+        {/* Participant Flow Visualization */}
+        <div className="mt-16 mb-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Complete Participant Flow</h2>
+          <p className="text-center text-gray-600 mb-8">End-to-end user journey through the experiment (~10-15 minutes)</p>
+          
+          <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-8 border-2 border-blue-200 shadow-xl">
+            {/* Flow Steps */}
+            <div className="space-y-6">
+              
+              {/* Step 1: Landing */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  1
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-blue-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">🏠 Landing Page</h3>
+                  <p className="text-sm text-gray-600 mb-2">Learn about the research, understand the task, see time estimate (~10 min)</p>
+                  <div className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                    Action: Click "Start Experiment"
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 2: Consent & Registration */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  2
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-indigo-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">📝 Consent & Baseline Questionnaire</h3>
+                  <p className="text-sm text-gray-600 mb-3">Provide consent, answer demographics, preferences, and trust attitudes</p>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
+                      <div className="font-semibold text-indigo-900">Demographics</div>
+                      <div className="text-gray-600">Age, Gender</div>
+                    </div>
+                    <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
+                      <div className="font-semibold text-indigo-900">Experience</div>
+                      <div className="text-gray-600">Financial background</div>
+                    </div>
+                    <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
+                      <div className="font-semibold text-indigo-900">Trust & Ethics</div>
+                      <div className="text-gray-600">AI attitudes</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-semibold">
+                    Action: Create Session
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 3: Persona Selection */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  3
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-purple-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">👥 Persona Selection Hub</h3>
+                  <p className="text-sm text-gray-600 mb-3">Choose which loan applicant to review (2 personas available)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-green-50 p-3 rounded-lg border-2 border-green-300">
+                      <div className="font-semibold text-green-900 text-sm">Persona 1: Maria (35)</div>
+                      <div className="text-xs text-gray-600">€2,500 used car</div>
+                      <div className="text-xs font-semibold text-green-700 mt-1">LOW RISK ✓</div>
+                    </div>
+                    <div className="bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                      <div className="font-semibold text-red-900 text-sm">Persona 2: Jonas (23)</div>
+                      <div className="text-xs text-gray-600">€15,000 business</div>
+                      <div className="text-xs font-semibold text-red-700 mt-1">HIGH RISK ⚠</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">
+                    Action: Select Persona
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 4: Application Review */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  4
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-pink-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">📋 Credit Application Review</h3>
+                  <p className="text-sm text-gray-600 mb-2">Review pre-filled loan application with all financial details</p>
+                  <div className="inline-block bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-xs font-semibold">
+                    Action: Submit to AI
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 5: AI Processing */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg animate-pulse">
+                  ⚡
+                </div>
+                <div className="flex-1 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-5 shadow-md border-2 border-yellow-400">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">🤖 AI Processing (Real-time)</h3>
+                  <p className="text-sm text-gray-600 mb-3">XGBoost model predicts + SHAP calculates feature attributions</p>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-white p-2 rounded border border-yellow-300">
+                      <div className="font-semibold">Feature Engineering</div>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-yellow-300">
+                      <div className="font-semibold">XGBoost Prediction</div>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-yellow-300">
+                      <div className="font-semibold">SHAP Calculation</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 6: 4 Explanation Layers */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  6
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-green-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">🎯 4 Explanation Layers (Sequential)</h3>
+                  <p className="text-sm text-gray-600 mb-3">View and rate each explanation style one at a time</p>
+                  
+                  <div className="space-y-2">
+                    {/* Layer 1 */}
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-semibold text-sm text-blue-900">Layer 1: Baseline SHAP Table</div>
+                        <div className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">Technical</div>
+                      </div>
+                      <div className="text-xs text-gray-600">Feature importance table with SHAP values</div>
+                    </div>
+
+                    {/* Layer 2 */}
+                    <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-semibold text-sm text-purple-900">Layer 2: Interactive Dashboard</div>
+                        <div className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">Visual</div>
+                      </div>
+                      <div className="text-xs text-gray-600">Tug-of-war + expandable feature cards</div>
+                    </div>
+
+                    {/* Layer 3 */}
+                    <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-semibold text-sm text-green-900">Layer 3: Narrative Explanation</div>
+                        <div className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">Narrative</div>
+                      </div>
+                      <div className="text-xs text-gray-600">Natural language story format</div>
+                    </div>
+
+                    {/* Layer 4 */}
+                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-semibold text-sm text-orange-900">Layer 4: Counterfactual Simulator</div>
+                        <div className="text-xs bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full">Action</div>
+                      </div>
+                      <div className="text-xs text-gray-600">What-if analysis with sliders</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 bg-green-100 p-3 rounded-lg border border-green-300">
+                    <div className="text-xs font-semibold text-green-900 mb-1">After each layer:</div>
+                    <div className="text-xs text-gray-700">Rate on 3 dimensions: Understanding • Communicability • Cognitive Load</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 7: Repeat for Persona 2 */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  7
+                </div>
+                <div className="flex-1 bg-white rounded-xl p-5 shadow-md border border-cyan-100">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">🔄 Repeat for Persona 2</h3>
+                  <p className="text-sm text-gray-600 mb-2">Return to hub, select second persona, complete steps 4-6 again</p>
+                  <div className="inline-block bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-xs font-semibold">
+                    Progress: 1 of 2 personas complete
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowDown className="w-6 h-6 text-blue-400" />
+              </div>
+
+              {/* Step 8: Completion */}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  ✓
+                </div>
+                <div className="flex-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-5 shadow-md border-2 border-emerald-400">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">🎉 Study Complete!</h3>
+                  <p className="text-sm text-gray-600 mb-3">Thank you page, data saved, session cleared</p>
+                  <div className="bg-white p-3 rounded-lg border border-emerald-300">
+                    <div className="text-xs font-semibold text-emerald-900 mb-1">Data Collected:</div>
+                    <div className="text-xs text-gray-700">
+                      • 8 layer ratings (4 layers × 2 personas)<br/>
+                      • Time spent on each layer<br/>
+                      • Demographics & preferences<br/>
+                      • Optional comments
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Summary Stats */}
+            <div className="mt-8 pt-6 border-t-2 border-blue-200">
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl font-bold text-blue-600">8</div>
+                  <div className="text-xs text-gray-600 mt-1">Steps</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl font-bold text-purple-600">2</div>
+                  <div className="text-xs text-gray-600 mt-1">Personas</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl font-bold text-green-600">4</div>
+                  <div className="text-xs text-gray-600 mt-1">Explanation Layers</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="text-3xl font-bold text-orange-600">~12</div>
+                  <div className="text-xs text-gray-600 mt-1">Minutes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
